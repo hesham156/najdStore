@@ -62,6 +62,9 @@ async function main() {
 
   console.log("✅ Users created");
 
+  // ─── Sample demo catalog — set SEED_SAMPLE=false to skip (e.g. real stores) ───
+  if (process.env.SEED_SAMPLE !== "false") {
+
   // Categories
   const categories = await Promise.all([
     prisma.category.upsert({
@@ -461,22 +464,24 @@ async function main() {
     },
   });
 
+  } // ─── end sample demo catalog (SEED_SAMPLE) ───
+
   // Settings
   const settings = [
-    { key: "site_name", value: "متجرك الإلكتروني", type: "text", label: "Site Name", labelAr: "اسم الموقع", group: "general" },
+    { key: "site_name", value: "نجد برنت", type: "text", label: "Site Name", labelAr: "اسم الموقع", group: "general" },
     { key: "site_email", value: "support@store.com", type: "text", label: "Support Email", labelAr: "بريد الدعم", group: "general" },
     // Branding / marketing copy — re-theme the store for any niche from Settings
-    { key: "hero_badge",           value: "تسليم سريع وجودة موثوقة", type: "text", label: "Hero Badge", labelAr: "الهيرو — الشارة العلوية", group: "general" },
-    { key: "hero_title",           value: "كل ما تحتاجه في مكان واحد", type: "text", label: "Hero Title", labelAr: "الهيرو — العنوان الرئيسي", group: "general" },
-    { key: "hero_title_highlight", value: "بأفضل الأسعار وأعلى جودة", type: "text", label: "Hero Title Highlight", labelAr: "الهيرو — العنوان المميّز (ملوّن)", group: "general" },
-    { key: "hero_subtitle",        value: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتجربة شراء سلسة.", type: "text", label: "Hero Subtitle", labelAr: "الهيرو — النص الفرعي", group: "general" },
+    { key: "hero_badge",           value: "طباعة احترافية وتسليم سريع", type: "text", label: "Hero Badge", labelAr: "الهيرو — الشارة العلوية", group: "general" },
+    { key: "hero_title",           value: "اطبع أفكارك باحتراف", type: "text", label: "Hero Title", labelAr: "الهيرو — العنوان الرئيسي", group: "general" },
+    { key: "hero_title_highlight", value: "بأعلى جودة وأفضل سعر", type: "text", label: "Hero Title Highlight", labelAr: "الهيرو — العنوان المميّز (ملوّن)", group: "general" },
+    { key: "hero_subtitle",        value: "مطبعة نجد برنت — نصمّم ونطبع كل ما تحتاجه: كروت، أكواب، علب، لوحات، وأكثر بجودة عالية وتسليم سريع.", type: "text", label: "Hero Subtitle", labelAr: "الهيرو — النص الفرعي", group: "general" },
     { key: "hero_stat_1_value",    value: "+5000", type: "text", label: "Stat 1 Value", labelAr: "إحصائية 1 — الرقم", group: "general" },
     { key: "hero_stat_1_label",    value: "عميل راضٍ", type: "text", label: "Stat 1 Label", labelAr: "إحصائية 1 — النص", group: "general" },
     { key: "hero_stat_2_value",    value: "+50", type: "text", label: "Stat 2 Value", labelAr: "إحصائية 2 — الرقم", group: "general" },
-    { key: "hero_stat_2_label",    value: "منتج متاح", type: "text", label: "Stat 2 Label", labelAr: "إحصائية 2 — النص", group: "general" },
+    { key: "hero_stat_2_label",    value: "منتج للطباعة", type: "text", label: "Stat 2 Label", labelAr: "إحصائية 2 — النص", group: "general" },
     { key: "hero_stat_3_value",    value: "+10K", type: "text", label: "Stat 3 Value", labelAr: "إحصائية 3 — الرقم", group: "general" },
     { key: "hero_stat_3_label",    value: "طلب مكتمل", type: "text", label: "Stat 3 Label", labelAr: "إحصائية 3 — النص", group: "general" },
-    { key: "footer_description",   value: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.", type: "text", label: "Footer Description", labelAr: "الفوتر — وصف المتجر", group: "general" },
+    { key: "footer_description",   value: "مطبعة نجد برنت لتصميم وطباعة منتجاتك بأعلى جودة وتسليم سريع.", type: "text", label: "Footer Description", labelAr: "الفوتر — وصف المتجر", group: "general" },
     { key: "site_phone", value: "+966501234567", type: "text", label: "Phone", labelAr: "الهاتف", group: "general" },
     { key: "currency", value: "SAR", type: "text", label: "Currency", labelAr: "العملة", group: "general" },
     { key: "currency_symbol", value: "ر.س", type: "text", label: "Currency Symbol", labelAr: "رمز العملة", group: "general" },

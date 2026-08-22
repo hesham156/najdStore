@@ -17,6 +17,7 @@ import { FlashSaleTimer } from "@/components/store/FlashSaleTimer";
 import { LiveViewers } from "@/components/store/LiveViewers";
 import { StickyCTA } from "@/components/store/StickyCTA";
 import toast from "react-hot-toast";
+import DOMPurify from "isomorphic-dompurify";
 import type { ProductWithCategory, ProductVariant } from "@/types";
 
 interface PublicSettings {
@@ -176,9 +177,16 @@ export default function ProductClient({ product, publicSettings }: Props) {
               </div>
             </div>
 
-            {/* Description */}
+            {/* Description — renders sanitized HTML (e.g. imported from Salla) or plain text */}
             {product.descriptionAr && (
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{product.descriptionAr}</p>
+              /<[a-z][\s\S]*>/i.test(product.descriptionAr) ? (
+                <div
+                  className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 prose-headings:text-gray-900 dark:prose-headings:text-white prose-strong:text-gray-900 dark:prose-strong:text-white prose-a:text-primary-600"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.descriptionAr) }}
+                />
+              ) : (
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">{product.descriptionAr}</p>
+              )
             )}
 
             {/* Features */}

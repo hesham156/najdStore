@@ -8,6 +8,12 @@ export const dynamic = "force-dynamic";
 const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
 const siteName = "متجرك الإلكتروني";
 
+/** Strip HTML tags & collapse whitespace — for meta descriptions built from rich HTML */
+function stripHtml(html: string, max = 160): string {
+  const text = html.replace(/<[^>]*>/g, " ").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").trim();
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
 interface Props { params: { slug: string } }
 
 /* ─────────────────────────────────────────
@@ -35,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const customKeywords = seoKeywordsTag ? seoKeywordsTag.replace("seo_kw:", "").split(",") : [];
 
   const title       = customTitle || `${product.nameAr} | ${product.category.nameAr} – ${siteName}`;
-  const description = customDesc  || product.descriptionAr ||
+  const description = customDesc  || (product.descriptionAr ? stripHtml(product.descriptionAr) : "") ||
     `اشتر ${product.nameAr} الآن من ${siteName} بسعر يبدأ من ${minPrice} ر.س – تسليم فوري وآمن.`;
 
   const keywords = [
@@ -101,7 +107,7 @@ async function getSchemas(slug: string) {
   const minPrice  = variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : price;
   const imgUrl    = product.image || `${siteUrl}/og-image.png`;
   const canonical = `${siteUrl}/products/${product.slug}`;
-  const desc      = product.descriptionAr || `اشتر ${product.nameAr} بسعر يبدأ من ${minPrice} ر.س.`;
+  const desc      = (product.descriptionAr ? stripHtml(product.descriptionAr, 300) : "") || `اشتر ${product.nameAr} بسعر يبدأ من ${minPrice} ر.س.`;
   const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   const productSchema = {
