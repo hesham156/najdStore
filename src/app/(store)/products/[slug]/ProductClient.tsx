@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Check, Zap, Clock, ArrowRight, Star, Package, ChevronDown, ChevronUp } from "lucide-react";
@@ -18,7 +18,7 @@ import { LiveViewers } from "@/components/store/LiveViewers";
 import { StickyCTA } from "@/components/store/StickyCTA";
 import toast from "react-hot-toast";
 import DOMPurify from "isomorphic-dompurify";
-import type { ProductWithCategory, ProductVariant } from "@/types";
+import type { ProductWithCategory, ProductVariant, ProductOptionData, MatrixVariant } from "@/types";
 
 interface PublicSettings {
   tabby_enabled?: boolean;
@@ -30,14 +30,54 @@ interface PublicSettings {
 interface Props {
   product: ProductWithCategory & { variants?: ProductVariant[] };
   publicSettings: PublicSettings;
+  /* Multi-option (matrix pricing) — when present, replaces the legacy tag-variant grid */
+  options?: ProductOptionData[];
+  optionVariants?: MatrixVariant[];
 }
 
-export default function ProductClient({ product, publicSettings }: Props) {
+export default function ProductClient({ product, publicSettings, options = [], optionVariants = [] }: Props) {
   const { formatAmount } = useCurrency();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     product.variants && product.variants.length > 0 ? product.variants[0] : null
+  );
+
+  const hasOptions = options.length > 0 && optionVariants.length > 0;
+  // optionId → selected valueId
+  const [selection, setSelection] = useState<Record<string, string>>({});
+
+  const activeMatrixVariants = useMemo(
+    () => optionVariants.filter((v) => v.isActive),
+    [optionVariants],
+  );
+
+  // The fully-resolved variant for the current selection (all options chosen)
+  const resolvedVariant = useMemo<MatrixVariant | null>(() => {
+    if (!hasOptions) return null;
+    if (options.some((o) => o.required && !selection[o.id])) return null;
+    const chosen = options.map((o) => selection[o.id]).filter(Boolean).sort();
+    if (chosen.length === 0) return null;
+    return (
+      activeMatrixVariants.find((v) => {
+        const ids = [...v.optionValueIds].sort();
+        return ids.length === chosen.length && ids.every((id, i) => id === chosen[i]);
+      }) || null
+    );
+  }, [hasOptions, options, selection, activeMatrixVariants]);
+
+  // A value is selectable if some active variant contains it AND is consistent
+  // with the values already chosen in the OTHER options (Salla-style dependency).
+  const isValueAvailable = (optionId: string, valueId: string): boolean => {
+    const others = Object.entries(selection).filter(([oid]) => oid !== optionId).map(([, vid]) => vid);
+    return activeMatrixVariants.some(
+      (v) => v.optionValueIds.includes(valueId) && others.every((vid) => v.optionValueIds.includes(vid)),
+    );
+  };
+
+  const minMatrixPrice = useMemo(
+    () => (activeMatrixVariants.length ? Math.min(...activeMatrixVariants.map((v) => v.price)) : 0),
+    [activeMatrixVariants],
   );
   const [related, setRelated] = useState<ProductWithCategory[]>([]);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -62,21 +102,40 @@ export default function ProductClient({ product, publicSettings }: Props) {
     }
   }, [product.slug, product.category?.slug]);
 
-  const activePrice = selectedVariant
-    ? selectedVariant.price
-    : parseFloat(String(product.price));
+  // Label for the current combination, e.g. "الكمية: 100 حبة · التصميم: بتصميمكم"
+  const selectionLabel = useMemo(() => {
+    if (!hasOptions) return undefined;
+    return options
+      .map((o) => {
+        const val = o.values.find((v) => v.id === selection[o.id]);
+        return val ? `${o.nameAr}: ${val.labelAr}` : null;
+      })
+      .filter(Boolean)
+      .join(" · ") || undefined;
+  }, [hasOptions, options, selection]);
 
-  const activeComparePrice = selectedVariant?.comparePrice
-    ?? (product.comparePrice ? parseFloat(String(product.comparePrice)) : null);
+  const activePrice = hasOptions
+    ? (resolvedVariant ? resolvedVariant.price : minMatrixPrice || parseFloat(String(product.price)))
+    : (selectedVariant ? selectedVariant.price : parseFloat(String(product.price)));
+
+  const activeComparePrice = hasOptions
+    ? (resolvedVariant?.comparePrice ?? null)
+    : (selectedVariant?.comparePrice ?? (product.comparePrice ? parseFloat(String(product.comparePrice)) : null));
 
   const discount = activeComparePrice
     ? Math.round(((activeComparePrice - activePrice) / activeComparePrice) * 100)
     : 0;
 
   const variants = product.variants || [];
-  const hasVariants = variants.length > 0;
+  const hasVariants = !hasOptions && variants.length > 0;
+  // block add-to-cart until every required option resolves to an active variant
+  const selectionIncomplete = hasOptions && !resolvedVariant;
 
   const handleAddToCart = () => {
+    if (selectionIncomplete) {
+      toast.error("اختر كل الخيارات أولاً");
+      return;
+    }
     addItem({
       id: product.id,
       name: product.name,
@@ -85,10 +144,13 @@ export default function ProductClient({ product, publicSettings }: Props) {
       image: product.image || undefined,
       quantity,
       slug: product.slug,
-      variantLabel: selectedVariant?.label,
+      variantLabel: hasOptions ? selectionLabel : selectedVariant?.label,
+      variantId: hasOptions ? resolvedVariant?.id : undefined,
     });
     setAdded(true);
-    const label = selectedVariant ? ` (${selectedVariant.label})` : "";
+    const label = hasOptions
+      ? (selectionLabel ? ` (${selectionLabel})` : "")
+      : (selectedVariant ? ` (${selectedVariant.label})` : "");
     toast.success(`تم إضافة ${product.nameAr}${label} إلى السلة`);
     setTimeout(() => setAdded(false), 3000);
 
@@ -223,7 +285,48 @@ export default function ProductClient({ product, publicSettings }: Props) {
               </div>
             )}
 
-            {/* Variants selector */}
+            {/* Option selectors (matrix pricing) */}
+            {hasOptions && (
+              <div className="space-y-4">
+                {options.map((opt) => (
+                  <div key={opt.id} className="space-y-1.5">
+                    <label className="flex items-center gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      {opt.nameAr}
+                      {opt.required && <span className="text-red-500">*</span>}
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selection[opt.id] || ""}
+                        onChange={(e) => setSelection((s) => ({ ...s, [opt.id]: e.target.value }))}
+                        className={cn(
+                          "w-full appearance-none rounded-xl border-2 bg-white dark:bg-gray-800 px-4 py-3 pe-10 text-sm font-medium text-gray-900 dark:text-white transition-colors",
+                          "focus:outline-none focus:border-primary-500",
+                          selection[opt.id]
+                            ? "border-primary-400 dark:border-primary-700"
+                            : "border-gray-200 dark:border-gray-700",
+                        )}
+                      >
+                        <option value="" disabled>اختر</option>
+                        {opt.values.map((val) => {
+                          const available = isValueAvailable(opt.id, val.id);
+                          return (
+                            <option key={val.id} value={val.id} disabled={!available}>
+                              {val.labelAr}{!available ? " — غير متاح" : ""}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
+                  </div>
+                ))}
+                {selectionIncomplete && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">اختر كل الخيارات لعرض السعر النهائي.</p>
+                )}
+              </div>
+            )}
+
+            {/* Variants selector (legacy tag-based) */}
             {hasVariants && (
               <div className="space-y-3">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">اختر أحد الخيارات</p>
@@ -303,6 +406,9 @@ export default function ProductClient({ product, publicSettings }: Props) {
             {/* Price */}
             <div className="flex items-end gap-4">
               <div>
+                {hasOptions && !resolvedVariant && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">ابتداءً من</p>
+                )}
                 <p className="text-4xl font-black text-gray-900 dark:text-white transition-all duration-200">
                   {formatAmount(activePrice)}
                 </p>
@@ -349,13 +455,15 @@ export default function ProductClient({ product, publicSettings }: Props) {
                 size="lg"
                 className="text-base"
                 variant={added ? "success" : "primary"}
-                disabled={hasVariants && !selectedVariant}
+                disabled={(hasVariants && !selectedVariant) || selectionIncomplete}
               >
                 {added ? (
                   <><Check className="h-5 w-5" />تم الإضافة إلى السلة</>
                 ) : (
                   <><ShoppingCart className="h-5 w-5" />
-                    {hasVariants && selectedVariant
+                    {selectionIncomplete
+                      ? "اختر الخيارات أولاً"
+                      : hasVariants && selectedVariant
                       ? `أضف (${selectedVariant.label}) إلى السلة`
                       : "أضف إلى السلة"
                     }

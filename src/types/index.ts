@@ -10,7 +10,31 @@ export interface CartItem {
   image?: string;
   quantity: number;
   slug: string;
-  variantLabel?: string; // e.g. "شهر واحد" | "3 شهور"
+  variantLabel?: string; // e.g. "شهر واحد" | "3 شهور" | "الكمية: 100 · التصميم: بتصميمكم"
+  variantId?: string;    // id of a ProductVariant (matrix pricing) when applicable
+}
+
+/* ── Multi-option products (Salla-style matrix pricing) ── */
+export interface OptionValueData {
+  id: string;
+  labelAr: string;
+  label?: string;
+  image?: string | null;
+}
+export interface ProductOptionData {
+  id: string;
+  nameAr: string;
+  required: boolean;
+  values: OptionValueData[];
+}
+export interface MatrixVariant {
+  id: string;
+  optionValueIds: string[];
+  label?: string | null;
+  price: number;
+  comparePrice?: number | null;
+  stockCount: number;
+  isActive: boolean;
 }
 
 export interface ProductWithCategory {

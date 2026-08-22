@@ -96,33 +96,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "بعض المنتجات غير متاحة" }, { status: 400 });
     }
 
+    // Pre-fetch matrix variants referenced by the cart (server-side price source of truth)
+    const variantIds = items
+      .map((i: { variantId?: string }) => i.variantId)
+      .filter((v: string | undefined): v is string => !!v);
+    const dbVariants = variantIds.length
+      ? await prisma.productVariant.findMany({ where: { id: { in: variantIds }, isActive: true } })
+      : [];
+    const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
+
     // Calculate totals — validate variant price server-side to prevent manipulation
     let subtotal = 0;
-    const orderItems = items.map((item: { productId: string; quantity: number; price: number; variantLabel?: string }) => {
+    const orderItems = items.map((item: { productId: string; quantity: number; price: number; variantLabel?: string; variantId?: string }) => {
       const product = products.find((p) => p.id === item.productId)!;
-      const tags = (product.tags || []) as string[];
-      const variantTags = tags.filter((t) => t.startsWith("variant:"));
 
       let price: number;
+      let variantId: string | undefined;
 
-      if (item.variantLabel && variantTags.length > 0) {
-        // Find the matching variant tag and use its server-stored price
-        const matched = variantTags.find((t) => {
-          const parts = t.split(":");
-          return parts[1] === item.variantLabel;
-        });
-        if (!matched) {
-          throw new Error(`الفاريانت "${item.variantLabel}" غير موجود`);
+      if (item.variantId) {
+        // Matrix (multi-option) variant — price comes strictly from the DB
+        const v = variantMap.get(item.variantId);
+        if (!v || v.productId !== item.productId) {
+          throw new Error(`خيار المنتج غير متاح`);
         }
-        const parts = matched.split(":");
-        price = parseFloat(parts[2]);
-      } else if (variantTags.length > 0) {
-        // Product has variants but none selected — use first variant price
-        const parts = variantTags[0].split(":");
-        price = parseFloat(parts[2]);
+        price = parseFloat(String(v.price));
+        variantId = v.id;
       } else {
-        // No variants — use base product price from DB
-        price = parseFloat(String(product.price));
+        const tags = (product.tags || []) as string[];
+        const variantTags = tags.filter((t) => t.startsWith("variant:"));
+
+        if (item.variantLabel && variantTags.length > 0) {
+          // Find the matching variant tag and use its server-stored price
+          const matched = variantTags.find((t) => t.split(":")[1] === item.variantLabel);
+          if (!matched) {
+            throw new Error(`الفاريانت "${item.variantLabel}" غير موجود`);
+          }
+          price = parseFloat(matched.split(":")[2]);
+        } else if (variantTags.length > 0) {
+          // Product has variants but none selected — use first variant price
+          price = parseFloat(variantTags[0].split(":")[2]);
+        } else {
+          // No variants — use base product price from DB
+          price = parseFloat(String(product.price));
+        }
       }
 
       subtotal += price * item.quantity;
@@ -131,6 +147,7 @@ export async function POST(req: NextRequest) {
         quantity: item.quantity,
         price,
         variantLabel: item.variantLabel,
+        variantId,
       };
     });
 

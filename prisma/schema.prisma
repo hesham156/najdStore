@@ -76,8 +76,61 @@ model Product {
   category       Category            @relation(fields: [categoryId], references: [id])
   stock          SubscriptionStock[]
   upsells        Upsell[]
+  options        ProductOption[]
+  variants       ProductVariant[]
 
   @@map("products")
+}
+
+/// A product option group, e.g. "الكمية" or "التصميم"
+model ProductOption {
+  id        String               @id @default(cuid())
+  productId String
+  name      String
+  nameAr    String
+  sortOrder Int                  @default(0)
+  required  Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  product   Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  values    ProductOptionValue[]
+
+  @@index([productId])
+  @@map("product_options")
+}
+
+/// A selectable value inside a ProductOption, e.g. "100 حبة" or "بتصميمكم"
+model ProductOptionValue {
+  id        String        @id @default(cuid())
+  optionId  String
+  label     String
+  labelAr   String
+  image     String?
+  sortOrder Int           @default(0)
+  option    ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@index([optionId])
+  @@map("product_option_values")
+}
+
+/// A concrete combination of option values with its own price (matrix pricing).
+/// `optionValueIds` holds the sorted ids of the ProductOptionValue that compose it.
+model ProductVariant {
+  id             String   @id @default(cuid())
+  productId      String
+  optionValueIds String[]
+  label          String?
+  sku            String?
+  price          Decimal  @db.Decimal(10, 2)
+  comparePrice   Decimal? @db.Decimal(10, 2)
+  stockCount     Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_variants")
 }
 
 model Order {
@@ -110,6 +163,7 @@ model OrderItem {
   quantity              Int
   price                 Decimal             @db.Decimal(10, 2)
   variantLabel          String?
+  variantId             String?
   deliveredData         String?
   deliveredAt           DateTime?
   subscriptionStartDate DateTime?

@@ -200,7 +200,7 @@ if (items.length === 0) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({ productId: i.id, quantity: i.quantity, price: i.price, variantLabel: i.variantLabel })),
+          items: items.map((i) => ({ productId: i.id, quantity: i.quantity, price: i.price, variantLabel: i.variantLabel, variantId: i.variantId })),
           paymentMethod,
           couponCode: coupon?.code,
           notes,

@@ -65,7 +65,11 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   const [productRaw, settingsRaw] = await Promise.all([
     prisma.product.findFirst({
       where: { slug: params.slug, isActive: true, isDeleted: false },
-      include: { category: true },
+      include: {
+        category: true,
+        options: { orderBy: { sortOrder: "asc" }, include: { values: { orderBy: { sortOrder: "asc" } } } },
+        variants: { where: { isActive: true } },
+      },
     }),
     prisma.setting.findMany({
       where: {
@@ -77,7 +81,27 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   if (!productRaw) notFound();
 
   const product = serializeData(productRaw) as unknown as ProductWithCategory & { variants?: any[] };
-  product.variants = parseProductVariants((productRaw.tags || []) as string[]);
+
+  // Matrix options + variants
+  const optionsData = (productRaw.options || []).map((o) => ({
+    id: o.id,
+    nameAr: o.nameAr,
+    label: o.name,
+    required: o.required,
+    values: o.values.map((v) => ({ id: v.id, labelAr: v.labelAr, label: v.label, image: v.image })),
+  }));
+  const optionVariants = (productRaw.variants || []).map((v) => ({
+    id: v.id,
+    optionValueIds: v.optionValueIds,
+    label: v.label,
+    price: parseFloat(String(v.price)),
+    comparePrice: v.comparePrice != null ? parseFloat(String(v.comparePrice)) : null,
+    stockCount: v.stockCount,
+    isActive: v.isActive,
+  }));
+
+  // Legacy tag-based variants only when the product has no matrix options
+  product.variants = optionsData.length > 0 ? [] : parseProductVariants((productRaw.tags || []) as string[]);
 
   const publicSettings: PublicSettings = {};
   for (const s of settingsRaw) {
@@ -149,7 +173,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
       />
-      <ProductClient product={product} publicSettings={publicSettings} />
+      <ProductClient product={product} publicSettings={publicSettings} options={optionsData} optionVariants={optionVariants} />
     </>
   );
 }
