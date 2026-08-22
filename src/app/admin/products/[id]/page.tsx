@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import {
   Plus, Trash2, GripVertical, Check, Zap, Clock,
   Star, Package, Eye, AlertCircle, CheckCircle2, SearchCheck,
-  Archive, EyeOff, PlusCircle,
+  Archive, EyeOff, PlusCircle, Layers,
 } from "lucide-react";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -207,9 +208,18 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">تعديل المنتج</h1>
-        <p className="text-gray-500 text-sm mt-1">{form.nameAr}</p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">تعديل المنتج</h1>
+          <p className="text-gray-500 text-sm mt-1">{form.nameAr}</p>
+        </div>
+        <Link
+          href={`/admin/products/${params.id}/options`}
+          className="inline-flex items-center gap-2 rounded-xl border-2 border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-4 py-2.5 text-sm font-semibold text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors"
+        >
+          <Layers className="h-4 w-4" />
+          الخيارات والأسعار (كمية/تصميم…)
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6 items-start">
