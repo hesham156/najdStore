@@ -1,13 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Mail, Phone, ShoppingBag, Calendar, ToggleLeft, ToggleRight } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { Badge, getStatusBadge } from "@/components/ui/Badge";
-import { formatCurrency, formatDate } from "@/lib/utils";
 import toast from "react-hot-toast";
+import {
+  Calendar,
+  CheckCircle2,
+  DollarSign,
+  Mail,
+  Phone,
+  ShoppingBag,
+  UserCheck,
+  UserX,
+} from "lucide-react";
+import { Badge, getStatusBadge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, Section } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui/Modal";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/States";
+import { AdminStats, statColors } from "@/components/admin/AdminStats";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface Order {
   id: string;
@@ -31,20 +44,30 @@ interface Customer {
 }
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [confirmToggle, setConfirmToggle] = useState(false);
+
+  const loadCustomer = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await fetch(`/api/admin/customers/${params.id}`);
+      const data = await res.json();
+      if (data.success) setCustomer(data.data);
+      else setError(true);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [params.id]);
 
   useEffect(() => {
-    fetch(`/api/admin/customers/${params.id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) setCustomer(data.data);
-        else router.push("/admin/customers");
-      })
-      .finally(() => setLoading(false));
-  }, [params.id, router]);
+    loadCustomer();
+  }, [loadCustomer]);
 
   const toggleActive = async () => {
     if (!customer) return;
@@ -60,142 +83,180 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
         setCustomer((c) => (c ? { ...c, isActive: !c.isActive } : c));
         toast.success(customer.isActive ? "تم تعطيل الحساب" : "تم تفعيل الحساب");
       } else {
-        toast.error(data.error || "حدث خطأ");
+        toast.error(data.error || "تعذّر تغيير حالة الحساب");
       }
+    } catch {
+      toast.error("تعذّر الاتصال بالخادم، حاول مرة أخرى");
     } finally {
       setToggling(false);
+      setConfirmToggle(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="animate-pulse space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
-        ))}
+      <div className="space-y-5">
+        <Skeleton className="h-8 w-56" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24 rounded-card" />
+          ))}
+        </div>
+        <Skeleton className="h-64 rounded-card" />
       </div>
     );
   }
 
-  if (!customer) return null;
+  if (error || !customer) {
+    return (
+      <Card padding="none">
+        <ErrorState
+          title="تعذّر عرض العميل"
+          description="قد يكون الحساب محذوفاً أو أن الاتصال بالخادم فشل."
+          onRetry={loadCustomer}
+        />
+        <div className="flex justify-center pb-6">
+          <Link href="/admin/customers">
+            <Button variant="secondary" size="sm">
+              العودة إلى العملاء
+            </Button>
+          </Link>
+        </div>
+      </Card>
+    );
+  }
 
   const deliveredOrders = customer.orders.filter((o) => o.status === "DELIVERED");
   const totalSpent = deliveredOrders.reduce((s, o) => s + parseFloat(String(o.total)), 0);
+  const avgOrder = deliveredOrders.length > 0 ? totalSpent / deliveredOrders.length : 0;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <Link href="/admin/customers" className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-          <ArrowRight className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{customer.name}</h1>
-          <p className="text-sm text-gray-500">{customer.email}</p>
-        </div>
-        <button
-          onClick={toggleActive}
-          disabled={toggling}
-          className={`ms-auto flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-60 ${
-            customer.isActive
-              ? "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
-              : "bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400"
-          }`}
-        >
-          {customer.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-          {customer.isActive ? "تعطيل الحساب" : "تفعيل الحساب"}
-        </button>
-      </div>
+    <div className="space-y-5 animate-fade-in">
+      <PageHeader
+        breadcrumbs={[
+          { label: "لوحة التحكم", href: "/admin" },
+          { label: "العملاء", href: "/admin/customers" },
+          { label: customer.name },
+        ]}
+        title={customer.name}
+        description={customer.email}
+        badge={
+          <Badge variant={customer.isActive ? "success" : "danger"} dot>
+            {customer.isActive ? "حساب نشط" : "حساب معطل"}
+          </Badge>
+        }
+        actions={
+          <Button
+            variant={customer.isActive ? "soft-danger" : "success"}
+            loading={toggling}
+            onClick={() => setConfirmToggle(true)}
+            icon={customer.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+          >
+            {customer.isActive ? "تعطيل الحساب" : "تفعيل الحساب"}
+          </Button>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Info card */}
-        <Card className="space-y-4">
-          <h2 className="font-bold text-gray-900 dark:text-white">معلومات العميل</h2>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold shrink-0">
-                {customer.name.charAt(0)}
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-gray-900 dark:text-white">{customer.name}</p>
-                <Badge variant={customer.isActive ? "success" : "danger"}>
-                  {customer.isActive ? "نشط" : "معطل"}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <Mail className="h-4 w-4 text-gray-400 shrink-0" />
-              {customer.email}
+      <AdminStats
+        items={[
+          { label: "إجمالي الطلبات", value: customer._count.orders, icon: ShoppingBag, color: statColors.blue },
+          { label: "طلبات مكتملة", value: deliveredOrders.length, icon: CheckCircle2, color: statColors.green },
+          { label: "إجمالي الإنفاق", value: formatCurrency(totalSpent), icon: DollarSign, color: statColors.primary },
+          { label: "متوسط الطلب", value: formatCurrency(avgOrder), icon: DollarSign, color: statColors.amber },
+        ]}
+      />
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <Section title="معلومات العميل" className="lg:col-span-1" contentClassName="pt-0">
+          <dl className="space-y-3 text-[13px]">
+            <div className="flex items-center gap-2.5">
+              <Mail className="h-3.5 w-3.5 shrink-0 text-fg-subtle" aria-hidden />
+              <dd className="min-w-0 truncate">
+                <a href={`mailto:${customer.email}`} className="text-fg-muted hover:text-primary-600 hover:underline">
+                  {customer.email}
+                </a>
+              </dd>
             </div>
             {customer.phone && (
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                <Phone className="h-4 w-4 text-gray-400 shrink-0" />
-                {customer.phone}
+              <div className="flex items-center gap-2.5">
+                <Phone className="h-3.5 w-3.5 shrink-0 text-fg-subtle" aria-hidden />
+                <dd className="min-w-0 truncate" dir="ltr">
+                  <a href={`tel:${customer.phone}`} className="text-fg-muted hover:text-primary-600 hover:underline">
+                    {customer.phone}
+                  </a>
+                </dd>
               </div>
             )}
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
-              تاريخ التسجيل: {formatDate(customer.createdAt)}
+            <div className="flex items-center gap-2.5">
+              <Calendar className="h-3.5 w-3.5 shrink-0 text-fg-subtle" aria-hidden />
+              <dd className="text-fg-muted">مسجَّل منذ {formatDate(customer.createdAt)}</dd>
             </div>
-          </div>
-        </Card>
+          </dl>
+        </Section>
 
-        {/* Stats */}
-        <div className="lg:col-span-2 grid grid-cols-3 gap-4">
-          <Card className="text-center">
-            <p className="text-3xl font-black text-gray-900 dark:text-white">{customer._count.orders}</p>
-            <p className="text-xs text-gray-500 mt-1">إجمالي الطلبات</p>
-          </Card>
-          <Card className="text-center">
-            <p className="text-3xl font-black text-green-600 dark:text-green-400">{deliveredOrders.length}</p>
-            <p className="text-xs text-gray-500 mt-1">طلبات مكتملة</p>
-          </Card>
-          <Card className="text-center">
-            <p className="text-2xl font-black text-gray-900 dark:text-white">{formatCurrency(totalSpent)}</p>
-            <p className="text-xs text-gray-500 mt-1">إجمالي الإنفاق</p>
-          </Card>
-        </div>
+        <Section
+          title="سجل الطلبات"
+          description={`${customer.orders.length} طلب`}
+          className="lg:col-span-2"
+          contentClassName="pt-0"
+        >
+          {customer.orders.length === 0 ? (
+            <EmptyState
+              size="sm"
+              icon={ShoppingBag}
+              title="لم يشترِ هذا العميل بعد"
+              description="ستظهر طلباته هنا بمجرد إتمام أول عملية شراء."
+            />
+          ) : (
+            <ul className="space-y-2">
+              {customer.orders.map((order) => {
+                const { variant, label } = getStatusBadge(order.status);
+                return (
+                  <li key={order.id}>
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className="flex items-center justify-between gap-3 rounded-control border border-line p-3 transition-colors hover:bg-surface-hover"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/10">
+                          <ShoppingBag className="h-4 w-4 text-primary-600 dark:text-primary-400" aria-hidden />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate font-mono text-xs font-bold text-fg">{order.orderNumber}</p>
+                          <p className="truncate text-[11px] text-fg-muted">
+                            {order.items.length} منتج · {formatDate(order.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2.5">
+                        <Badge variant={variant}>{label}</Badge>
+                        <span className="whitespace-nowrap text-[13px] font-bold tnum text-fg">
+                          {formatCurrency(parseFloat(String(order.total)))}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Section>
       </div>
 
-      {/* Orders */}
-      <div>
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">الطلبات</h2>
-        {customer.orders.length === 0 ? (
-          <Card className="text-center py-12">
-            <ShoppingBag className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500">لا توجد طلبات بعد</p>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {customer.orders.map((order) => {
-              const { variant, label } = getStatusBadge(order.status);
-              return (
-                <Link key={order.id} href={`/admin/orders/${order.id}`}>
-                  <Card hover className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
-                        <ShoppingBag className="h-4 w-4 text-primary-600 dark:text-primary-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-sm text-gray-900 dark:text-white">{order.orderNumber}</p>
-                        <p className="text-xs text-gray-500">
-                          {order.items.length} منتج • {formatDate(order.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <Badge variant={variant}>{label}</Badge>
-                      <span className="font-bold text-sm text-gray-900 dark:text-white">
-                        {formatCurrency(parseFloat(String(order.total)))}
-                      </span>
-                    </div>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <ConfirmModal
+        isOpen={confirmToggle}
+        onClose={() => setConfirmToggle(false)}
+        onConfirm={toggleActive}
+        variant={customer.isActive ? "danger" : "primary"}
+        title={customer.isActive ? "تعطيل حساب العميل" : "تفعيل حساب العميل"}
+        message={
+          customer.isActive
+            ? "لن يتمكّن العميل من تسجيل الدخول أو إتمام أي طلب جديد. يمكنك إعادة التفعيل في أي وقت."
+            : "سيتمكّن العميل من تسجيل الدخول والشراء مرة أخرى."
+        }
+        confirmLabel={customer.isActive ? "تعطيل" : "تفعيل"}
+        loading={toggling}
+      />
     </div>
   );
 }

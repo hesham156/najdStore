@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import toast from "react-hot-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Expense {
   id: string;
@@ -35,7 +36,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   TOOLS: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
   PURCHASE: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
   TAX: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
-  OTHER: "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300",
+  OTHER: "bg-surface-sunken text-fg",
 };
 
 const emptyForm = { titleAr: "", amount: "", category: "OTHER", date: new Date().toISOString().split("T")[0], notes: "" };
@@ -93,16 +94,23 @@ export default function ExpensesPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المصاريف والتكاليف</h1>
-          <p className="text-gray-500 text-sm mt-1">تسجيل ومتابعة جميع مصاريف العمل</p>
-        </div>
-        <Button onClick={() => { setShowForm(true); setEditId(null); setForm(emptyForm); }} className="gap-2">
-          <Plus className="h-4 w-4" /> إضافة مصروف
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: "لوحة التحكم", href: "/admin" },
+          { label: "المحاسبة", href: "/admin/accounting" },
+          { label: "المصاريف" },
+        ]}
+        title="المصاريف والتكاليف"
+        description="تسجيل ومتابعة جميع مصاريف العمل"
+        actions={
+          <Button
+            onClick={() => { setShowForm(true); setEditId(null); setForm(emptyForm); }}
+            icon={<Plus className="h-4 w-4" />}
+          >
+            إضافة مصروف
+          </Button>
+        }
+      />
 
       {/* Summary + Filter */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -111,17 +119,17 @@ export default function ExpensesPage() {
             <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <p className="text-xl font-black text-gray-900 dark:text-white">
+            <p className="text-xl font-black text-fg">
               {totalExpenses.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س
             </p>
-            <p className="text-xs text-gray-500">إجمالي المصاريف المعروضة</p>
+            <p className="text-xs text-fg-muted">إجمالي المصاريف المعروضة</p>
           </div>
         </Card>
         <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="h-4 w-4 text-gray-400 shrink-0" />
-          <button onClick={() => setFilterCat("")} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${!filterCat ? "bg-primary-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"}`}>الكل</button>
+          <Filter className="h-4 w-4 text-fg-subtle shrink-0" />
+          <button onClick={() => setFilterCat("")} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${!filterCat ? "bg-primary-600 text-white" : "bg-surface-sunken text-fg-muted"}`}>الكل</button>
           {CATEGORIES.map(c => (
-            <button key={c.value} onClick={() => setFilterCat(c.value)} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${filterCat === c.value ? "bg-primary-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"}`}>
+            <button key={c.value} onClick={() => setFilterCat(c.value)} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${filterCat === c.value ? "bg-primary-600 text-white" : "bg-surface-sunken text-fg-muted"}`}>
               {c.label}
             </button>
           ))}
@@ -132,18 +140,18 @@ export default function ExpensesPage() {
       {showForm && (
         <Card className="p-5 border-2 border-primary-200 dark:border-primary-800">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900 dark:text-white">{editId ? "تعديل المصروف" : "إضافة مصروف جديد"}</h3>
-            <button onClick={() => { setShowForm(false); setEditId(null); }} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><X className="h-4 w-4" /></button>
+            <h3 className="font-bold text-fg">{editId ? "تعديل المصروف" : "إضافة مصروف جديد"}</h3>
+            <button onClick={() => { setShowForm(false); setEditId(null); }} className="p-1.5 rounded-lg text-fg-subtle hover:bg-surface-hover transition-colors"><X className="h-4 w-4" /></button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="وصف المصروف *" value={form.titleAr} onChange={e => setForm(f => ({ ...f, titleAr: e.target.value }))} placeholder="مثال: استضافة VPS شهر يناير" />
             <Input label="المبلغ (ريال) *" type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">الفئة</label>
+              <label className="block text-sm font-medium text-fg mb-1.5">الفئة</label>
               <select
                 value={form.category}
                 onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="w-full px-3 py-2.5 rounded-xl border border-line-strong bg-surface text-fg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
@@ -163,17 +171,17 @@ export default function ExpensesPage() {
       {/* Expenses Table */}
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 animate-pulse">جاري التحميل...</div>
+          <div className="p-8 text-center text-fg-subtle animate-pulse">جاري التحميل...</div>
         ) : expenses.length === 0 ? (
           <div className="p-12 text-center">
             <div className="text-5xl mb-3">📂</div>
-            <p className="font-semibold text-gray-600 dark:text-gray-400">لا توجد مصاريف</p>
-            <p className="text-sm text-gray-400 mt-1">أضف أول مصروف للبدء في تتبع التكاليف</p>
+            <p className="font-semibold text-fg-muted">لا توجد مصاريف</p>
+            <p className="text-sm text-fg-subtle mt-1">أضف أول مصروف للبدء في تتبع التكاليف</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
+          <div className="divide-y divide-line/60">
             {/* Table head */}
-            <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-800/50 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-surface-muted text-xs font-bold text-fg-muted uppercase tracking-wider">
               <div className="col-span-4">الوصف</div>
               <div className="col-span-2">الفئة</div>
               <div className="col-span-2">التاريخ</div>
@@ -181,31 +189,31 @@ export default function ExpensesPage() {
               <div className="col-span-2 text-center">إجراءات</div>
             </div>
             {expenses.map(expense => (
-              <div key={expense.id} className="grid grid-cols-12 gap-3 px-5 py-4 items-center hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+              <div key={expense.id} className="grid grid-cols-12 gap-3 px-5 py-4 items-center hover:bg-surface-hover transition-colors">
                 <div className="col-span-4">
-                  <p className="font-semibold text-sm text-gray-900 dark:text-white">{expense.titleAr}</p>
-                  {expense.notes && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{expense.notes}</p>}
+                  <p className="font-semibold text-sm text-fg">{expense.titleAr}</p>
+                  {expense.notes && <p className="text-xs text-fg-subtle mt-0.5 truncate">{expense.notes}</p>}
                 </div>
                 <div className="col-span-2">
                   <span className={`inline-flex px-2 py-0.5 rounded-lg text-xs font-medium ${CATEGORY_COLORS[expense.category] ?? CATEGORY_COLORS.OTHER}`}>
                     {CATEGORY_MAP[expense.category] ?? expense.category}
                   </span>
                 </div>
-                <div className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="col-span-2 text-sm text-fg-muted">
                   {new Date(expense.date).toLocaleDateString("ar-SA")}
                 </div>
-                <div className="col-span-2 text-end font-bold text-gray-900 dark:text-white">
+                <div className="col-span-2 text-end font-bold text-fg">
                   {Number(expense.amount).toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س
                 </div>
                 <div className="col-span-2 flex items-center justify-center gap-2">
-                  <button onClick={() => startEdit(expense)} className="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => startEdit(expense)} className="p-1.5 rounded-lg text-fg-subtle hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
                   {deleteId === expense.id ? (
                     <div className="flex gap-1">
                       <button onClick={() => handleDelete(expense.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Check className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => setDeleteId(null)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"><X className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => setDeleteId(null)} className="p-1.5 rounded-lg text-fg-subtle hover:bg-surface-hover"><X className="h-3.5 w-3.5" /></button>
                     </div>
                   ) : (
-                    <button onClick={() => setDeleteId(expense.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => setDeleteId(expense.id)} className="p-1.5 rounded-lg text-fg-subtle hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
                   )}
                 </div>
               </div>

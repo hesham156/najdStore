@@ -1,13 +1,14 @@
-﻿import { TableSkeleton } from "@/components/ui/TableSkeleton";
+import { Skeleton } from "@/components/ui/States";
+import { PageHeaderSkeleton } from "@/components/ui/TableSkeleton";
 
 export default function Loading() {
   return (
-    <div className="space-y-6">
-      <div className="animate-pulse space-y-2">
-        <div className="h-7 w-40 bg-gray-200 dark:bg-gray-700 rounded-lg" />
-        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
-      </div>
-      <TableSkeleton rows={8} cols={5} />
+    <div className="space-y-5" aria-busy="true">
+      <PageHeaderSkeleton withAction />
+      <Skeleton className="h-10 w-full max-w-md rounded-control" />
+      {[0, 1, 2].map((i) => (
+        <Skeleton key={i} className="h-56 rounded-card" />
+      ))}
     </div>
   );
 }

@@ -1,54 +1,82 @@
 import { cn } from "@/lib/utils";
 
-type BadgeVariant = "default" | "primary" | "success" | "warning" | "danger" | "info" | "purple" | "gray";
+export type BadgeVariant =
+  | "default"
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "purple"
+  | "gray";
 
 interface BadgeProps {
   variant?: BadgeVariant;
   children: React.ReactNode;
   className?: string;
   dot?: boolean;
+  size?: "sm" | "md";
 }
 
-export function Badge({ variant = "default", children, className, dot }: BadgeProps) {
-  const variants: Record<BadgeVariant, string> = {
-    default: "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300",
-    primary: "bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300",
-    success: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-    warning: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
-    danger: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
-    info: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-    purple: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-    gray: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-  };
+/**
+ * Status colours are defined once here and reused everywhere so a given
+ * status always reads the same across the whole dashboard.
+ */
+const VARIANTS: Record<BadgeVariant, string> = {
+  default: "bg-primary-50 text-primary-700 ring-primary-600/15 dark:bg-primary-500/10 dark:text-primary-300 dark:ring-primary-400/20",
+  primary: "bg-primary-50 text-primary-700 ring-primary-600/15 dark:bg-primary-500/10 dark:text-primary-300 dark:ring-primary-400/20",
+  success: "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20",
+  warning: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20",
+  danger: "bg-red-50 text-red-700 ring-red-600/15 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/20",
+  info: "bg-blue-50 text-blue-700 ring-blue-600/15 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20",
+  purple: "bg-violet-50 text-violet-700 ring-violet-600/15 dark:bg-violet-500/10 dark:text-violet-300 dark:ring-violet-400/20",
+  gray: "bg-surface-sunken text-fg-muted ring-line-strong/40",
+};
 
-  const dotColors: Record<BadgeVariant, string> = {
-    default: "bg-primary-500",
-    primary: "bg-primary-500",
-    success: "bg-green-500",
-    warning: "bg-yellow-500",
-    danger: "bg-red-500",
-    info: "bg-blue-500",
-    purple: "bg-purple-500",
-    gray: "bg-gray-500",
-  };
+const DOT_COLORS: Record<BadgeVariant, string> = {
+  default: "bg-primary-500",
+  primary: "bg-primary-500",
+  success: "bg-emerald-500",
+  warning: "bg-amber-500",
+  danger: "bg-red-500",
+  info: "bg-blue-500",
+  purple: "bg-violet-500",
+  gray: "bg-gray-400",
+};
 
+export function Badge({ variant = "default", children, className, dot, size = "md" }: BadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
-        variants[variant],
+        "inline-flex max-w-full items-center gap-1.5 rounded-full font-medium ring-1 ring-inset",
+        size === "sm" ? "px-1.5 py-px text-[10px]" : "px-2 py-0.5 text-[11px]",
+        VARIANTS[variant],
         className
       )}
     >
-      {dot && (
-        <span className={cn("h-1.5 w-1.5 rounded-full", dotColors[variant])} />
-      )}
-      {children}
+      {dot && <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", DOT_COLORS[variant])} aria-hidden />}
+      <span className="truncate">{children}</span>
     </span>
   );
 }
 
-export function getStatusBadge(status: string) {
+/** Small numeric pill for nav items and filter tabs. */
+export function CountBadge({ value, active, className }: { value: number; active?: boolean; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold tnum",
+        active ? "bg-white/20 text-inherit" : "bg-surface-sunken text-fg-muted",
+        className
+      )}
+    >
+      {value}
+    </span>
+  );
+}
+
+/** Single source of truth for every status label + colour in the dashboard. */
+export function getStatusBadge(status: string): { variant: BadgeVariant; label: string } {
   const map: Record<string, { variant: BadgeVariant; label: string }> = {
     PENDING: { variant: "warning", label: "في الانتظار" },
     PENDING_PAYMENT_REVIEW: { variant: "info", label: "بانتظار مراجعة الدفع" },

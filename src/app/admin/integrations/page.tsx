@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/Card";
 import { getHayyakStatus } from "@/lib/hayyak";
 import { HayyakSyncButton } from "./HayyakSyncButton";
-import { CheckCircle2, XCircle, Plug, Zap } from "lucide-react";
+import { CheckCircle2, XCircle, Zap } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -12,14 +13,7 @@ export default function IntegrationsPage() {
 
   return (
     <div className="animate-fade-in max-w-3xl">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Plug className="h-6 w-6 text-primary-600" />
-          التكاملات
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">ربط المتجر بالخدمات الخارجية</p>
-      </div>
+      <PageHeader className="mb-6" title="التكاملات" description="ربط المتجر بالخدمات الخارجية" />
 
       {/* Hayyak card */}
       <Card className="p-6 space-y-5">
@@ -29,8 +23,8 @@ export default function IntegrationsPage() {
               <Zap className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900 dark:text-white">حياك (Hayyak)</h2>
-              <p className="text-xs text-gray-500">المساعد الذكي، الردود التلقائية، واسترجاع السلات المتروكة عبر واتساب</p>
+              <h2 className="font-bold text-fg">حياك (Hayyak)</h2>
+              <p className="text-xs text-fg-muted">المساعد الذكي، الردود التلقائية، واسترجاع السلات المتروكة عبر واتساب</p>
             </div>
           </div>
 
@@ -39,7 +33,7 @@ export default function IntegrationsPage() {
               <CheckCircle2 className="h-4 w-4" /> مفعّل
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-subtle shrink-0">
               <XCircle className="h-4 w-4" /> غير مفعّل
             </span>
           )}
@@ -55,20 +49,20 @@ export default function IntegrationsPage() {
 
         {/* Connection details */}
         <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-          <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
-            <dt className="text-xs text-gray-400 mb-1">معرّف المتجر</dt>
-            <dd className="font-mono text-gray-900 dark:text-white">{hayyak.storeId}</dd>
+          <div className="rounded-xl bg-surface-muted px-4 py-3">
+            <dt className="text-xs text-fg-subtle mb-1">معرّف المتجر</dt>
+            <dd className="font-mono text-fg">{hayyak.storeId}</dd>
           </div>
-          <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 px-4 py-3 sm:col-span-2 min-w-0">
-            <dt className="text-xs text-gray-400 mb-1">نقطة الكتالوج</dt>
-            <dd className="font-mono text-gray-900 dark:text-white text-xs break-all">{hayyak.catalogUrl}</dd>
+          <div className="rounded-xl bg-surface-muted px-4 py-3 sm:col-span-2 min-w-0">
+            <dt className="text-xs text-fg-subtle mb-1">نقطة الكتالوج</dt>
+            <dd className="font-mono text-fg text-xs break-all">{hayyak.catalogUrl}</dd>
           </div>
         </dl>
 
         {/* Events sent */}
         <div>
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">الأحداث المُرسَلة تلقائياً</p>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm font-semibold text-fg mb-2">الأحداث المُرسَلة تلقائياً</p>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-sm text-fg-muted">
             {[
               "إنشاء/تحديث/حذف منتج → مزامنة الكتالوج",
               "إنشاء طلب → تأكيد واتساب للعميل",
@@ -84,8 +78,8 @@ export default function IntegrationsPage() {
         </div>
 
         {/* Sync action */}
-        <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between gap-4 flex-wrap">
-          <p className="text-xs text-gray-500 max-w-sm">
+        <div className="pt-2 border-t border-line flex items-center justify-between gap-4 flex-wrap">
+          <p className="text-xs text-fg-muted max-w-sm">
             ارفع الكتالوج الكامل عند الربط أول مرة أو بعد أي تغيير كبير في المنتجات. يستبدل الكتالوج المخزَّن في حياك بالكامل.
           </p>
           <HayyakSyncButton disabled={!hayyak.enabled} />

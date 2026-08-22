@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Clock, DollarSign, Eye, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Badge, getStatusBadge } from "@/components/ui/Badge";
-import { AdminStats } from "@/components/admin/AdminStats";
-import { DataTable, Column, Pagination } from "@/components/ui/DataTable";
-import { Input } from "@/components/ui/Input";
-import { Search, ShoppingBag, DollarSign, Clock, CheckCircle } from "lucide-react";
-import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
+import { Column, DataTable, Pagination } from "@/components/ui/DataTable";
+import { EmptyState, NoResultsState } from "@/components/ui/States";
+import { Tabs } from "@/components/ui/Tabs";
+import { AdminStats, statColors } from "@/components/admin/AdminStats";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { FilterSelect, SearchInput, Toolbar, ToolbarSpacer } from "@/components/admin/Toolbar";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import type { OrderWithDetails } from "@/types";
 
 const STATUSES = [
@@ -19,32 +24,60 @@ const STATUSES = [
   { value: "CANCELLED", label: "ملغي" },
   { value: "REFUNDED", label: "مسترد" },
 ];
-const PENDING_SET = ["PENDING", "PENDING_PAYMENT_REVIEW", "PAYMENT_APPROVED", "PROCESSING"];
+
+const OPEN_STATUSES = ["PENDING", "PENDING_PAYMENT_REVIEW", "PAYMENT_APPROVED", "PROCESSING"];
+
+const PAYMENT_FILTERS = [
+  { value: "all", label: "كل حالات الدفع" },
+  { value: "APPROVED", label: "دفع مقبول" },
+  { value: "UPLOADED", label: "بانتظار المراجعة" },
+  { value: "PENDING", label: "لم يُدفع" },
+  { value: "REJECTED", label: "دفع مرفوض" },
+];
+
+type SortKey = "total" | "createdAt";
 
 export default function AdminOrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<OrderWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
   const [statusFilter, setStatusFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/admin/orders`);
-    const data = await res.json();
-    if (data.success) setOrders(data.data);
-    setLoading(false);
+    setError(false);
+    try {
+      const res = await fetch("/api/admin/orders");
+      const data = await res.json();
+      if (data.success) setOrders(data.data);
+      else setError(true);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
-  /* ── Stats (from all loaded orders) ── */
+  /* ── Stats over everything loaded ── */
   const stats = useMemo(() => {
-    let revenue = 0, pending = 0, delivered = 0;
+    let revenue = 0;
+    let pending = 0;
+    let delivered = 0;
     for (const o of orders) {
       if (o.payment?.status === "APPROVED") revenue += parseFloat(String(o.total)) || 0;
-      if (PENDING_SET.includes(String(o.status))) pending++;
+      if (OPEN_STATUSES.includes(String(o.status))) pending++;
       if (o.status === "DELIVERED") delivered++;
     }
     return { total: orders.length, revenue, pending, delivered };
@@ -56,11 +89,15 @@ export default function AdminOrdersPage() {
     return m;
   }, [orders]);
 
-  /* ── Filter ── */
+  /* ── Filter + sort ── */
   const filteredOrders = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return orders.filter((o) => {
+    const rows = orders.filter((o) => {
       if (statusFilter && String(o.status) !== statusFilter) return false;
+      if (paymentFilter !== "all") {
+        if (paymentFilter === "PENDING" && o.payment && o.payment.status !== "PENDING") return false;
+        if (paymentFilter !== "PENDING" && o.payment?.status !== paymentFilter) return false;
+      }
       if (!q) return true;
       return (
         o.orderNumber?.toLowerCase().includes(q) ||
@@ -69,18 +106,40 @@ export default function AdminOrdersPage() {
         o.user?.phone?.toLowerCase().includes(q)
       );
     });
-  }, [orders, statusFilter, search]);
 
-  useEffect(() => { setPage(1); }, [statusFilter, search]);
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...rows].sort((a, b) =>
+      sortKey === "total"
+        ? ((parseFloat(String(a.total)) || 0) - (parseFloat(String(b.total)) || 0)) * dir
+        : (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * dir
+    );
+  }, [orders, statusFilter, paymentFilter, search, sortKey, sortDir]);
+
+  useEffect(() => setPage(1), [statusFilter, paymentFilter, search]);
+
+  const filtersActive = search !== "" || statusFilter !== "" || paymentFilter !== "all";
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("");
+    setPaymentFilter("all");
+  };
 
   const columns: Column<OrderWithDetails>[] = [
     {
       key: "orderNumber",
       title: "رقم الطلب",
+      primary: true,
       render: (_, row) => (
-        <Link href={`/admin/orders/${row.id}`} className="font-mono text-primary-600 dark:text-primary-400 hover:underline text-xs font-bold">
-          {row.orderNumber}
-        </Link>
+        <div className="min-w-0">
+          <Link
+            href={`/admin/orders/${row.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-mono text-xs font-bold text-primary-600 hover:underline dark:text-primary-400"
+          >
+            {row.orderNumber}
+          </Link>
+          <p className="mt-0.5 truncate text-[11px] text-fg-subtle md:hidden">{row.user?.name}</p>
+        </div>
       ),
     },
     {
@@ -88,31 +147,37 @@ export default function AdminOrdersPage() {
       title: "العميل",
       render: (_, row) => (
         <div className="min-w-0">
-          <p className="font-medium text-sm truncate">{row.user?.name}</p>
-          <p className="text-xs text-gray-500 truncate">{row.user?.phone || row.user?.email}</p>
+          <p className="truncate text-[13px] font-medium text-fg">{row.user?.name}</p>
+          <p className="truncate text-[11px] text-fg-muted">{row.user?.phone || row.user?.email}</p>
         </div>
       ),
     },
     {
       key: "items",
       title: "الأصناف",
-      render: (_, row) => <span className="text-sm text-gray-600 dark:text-gray-300">{row.items?.length ?? 0}</span>,
+      align: "center",
+      hideOnMobile: true,
+      render: (_, row) => <span className="text-[13px] tnum text-fg-muted">{row.items?.length ?? 0}</span>,
     },
     {
       key: "total",
       title: "الإجمالي",
-      render: (val) => <span className="font-bold">{formatCurrency(String(val))}</span>,
+      sortable: true,
+      render: (val) => <span className="whitespace-nowrap text-[13px] font-bold tnum text-fg">{formatCurrency(String(val))}</span>,
     },
     {
       key: "status",
-      title: "الحالة",
-      render: (val) => { const b = getStatusBadge(String(val)); return <Badge variant={b.variant}>{b.label}</Badge>; },
+      title: "حالة الطلب",
+      render: (val) => {
+        const b = getStatusBadge(String(val));
+        return <Badge variant={b.variant} dot>{b.label}</Badge>;
+      },
     },
     {
       key: "payment",
       title: "الدفع",
       render: (_, row) => {
-        if (!row.payment) return <span className="text-gray-400 text-xs">—</span>;
+        if (!row.payment) return <span className="text-[11px] text-fg-subtle">—</span>;
         const b = getStatusBadge(row.payment.status);
         return <Badge variant={b.variant}>{b.label}</Badge>;
       },
@@ -120,15 +185,27 @@ export default function AdminOrdersPage() {
     {
       key: "createdAt",
       title: "التاريخ",
-      render: (val) => <span className="text-xs text-gray-500">{formatDate(String(val))}</span>,
+      sortable: true,
+      hideOnMobile: true,
+      render: (val) => <span className="whitespace-nowrap text-xs text-fg-muted">{formatDate(String(val))}</span>,
     },
     {
-      key: "id",
-      title: "إجراءات",
+      key: "actions",
+      title: "",
+      align: "end",
+      cardHidden: true,
       render: (_, row) => (
-        <Link href={`/admin/orders/${row.id}`} className="text-sm text-primary-600 dark:text-primary-400 hover:underline font-medium">
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/admin/orders/${row.id}`);
+          }}
+          icon={<Eye className="h-3.5 w-3.5" />}
+        >
           عرض
-        </Link>
+        </Button>
       ),
     },
   ];
@@ -137,72 +214,93 @@ export default function AdminOrdersPage() {
   const paginatedOrders = filteredOrders.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الطلبات</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{orders.length} طلب</p>
-      </div>
+    <div className="space-y-5 animate-fade-in">
+      <PageHeader
+        title="الطلبات"
+        description={`${filteredOrders.length} طلب ${filtersActive ? "بعد التصفية" : ""}`.trim()}
+      />
 
-      <AdminStats items={[
-        { label: "إجمالي الطلبات", value: stats.total, icon: ShoppingBag, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
-        { label: "الإيرادات المحصّلة", value: formatCurrency(stats.revenue), icon: DollarSign, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
-        { label: "قيد التنفيذ", value: stats.pending, icon: Clock, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
-        { label: "مكتملة", value: stats.delivered, icon: CheckCircle, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
-      ]} />
+      <AdminStats
+        items={[
+          { label: "إجمالي الطلبات", value: stats.total, icon: ShoppingBag, color: statColors.blue },
+          { label: "الإيرادات المحصّلة", value: formatCurrency(stats.revenue), icon: DollarSign, color: statColors.green },
+          { label: "قيد التنفيذ", value: stats.pending, icon: Clock, color: statColors.amber },
+          { label: "مكتملة", value: stats.delivered, icon: CheckCircle2, color: statColors.primary },
+        ]}
+      />
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
+      <Toolbar>
+        <SearchInput
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="بحث برقم الطلب أو العميل أو الجوال..."
-          className="ps-10"
+          onChange={setSearch}
+          placeholder="رقم الطلب، العميل، الجوال..."
+          label="بحث في الطلبات"
         />
-      </div>
+        <FilterSelect
+          label="تصفية حسب حالة الدفع"
+          value={paymentFilter}
+          onChange={setPaymentFilter}
+          options={PAYMENT_FILTERS}
+        />
+        <ToolbarSpacer />
+        {filtersActive && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            مسح التصفية
+          </Button>
+        )}
+      </Toolbar>
 
-      {/* Status tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-        <StatusTab label="الكل" count={orders.length} active={statusFilter === ""} onClick={() => setStatusFilter("")} />
-        {STATUSES.filter((s) => statusCounts[s.value]).map((s) => (
-          <StatusTab
-            key={s.value}
-            label={s.label}
-            count={statusCounts[s.value]}
-            active={statusFilter === s.value}
-            onClick={() => setStatusFilter(s.value)}
-          />
-        ))}
-      </div>
+      <Tabs
+        ariaLabel="تصفية حسب حالة الطلب"
+        value={statusFilter}
+        onChange={setStatusFilter}
+        items={[
+          { value: "", label: "الكل", count: orders.length },
+          ...STATUSES.filter((s) => statusCounts[s.value]).map((s) => ({
+            value: s.value,
+            label: s.label,
+            count: statusCounts[s.value],
+          })),
+        ]}
+      />
 
-      <DataTable columns={columns} data={paginatedOrders} loading={loading} emptyMessage="لا توجد طلبات" />
+      <DataTable
+        columns={columns}
+        data={paginatedOrders}
+        loading={loading}
+        error={error}
+        onRetry={fetchOrders}
+        onRowClick={(row) => router.push(`/admin/orders/${row.id}`)}
+        sortKey={sortKey}
+        sortDirection={sortDir}
+        onSort={(key, dir) => {
+          setSortKey(key as SortKey);
+          setSortDir(dir);
+        }}
+        empty={
+          filtersActive ? (
+            <NoResultsState query={search} onClear={clearFilters} />
+          ) : (
+            <EmptyState
+              icon={ShoppingCart}
+              title="لا توجد طلبات بعد"
+              description="ستظهر الطلبات هنا فور قيام أول عميل بالشراء من متجرك."
+            />
+          )
+        }
+      />
+
       <Pagination
         currentPage={page}
         totalPages={totalPages}
         totalItems={filteredOrders.length}
         pageSize={pageSize}
         onPageChange={setPage}
-        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+        onPageSizeChange={(s) => {
+          setPageSize(s);
+          setPage(1);
+        }}
       />
     </div>
-  );
-}
-
-function StatusTab({ label, count, active, onClick }: { label: string; count: number; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0",
-        active
-          ? "bg-primary-600 text-white shadow-sm"
-          : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700",
-      )}
-    >
-      {label}
-      <span className={cn("px-1.5 py-0.5 rounded-full text-[10px]", active ? "bg-white/20" : "bg-gray-200 dark:bg-gray-600")}>
-        {count}
-      </span>
-    </button>
   );
 }

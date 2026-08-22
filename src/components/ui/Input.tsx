@@ -1,145 +1,312 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useId } from "react";
 import { cn } from "@/lib/utils";
+import { AlertCircle, ChevronDown } from "lucide-react";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+/* ─────────────────────────────────────────────────────────────
+   Shared field chrome: label → control → hint/error.
+   Labels are always real <label> elements; a placeholder is
+   never used as a substitute for one.
+   ───────────────────────────────────────────────────────────── */
+
+interface FieldProps {
+  id: string;
+  label?: React.ReactNode;
   error?: string;
   hint?: string;
+  required?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}
+
+function Field({ id, label, error, hint, required, className, children }: FieldProps) {
+  return (
+    <div className={cn("w-full space-y-1.5", className)}>
+      {label && (
+        <label htmlFor={id} className="flex items-center gap-1 text-[13px] font-medium text-fg">
+          {label}
+          {required && (
+            <span className="text-red-500" aria-hidden>
+              *
+            </span>
+          )}
+        </label>
+      )}
+      {children}
+      {error ? (
+        <p
+          id={`${id}-error`}
+          role="alert"
+          className="flex items-start gap-1 text-xs font-medium text-red-600 dark:text-red-400"
+        >
+          <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden />
+          {error}
+        </p>
+      ) : (
+        hint && (
+          <p id={`${id}-hint`} className="text-xs text-fg-muted">
+            {hint}
+          </p>
+        )
+      )}
+    </div>
+  );
+}
+
+const CONTROL_BASE = cn(
+  "w-full rounded-control border bg-surface px-3.5 text-sm text-fg",
+  "placeholder:text-fg-subtle transition-colors duration-150",
+  "focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500",
+  "disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-fg-muted"
+);
+
+const controlState = (error?: boolean) =>
+  error
+    ? "border-red-400 focus:border-red-500 focus:ring-red-500/30 dark:border-red-500/60"
+    : "border-line hover:border-line-strong";
+
+/* ── Input ─────────────────────────────────────────────────── */
+
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+  label?: React.ReactNode;
+  error?: string;
+  hint?: string;
+  /** Adornment on the reading-start side (right in RTL, left in LTR). */
   startIcon?: React.ReactNode;
+  /** Adornment on the reading-end side. */
   endIcon?: React.ReactNode;
+  wrapperClassName?: string;
+  inputSize?: "sm" | "md";
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, hint, startIcon, endIcon, id, ...props }, ref) => {
-    const inputId = id || label;
+  (
+    {
+      className,
+      wrapperClassName,
+      label,
+      error,
+      hint,
+      startIcon,
+      endIcon,
+      id,
+      required,
+      inputSize = "md",
+      ...props
+    },
+    ref
+  ) => {
+    const auto = useId();
+    const inputId = id || `input-${auto}`;
     return (
-      <div className="w-full space-y-1.5">
-        {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {label}
-          </label>
-        )}
+      <Field id={inputId} label={label} error={error} hint={hint} required={required} className={wrapperClassName}>
         <div className="relative">
           {startIcon && (
-            <div className="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none text-gray-400">
+            <span
+              className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-fg-subtle"
+              aria-hidden
+            >
               {startIcon}
-            </div>
+            </span>
           )}
           <input
             ref={ref}
             id={inputId}
+            required={required}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
             className={cn(
-              "w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors",
-              "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
-              "dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500",
-              error
-                ? "border-red-400 focus:ring-red-500 focus:border-red-500 dark:border-red-500"
-                : "border-gray-300 dark:border-gray-600",
-              startIcon && "pe-10",
-              endIcon && "ps-10",
+              CONTROL_BASE,
+              controlState(!!error),
+              inputSize === "sm" ? "h-9" : "h-10",
+              startIcon && "ps-10",
+              endIcon && "pe-10",
               className
             )}
             {...props}
           />
           {endIcon && (
-            <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none text-gray-400">
+            <span
+              className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3 text-fg-subtle"
+              aria-hidden
+            >
               {endIcon}
-            </div>
+            </span>
           )}
         </div>
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        {hint && !error && <p className="text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
-      </div>
+      </Field>
     );
   }
 );
-
 Input.displayName = "Input";
 
+/* ── Textarea ──────────────────────────────────────────────── */
+
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string;
+  label?: React.ReactNode;
   error?: string;
   hint?: string;
+  wrapperClassName?: string;
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, hint, id, ...props }, ref) => {
-    const inputId = id || label;
+  ({ className, wrapperClassName, label, error, hint, id, required, rows = 4, ...props }, ref) => {
+    const auto = useId();
+    const inputId = id || `textarea-${auto}`;
     return (
-      <div className="w-full space-y-1.5">
-        {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {label}
-          </label>
-        )}
+      <Field id={inputId} label={label} error={error} hint={hint} required={required} className={wrapperClassName}>
         <textarea
           ref={ref}
           id={inputId}
-          className={cn(
-            "w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors resize-none",
-            "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
-            "dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500",
-            error
-              ? "border-red-400 focus:ring-red-500 dark:border-red-500"
-              : "border-gray-300 dark:border-gray-600",
-            className
-          )}
-          rows={4}
+          rows={rows}
+          required={required}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+          className={cn(CONTROL_BASE, controlState(!!error), "resize-y py-2.5 leading-relaxed", className)}
           {...props}
         />
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        {hint && !error && <p className="text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
-      </div>
+      </Field>
     );
   }
 );
-
 Textarea.displayName = "Textarea";
 
+/* ── Select ────────────────────────────────────────────────── */
+
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
+  label?: React.ReactNode;
   error?: string;
+  hint?: string;
   options: { value: string; label: string }[];
+  wrapperClassName?: string;
+  selectSize?: "sm" | "md";
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, options, id, ...props }, ref) => {
-    const inputId = id || label;
+  (
+    { className, wrapperClassName, label, error, hint, options, id, required, selectSize = "md", ...props },
+    ref
+  ) => {
+    const auto = useId();
+    const inputId = id || `select-${auto}`;
     return (
-      <div className="w-full space-y-1.5">
-        {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {label}
-          </label>
+      <Field id={inputId} label={label} error={error} hint={hint} required={required} className={wrapperClassName}>
+        <div className="relative">
+          <select
+            ref={ref}
+            id={inputId}
+            required={required}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+            className={cn(
+              CONTROL_BASE,
+              controlState(!!error),
+              "cursor-pointer appearance-none pe-9",
+              selectSize === "sm" ? "h-9" : "h-10",
+              className
+            )}
+            {...props}
+          >
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute inset-y-0 end-3 my-auto h-4 w-4 text-fg-subtle"
+            aria-hidden
+          />
+        </div>
+      </Field>
+    );
+  }
+);
+Select.displayName = "Select";
+
+/* ── Switch ────────────────────────────────────────────────── */
+
+interface SwitchProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label?: React.ReactNode;
+  description?: React.ReactNode;
+  disabled?: boolean;
+  id?: string;
+  className?: string;
+}
+
+export function Switch({ checked, onChange, label, description, disabled, id, className }: SwitchProps) {
+  const auto = useId();
+  const switchId = id || `switch-${auto}`;
+  return (
+    <div className={cn("flex items-start gap-3", className)}>
+      <button
+        type="button"
+        id={switchId}
+        role="switch"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          "relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          checked ? "bg-primary-600" : "bg-line-strong"
         )}
-        <select
+      >
+        <span
+          className={cn(
+            "absolute h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200",
+            checked ? "start-[1.125rem]" : "start-0.5"
+          )}
+        />
+      </button>
+      {(label || description) && (
+        <label htmlFor={switchId} className="cursor-pointer select-none">
+          {label && <span className="block text-[13px] font-medium text-fg">{label}</span>}
+          {description && <span className="block text-xs text-fg-muted">{description}</span>}
+        </label>
+      )}
+    </div>
+  );
+}
+
+/* ── Checkbox ──────────────────────────────────────────────── */
+
+interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+  label?: React.ReactNode;
+  description?: React.ReactNode;
+}
+
+const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
+  ({ className, label, description, id, ...props }, ref) => {
+    const auto = useId();
+    const inputId = id || `checkbox-${auto}`;
+    return (
+      <div className="flex items-start gap-2.5">
+        <input
           ref={ref}
           id={inputId}
+          type="checkbox"
           className={cn(
-            "w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-900 transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
-            "dark:bg-gray-800 dark:text-gray-100",
-            error
-              ? "border-red-400 dark:border-red-500"
-              : "border-gray-300 dark:border-gray-600",
+            "mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-line-strong bg-surface text-primary-600",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
             className
           )}
           {...props}
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        />
+        {(label || description) && (
+          <label htmlFor={inputId} className="cursor-pointer select-none leading-tight">
+            {label && <span className="block text-[13px] font-medium text-fg">{label}</span>}
+            {description && <span className="mt-0.5 block text-xs text-fg-muted">{description}</span>}
+          </label>
+        )}
       </div>
     );
   }
 );
+Checkbox.displayName = "Checkbox";
 
-Select.displayName = "Select";
-
-export { Input, Textarea, Select };
+export { Input, Textarea, Select, Checkbox, Field };

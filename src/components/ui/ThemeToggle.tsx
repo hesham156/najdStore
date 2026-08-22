@@ -2,43 +2,75 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function ThemeToggle({ className }: { className?: string }) {
+const OPTIONS = [
+  { value: "light", icon: Sun, label: "فاتح" },
+  { value: "system", icon: Monitor, label: "تلقائي" },
+  { value: "dark", icon: Moon, label: "داكن" },
+] as const;
+
+/**
+ * `compact` cycles through the three modes with one button — used in the
+ * admin header where horizontal space is tight.
+ */
+export function ThemeToggle({ className, compact }: { className?: string; compact?: boolean }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Wait until mounted on client before rendering theme-dependent classes
-  // This prevents the SSR/client hydration mismatch warning
-  useEffect(() => { setMounted(true); }, []);
+  // Theme is unknown during SSR; render the neutral state until mounted.
+  useEffect(() => setMounted(true), []);
+
+  if (compact) {
+    // Before mount the theme is unknown, so both the icon and the label must
+    // describe the same neutral "system" state or hydration mismatches.
+    const idx = mounted ? Math.max(0, OPTIONS.findIndex((o) => o.value === theme)) : 1;
+    const current = OPTIONS[idx];
+    const next = OPTIONS[(idx + 1) % OPTIONS.length];
+    const Icon = current.icon;
+    return (
+      <button
+        type="button"
+        onClick={() => setTheme(next.value)}
+        aria-label={`المظهر: ${current.label} — التبديل إلى ${next.label}`}
+        title={`المظهر: ${current.label}`}
+        className={cn(
+          "rounded-lg p-2 text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg",
+          className
+        )}
+      >
+        <Icon className="h-4 w-4" aria-hidden />
+      </button>
+    );
+  }
 
   return (
     <div
-      className={cn(
-        "flex items-center gap-1 rounded-xl bg-gray-100 dark:bg-gray-800 p-1",
-        className
-      )}
+      role="radiogroup"
+      aria-label="مظهر الواجهة"
+      className={cn("flex items-center gap-0.5 rounded-xl bg-surface-sunken p-1", className)}
     >
-      {[
-        { value: "light", icon: Sun },
-        { value: "system", icon: Monitor },
-        { value: "dark", icon: Moon },
-      ].map(({ value, icon: Icon }) => (
-        <button
-          key={value}
-          onClick={() => setTheme(value)}
-          className={cn(
-            "rounded-lg p-1.5 transition-all",
-            // Only apply active styles after mount to avoid hydration mismatch
-            mounted && theme === value
-              ? "bg-white text-primary-600 shadow-sm dark:bg-gray-700 dark:text-primary-400"
-              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          )}
-        >
-          <Icon className="h-4 w-4" />
-        </button>
-      ))}
+      {OPTIONS.map(({ value, icon: Icon, label }) => {
+        const active = mounted && theme === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            aria-label={label}
+            title={label}
+            onClick={() => setTheme(value)}
+            className={cn(
+              "rounded-lg p-1.5 transition-colors",
+              active ? "bg-surface text-primary-600 shadow-xs dark:text-primary-400" : "text-fg-muted hover:text-fg"
+            )}
+          >
+            <Icon className="h-4 w-4" aria-hidden />
+          </button>
+        );
+      })}
     </div>
   );
 }

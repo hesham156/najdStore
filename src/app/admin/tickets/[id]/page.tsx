@@ -1,10 +1,26 @@
 import { getServerSession } from "next-auth";
+import { notFound, redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { notFound, redirect } from "next/navigation";
-import { formatDateTime, getTicketStatusLabel } from "@/lib/utils";
-import { Badge } from "@/components/ui/Badge";
+import { formatDateTime, getPriorityLabel, getTicketStatusLabel } from "@/lib/utils";
+import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { Section } from "@/components/ui/Card";
+import { PageHeader } from "@/components/admin/PageHeader";
 import AdminTicketActions from "./AdminTicketActions";
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  OPEN: "warning",
+  IN_PROGRESS: "primary",
+  RESOLVED: "success",
+  CLOSED: "gray",
+};
+
+const PRIORITY_VARIANT: Record<string, BadgeVariant> = {
+  LOW: "gray",
+  MEDIUM: "info",
+  HIGH: "warning",
+  URGENT: "danger",
+};
 
 export default async function AdminTicketDetailPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -16,66 +32,59 @@ export default async function AdminTicketDetailPage({ params }: { params: { id: 
     where: { id: params.id },
     include: {
       user: { select: { name: true, email: true } },
-      messages: {
-        orderBy: { createdAt: "asc" },
-      },
+      messages: { orderBy: { createdAt: "asc" } },
     },
   });
 
   if (!ticket) notFound();
 
-  // Fetch sender names for all messages
   const userIds = Array.from(new Set(ticket.messages.map((m) => m.userId)));
-  const users = await prisma.user.findMany({
-    where: { id: { in: userIds } },
-    select: { id: true, name: true },
-  });
+  const users = await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } });
   const userMap = Object.fromEntries(users.map((u) => [u.id, u.name]));
 
-  const statusColors: Record<string, string> = {
-    OPEN: "warning",
-    IN_PROGRESS: "primary",
-    RESOLVED: "success",
-    CLOSED: "gray",
-  };
-
   return (
-    <div className="space-y-6 animate-fade-in max-w-3xl">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{ticket.subject}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {ticket.ticketNumber} · {ticket.user.name} · {ticket.user.email}
-          </p>
-        </div>
-        <Badge variant={statusColors[ticket.status] as "warning" | "primary" | "success" | "gray" | undefined}>
-          {getTicketStatusLabel(ticket.status)}
-        </Badge>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-5 animate-fade-in">
+      <PageHeader
+        breadcrumbs={[
+          { label: "لوحة التحكم", href: "/admin" },
+          { label: "تذاكر الدعم", href: "/admin/tickets" },
+          { label: ticket.ticketNumber },
+        ]}
+        title={ticket.subject}
+        description={`${ticket.ticketNumber} · ${ticket.user.name} · ${ticket.user.email}`}
+        badge={
+          <span className="flex flex-wrap items-center gap-1.5">
+            <Badge variant={STATUS_VARIANT[ticket.status] ?? "gray"} dot>
+              {getTicketStatusLabel(ticket.status)}
+            </Badge>
+            <Badge variant={PRIORITY_VARIANT[ticket.priority] ?? "gray"}>{getPriorityLabel(ticket.priority)}</Badge>
+          </span>
+        }
+      />
 
-      <div className="space-y-4">
+      <Section title="المحادثة" description={`${ticket.messages.length} رسالة`} contentClassName="space-y-3 pt-0">
         {ticket.messages.map((msg) => {
           const isStaff = msg.isStaff;
           const senderName = userMap[msg.userId] ?? "مجهول";
           return (
             <div key={msg.id} className={`flex ${isStaff ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-                isStaff
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-              }`}>
-                <p className={`text-xs font-medium mb-1 ${isStaff ? "text-primary-100" : "text-gray-500"}`}>
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  isStaff ? "rounded-tl-sm bg-primary-600 text-white" : "rounded-tr-sm border border-line bg-surface-muted text-fg"
+                }`}
+              >
+                <p className={`mb-1 text-[11px] font-medium ${isStaff ? "text-primary-100" : "text-fg-muted"}`}>
                   {senderName} · {isStaff ? "الدعم" : "العميل"}
                 </p>
-                <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                <p className={`text-xs mt-1 ${isStaff ? "text-primary-200" : "text-gray-400"}`}>
+                <p className="whitespace-pre-wrap text-[13px] leading-relaxed">{msg.message}</p>
+                <p className={`mt-1 text-[10px] ${isStaff ? "text-primary-100/80" : "text-fg-subtle"}`}>
                   {formatDateTime(msg.createdAt.toString())}
                 </p>
               </div>
             </div>
           );
         })}
-      </div>
+      </Section>
 
       <AdminTicketActions ticketId={ticket.id} status={ticket.status} />
     </div>

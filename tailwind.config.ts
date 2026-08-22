@@ -1,5 +1,8 @@
 import type { Config } from "tailwindcss";
 
+/** Reads a CSS custom property holding `R G B` channels so /opacity modifiers work. */
+const token = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
+
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -27,12 +30,55 @@ const config: Config = {
           900: "#4c1d95",
           950: "#2e1065",
         },
+        /* ── Semantic surface + text tokens (light/dark aware) ── */
+        canvas: token("canvas"),
+        surface: {
+          DEFAULT: token("surface"),
+          muted: token("surface-muted"),
+          sunken: token("surface-sunken"),
+          hover: token("surface-hover"),
+        },
+        line: {
+          DEFAULT: token("line"),
+          strong: token("line-strong"),
+        },
+        fg: {
+          DEFAULT: token("fg"),
+          muted: token("fg-muted"),
+          subtle: token("fg-subtle"),
+        },
+      },
+      borderRadius: {
+        card: "1rem",
+        control: "0.75rem",
+      },
+      boxShadow: {
+        xs: "0 1px 2px 0 rgb(var(--shadow-color) / 0.05)",
+        card: "0 1px 2px 0 rgb(var(--shadow-color) / 0.04), 0 1px 3px 0 rgb(var(--shadow-color) / 0.06)",
+        "card-hover":
+          "0 4px 6px -1px rgb(var(--shadow-color) / 0.07), 0 2px 4px -2px rgb(var(--shadow-color) / 0.05)",
+        pop: "0 10px 24px -6px rgb(var(--shadow-color) / 0.14), 0 4px 8px -4px rgb(var(--shadow-color) / 0.08)",
+        overlay:
+          "0 20px 48px -12px rgb(var(--shadow-color) / 0.24), 0 8px 16px -8px rgb(var(--shadow-color) / 0.12)",
+      },
+      transitionTimingFunction: {
+        out: "cubic-bezier(0.16, 1, 0.3, 1)",
+      },
+      zIndex: {
+        sidebar: "40",
+        header: "30",
+        drawer: "50",
+        modal: "60",
+        popover: "70",
+        toast: "80",
       },
       animation: {
-        "fade-in": "fadeIn 0.3s ease-in-out",
-        "slide-up": "slideUp 0.3s ease-out",
+        "fade-in": "fadeIn 0.2s ease-out",
+        "slide-up": "slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-in-right": "slideInRight 0.3s ease-out",
         "fly-out": "flyOut var(--fly-duration, 5s) ease-in var(--fly-delay, 0s) infinite",
+        "pop-in": "popIn 0.14s cubic-bezier(0.16, 1, 0.3, 1)",
+        shimmer: "shimmer 1.6s linear infinite",
       },
       keyframes: {
         fadeIn: {
@@ -46,6 +92,14 @@ const config: Config = {
         slideInRight: {
           "0%": { transform: "translateX(100%)" },
           "100%": { transform: "translateX(0)" },
+        },
+        popIn: {
+          "0%": { transform: "scale(0.96) translateY(-4px)", opacity: "0" },
+          "100%": { transform: "scale(1) translateY(0)", opacity: "1" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
         },
         flyOut: {
           "0%":   { transform: "scale(0.08)", opacity: "0" },

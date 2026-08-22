@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -162,41 +163,35 @@ export default function AdminUpsellsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in" dir="rtl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">
-            العروض الترقية (Upsell)
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            إدارة العروض الترقوية لزيادة متوسط قيمة الطلب
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            setShowForm(true);
-            setForm(emptyForm());
-            setError("");
-          }}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          إضافة عرض
-        </Button>
-      </div>
+      <PageHeader
+        title="عروض Upsell"
+        description="عروض ترقية تُعرض على العميل لزيادة متوسط قيمة الطلب"
+        actions={
+          <Button
+            onClick={() => {
+              setShowForm(true);
+              setForm(emptyForm());
+              setError("");
+            }}
+            icon={<Plus className="h-4 w-4" />}
+          >
+            إضافة عرض
+          </Button>
+        }
+      />
 
       {/* Create Form */}
       {showForm && (
         <Card className="border-2 border-primary-200 dark:border-primary-800">
           <form onSubmit={handleCreate} className="space-y-5">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              <h2 className="text-lg font-bold text-fg">
                 إنشاء عرض ترقوي جديد
               </h2>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                className="text-fg-subtle hover:text-fg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -293,11 +288,11 @@ export default function AdminUpsellsPage() {
                 onChange={(e) => setField("isActive", e.target.checked)}
                 className="w-4 h-4 rounded accent-primary-600"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">نشط</span>
+              <span className="text-sm text-fg">نشط</span>
             </label>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 pt-2 border-t border-line">
               <Button type="submit" loading={saving}>
                 حفظ العرض
               </Button>
@@ -312,9 +307,9 @@ export default function AdminUpsellsPage() {
       {/* Table */}
       <Card padding="none">
         {loading ? (
-          <div className="py-16 text-center text-gray-400">جاري التحميل...</div>
+          <div className="py-16 text-center text-fg-subtle">جاري التحميل...</div>
         ) : upsells.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 space-y-2">
+          <div className="py-16 text-center text-fg-subtle space-y-2">
             <p className="text-lg font-medium">لا توجد عروض ترقوية حتى الآن</p>
             <p className="text-sm">اضغط على "إضافة عرض" للبدء</p>
           </div>
@@ -322,41 +317,41 @@ export default function AdminUpsellsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                <tr className="border-b border-line bg-surface-muted">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     العنوان
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     نوع التفعيل
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     المنتج المعروض
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     الخصم
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     الحالة
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     إجراءات
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              <tbody className="divide-y divide-line">
                 {upsells.map((upsell) => (
                   <tr
                     key={upsell.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
+                    className="hover:bg-surface-hover/30 transition-colors"
                   >
                     {/* Headline */}
                     <td className="px-5 py-4">
                       <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
+                        <p className="font-semibold text-fg">
                           {upsell.headlineAr}
                         </p>
                         {upsell.descriptionAr && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                          <p className="text-xs text-fg-muted mt-0.5 line-clamp-1">
                             {upsell.descriptionAr}
                           </p>
                         )}
@@ -381,10 +376,10 @@ export default function AdminUpsellsPage() {
                           />
                         )}
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white text-xs">
+                          <p className="font-medium text-fg text-xs">
                             {upsell.offerProduct?.nameAr}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-fg-muted">
                             {upsell.offerProduct?.name}
                           </p>
                         </div>
@@ -394,7 +389,7 @@ export default function AdminUpsellsPage() {
                     {/* Discount */}
                     <td className="px-5 py-4">
                       {!upsell.discountType ? (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-fg-subtle">—</span>
                       ) : (
                         <Badge variant="success">{formatDiscount(upsell)}</Badge>
                       )}
@@ -407,7 +402,7 @@ export default function AdminUpsellsPage() {
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                           upsell.isActive
                             ? "bg-primary-600"
-                            : "bg-gray-300 dark:bg-gray-600"
+                            : "bg-line-strong"
                         }`}
                         title={upsell.isActive ? "إيقاف" : "تفعيل"}
                       >

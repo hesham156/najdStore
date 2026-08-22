@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
-import { Plus, Trash2, Save, ArrowRight, Layers, Table2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Save, Table2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface OptionDraft { nameAr: string; required: boolean; values: string[] }
 interface VariantCell { price: string; comparePrice: string; sku: string; stockCount: string; isActive: boolean }
@@ -156,40 +156,42 @@ export default function ProductOptionsPage({ params }: { params: { id: string } 
   };
 
   if (loading) {
-    return <div className="animate-pulse space-y-4 max-w-4xl">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />)}</div>;
+    return <div className="animate-pulse space-y-4 max-w-4xl">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-card skeleton" />)}</div>;
   }
 
   return (
     <div className="animate-fade-in max-w-5xl space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <Link href={`/admin/products/${params.id}`} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-1">
-            <ArrowRight className="h-4 w-4" /> رجوع للمنتج
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Layers className="h-6 w-6 text-primary-600" /> الخيارات والأسعار
-          </h1>
-          {productName && <p className="text-gray-500 text-sm mt-1">{productName}</p>}
-        </div>
-        <Button onClick={handleSave} loading={saving}><Save className="h-4 w-4" />حفظ</Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: "لوحة التحكم", href: "/admin" },
+          { label: "المنتجات", href: "/admin/products" },
+          { label: productName || "المنتج", href: `/admin/products/${params.id}` },
+          { label: "الخيارات والأسعار" },
+        ]}
+        title="الخيارات والأسعار"
+        description={productName || undefined}
+        actions={
+          <Button onClick={handleSave} loading={saving} icon={<Save className="h-4 w-4" />}>
+            حفظ
+          </Button>
+        }
+      />
 
       {/* Options builder */}
       <Card className="p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-gray-900 dark:text-white">الخيارات</h2>
+          <h2 className="font-bold text-fg">الخيارات</h2>
           <Button variant="outline" size="sm" onClick={addOption}><Plus className="h-4 w-4" />إضافة خيار</Button>
         </div>
 
         {options.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">
+          <p className="text-sm text-fg-muted py-6 text-center">
             لا توجد خيارات بعد. أضف خيارات مثل "الكمية" و"التصميم" وكل خيار له قيم متعددة.
           </p>
         )}
 
         {options.map((opt, i) => (
-          <div key={i} className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+          <div key={i} className="rounded-2xl border border-line p-4 space-y-3">
             <div className="flex items-center gap-3">
               <Input
                 label="اسم الخيار"
@@ -198,7 +200,7 @@ export default function ProductOptionsPage({ params }: { params: { id: string } 
                 placeholder="مثال: الكمية"
                 className="flex-1"
               />
-              <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-6 shrink-0">
+              <label className="flex items-center gap-2 text-sm text-fg-muted mt-6 shrink-0">
                 <input type="checkbox" checked={opt.required} onChange={(e) => setOption(i, { required: e.target.checked })} className="h-4 w-4 rounded" />
                 إلزامي
               </label>
@@ -208,16 +210,16 @@ export default function ProductOptionsPage({ params }: { params: { id: string } 
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">القيم</p>
+              <p className="text-xs font-medium text-fg-muted">القيم</p>
               {opt.values.map((val, vi) => (
                 <div key={vi} className="flex items-center gap-2">
                   <input
                     value={val}
                     onChange={(e) => setValue(i, vi, e.target.value)}
                     placeholder={`قيمة ${vi + 1} (مثال: 100 حبة)`}
-                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="flex-1 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
-                  <button onClick={() => removeValue(i, vi)} className="p-2 text-gray-400 hover:text-red-500 shrink-0" title="حذف القيمة">
+                  <button onClick={() => removeValue(i, vi)} className="p-2 text-fg-subtle hover:text-red-500 shrink-0" title="حذف القيمة">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -232,9 +234,9 @@ export default function ProductOptionsPage({ params }: { params: { id: string } 
       {combos.length > 0 && (
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <h2 className="font-bold text-fg flex items-center gap-2">
               <Table2 className="h-5 w-5 text-primary-600" /> مصفوفة الأسعار
-              <span className="text-xs font-normal text-gray-400">({combos.length} تركيبة)</span>
+              <span className="text-xs font-normal text-fg-subtle">({combos.length} تركيبة)</span>
             </h2>
           </div>
 
@@ -246,7 +248,7 @@ export default function ProductOptionsPage({ params }: { params: { id: string } 
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="text-start text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                  <tr className="text-start text-xs text-fg-muted border-b border-line">
                     {cleanOptions.map((o) => <th key={o.nameAr} className="p-2 text-start font-semibold">{o.nameAr}</th>)}
                     <th className="p-2 text-start font-semibold">السعر *</th>
                     <th className="p-2 text-start font-semibold">قبل الخصم</th>
@@ -259,14 +261,14 @@ export default function ProductOptionsPage({ params }: { params: { id: string } 
                   {combos.map((combo, ri) => {
                     const cell = cellOf(combo);
                     return (
-                      <tr key={ri} className="border-b border-gray-100 dark:border-gray-800">
+                      <tr key={ri} className="border-b border-line">
                         {combo.map((vi, oi) => (
-                          <td key={oi} className="p-2 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">{cleanOptions[oi].values[vi]}</td>
+                          <td key={oi} className="p-2 font-medium text-fg whitespace-nowrap">{cleanOptions[oi].values[vi]}</td>
                         ))}
-                        <td className="p-1"><input type="number" value={cell.price} onChange={(e) => setCell(combo, { price: e.target.value })} placeholder="0" className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
-                        <td className="p-1"><input type="number" value={cell.comparePrice} onChange={(e) => setCell(combo, { comparePrice: e.target.value })} placeholder="—" className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
-                        <td className="p-1"><input value={cell.sku} onChange={(e) => setCell(combo, { sku: e.target.value })} placeholder="—" className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
-                        <td className="p-1"><input type="number" value={cell.stockCount} onChange={(e) => setCell(combo, { stockCount: e.target.value })} placeholder="0" className="w-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
+                        <td className="p-1"><input type="number" value={cell.price} onChange={(e) => setCell(combo, { price: e.target.value })} placeholder="0" className="w-24 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
+                        <td className="p-1"><input type="number" value={cell.comparePrice} onChange={(e) => setCell(combo, { comparePrice: e.target.value })} placeholder="—" className="w-24 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
+                        <td className="p-1"><input value={cell.sku} onChange={(e) => setCell(combo, { sku: e.target.value })} placeholder="—" className="w-24 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
+                        <td className="p-1"><input type="number" value={cell.stockCount} onChange={(e) => setCell(combo, { stockCount: e.target.value })} placeholder="0" className="w-20 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" /></td>
                         <td className="p-1 text-center"><input type="checkbox" checked={cell.isActive} onChange={(e) => setCell(combo, { isActive: e.target.checked })} className="h-4 w-4 rounded" /></td>
                       </tr>
                     );
@@ -275,7 +277,7 @@ export default function ProductOptionsPage({ params }: { params: { id: string } 
               </table>
             </div>
           )}
-          <p className="text-xs text-gray-400">السعر النهائي للعميل يتحدد حسب التركيبة المختارة. التركيبات غير المفعّلة لا تظهر للعميل.</p>
+          <p className="text-xs text-fg-subtle">السعر النهائي للعميل يتحدد حسب التركيبة المختارة. التركيبات غير المفعّلة لا تظهر للعميل.</p>
         </Card>
       )}
 

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Globe, Search, Share2, Bot, FileText } from "lucide-react";
+import { Save, Globe, Search, Share2, Bot } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 // These map to Setting.key in the DB
 const SEO_KEYS = [
@@ -125,34 +126,27 @@ export default function AdminSeoPage() {
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-2xl bg-gray-200 dark:bg-gray-700" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-card skeleton" />)}
       </div>
     );
   }
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText className="h-6 w-6 text-primary-600" />
-            إعدادات SEO
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            تحسين محركات البحث ومشاركة المحتوى على الشبكات الاجتماعية
-          </p>
-        </div>
-        <Button onClick={handleSave} loading={saving}>
-          <Save className="h-4 w-4" />
-          حفظ التغييرات
-        </Button>
-      </div>
+      <PageHeader
+        title="إعدادات SEO"
+        description="تحسين محركات البحث ومشاركة المحتوى على الشبكات الاجتماعية"
+        actions={
+          <Button onClick={handleSave} loading={saving} icon={<Save className="h-4 w-4" />}>
+            حفظ التغييرات
+          </Button>
+        }
+      />
 
       {/* Search Preview */}
       <Card className="p-5">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">معاينة نتيجة Google</p>
-        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-1 bg-white dark:bg-gray-900">
+        <p className="text-xs font-bold text-fg-muted uppercase tracking-wide mb-3">معاينة نتيجة Google</p>
+        <div className="border border-line rounded-xl p-4 space-y-1 bg-surface">
           <p className="text-xs text-green-600 dark:text-green-400 truncate">
             {values["seo_site_url"] || "https://yourstore.com"} ›
           </p>
@@ -164,12 +158,12 @@ export default function AdminSeoPage() {
           </p>
           <p className={cn(
             "text-sm leading-relaxed line-clamp-2",
-            descLen > 160 ? "text-orange-500" : "text-gray-600 dark:text-gray-400"
+            descLen > 160 ? "text-orange-500" : "text-fg-muted"
           )}>
             {values["seo_meta_description"] || "وصف الصفحة يظهر هنا في نتائج Google..."}
           </p>
         </div>
-        <div className="flex gap-4 mt-2 text-xs text-gray-400">
+        <div className="flex gap-4 mt-2 text-xs text-fg-subtle">
           <span className={titleLen > 60 ? "text-orange-500 font-bold" : ""}>
             العنوان: {titleLen}/60 حرف {titleLen > 60 ? "⚠️ طويل" : titleLen > 50 ? "✅" : ""}
           </span>
@@ -182,7 +176,7 @@ export default function AdminSeoPage() {
       {/* Sections */}
       {SECTIONS.map((section) => (
         <Card key={section.title} className="overflow-hidden p-0">
-          <div className={cn("flex items-center gap-2 px-6 py-4 border-b dark:border-gray-700 font-bold text-gray-800 dark:text-gray-200", section.color)}>
+          <div className={cn("flex items-center gap-2 px-6 py-4 border-b dark:border-line font-bold text-fg", section.color)}>
             {section.icon}
             {section.title}
           </div>
@@ -193,17 +187,17 @@ export default function AdminSeoPage() {
 
               if (conf.type === "boolean") {
                 return (
-                  <label key={key} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800 cursor-pointer">
+                  <label key={key} className="flex items-center justify-between p-3 rounded-xl bg-surface-muted cursor-pointer">
                     <div>
-                      <p className="font-medium text-sm text-gray-900 dark:text-white">{conf.labelAr}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">إيقاف الفهرسة يمنع ظهور موقعك في محركات البحث</p>
+                      <p className="font-medium text-sm text-fg">{conf.labelAr}</p>
+                      <p className="text-xs text-fg-muted mt-0.5">إيقاف الفهرسة يمنع ظهور موقعك في محركات البحث</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => set(key, bool(key) ? "false" : "true")}
                       className={cn(
                         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                        bool(key) ? "bg-primary-600" : "bg-gray-300 dark:bg-gray-600"
+                        bool(key) ? "bg-primary-600" : "bg-line-strong"
                       )}
                     >
                       <span className={cn(
@@ -218,7 +212,7 @@ export default function AdminSeoPage() {
               if (conf.type === "textarea") {
                 return (
                   <div key={key} className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-fg">
                       {conf.labelAr}
                     </label>
                     <textarea
@@ -227,12 +221,12 @@ export default function AdminSeoPage() {
                       placeholder={conf.placeholder}
                       rows={3}
                       className={cn(
-                        "w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm",
+                        "w-full rounded-control border border-line bg-surface px-4 py-2.5 text-sm text-fg",
                         "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
-                        "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 transition-colors resize-none"
+                        "transition-colors resize-none"
                       )}
                     />
-                    {conf.hint && <p className="text-xs text-gray-400">{conf.hint}</p>}
+                    {conf.hint && <p className="text-xs text-fg-subtle">{conf.hint}</p>}
                   </div>
                 );
               }

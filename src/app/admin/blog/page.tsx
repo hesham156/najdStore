@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
@@ -81,27 +82,25 @@ export default function AdminBlogPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">المقالات</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{counts.all} مقال — {counts.PUBLISHED} منشور</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => router.push("/admin/blog/categories")}>
-            الفئات
-          </Button>
-          <Button size="sm" onClick={() => router.push("/admin/blog/new")}>
-            <Plus className="h-4 w-4 ms-1" />
-            مقال جديد
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="المقالات"
+        description={`${counts.all} مقال — ${counts.PUBLISHED} منشور`}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => router.push("/admin/blog/categories")}>
+              التصنيفات
+            </Button>
+            <Button onClick={() => router.push("/admin/blog/new")} icon={<Plus className="h-4 w-4" />}>
+              مقال جديد
+            </Button>
+          </>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-subtle" />
           <Input
             placeholder="بحث في المقالات..."
             value={search}
@@ -118,7 +117,7 @@ export default function AdminBlogPage() {
                 "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                 statusFilter === val
                   ? "bg-primary-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  : "bg-surface-sunken text-fg-muted hover:bg-surface-hover"
               )}
             >
               {label}
@@ -128,51 +127,51 @@ export default function AdminBlogPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-line overflow-hidden">
         {loading ? (
-          <div className="py-20 text-center text-gray-400">جار التحميل...</div>
+          <div className="py-20 text-center text-fg-subtle">جار التحميل...</div>
         ) : posts.length === 0 ? (
           <div className="py-20 text-center">
-            <FileText className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500">لا توجد مقالات</p>
+            <FileText className="h-12 w-12 mx-auto text-fg-subtle mb-3" />
+            <p className="text-fg-muted">لا توجد مقالات</p>
             <Button size="sm" className="mt-4" onClick={() => router.push("/admin/blog/new")}>
               أضف أول مقال
             </Button>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+            <thead className="bg-surface-muted border-b border-line">
               <tr>
-                <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-4 py-3">المقال</th>
-                <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-4 py-3">الفئة</th>
-                <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-4 py-3">الحالة</th>
-                <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-4 py-3">المشاهدات</th>
-                <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-4 py-3">التاريخ</th>
+                <th className="text-right text-xs font-bold text-fg-muted uppercase tracking-wider px-4 py-3">المقال</th>
+                <th className="text-right text-xs font-bold text-fg-muted uppercase tracking-wider px-4 py-3">الفئة</th>
+                <th className="text-right text-xs font-bold text-fg-muted uppercase tracking-wider px-4 py-3">الحالة</th>
+                <th className="text-right text-xs font-bold text-fg-muted uppercase tracking-wider px-4 py-3">المشاهدات</th>
+                <th className="text-right text-xs font-bold text-fg-muted uppercase tracking-wider px-4 py-3">التاريخ</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            <tbody className="divide-y divide-line">
               {posts.map((post) => {
                 const sc = statusConfig[post.status];
                 const StatusIcon = sc.icon;
                 return (
-                  <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                  <tr key={post.id} className="hover:bg-surface-hover/30 transition-colors">
                     <td className="px-4 py-4">
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-1">{post.titleAr}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{post.readingTime} دقيقة قراءة · {post.slug}</p>
+                      <p className="font-semibold text-fg text-sm line-clamp-1">{post.titleAr}</p>
+                      <p className="text-xs text-fg-subtle mt-0.5">{post.readingTime} دقيقة قراءة · {post.slug}</p>
                     </td>
                     <td className="px-4 py-4">
                       {post.category ? (
-                        <span className="text-sm text-gray-600 dark:text-gray-300">{post.category.nameAr}</span>
+                        <span className="text-sm text-fg-muted">{post.category.nameAr}</span>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-fg-subtle">—</span>
                       )}
                     </td>
                     <td className="px-4 py-4">
                       <span className={cn(
                         "inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium",
                         post.status === "PUBLISHED" && "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-                        post.status === "DRAFT" && "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+                        post.status === "DRAFT" && "bg-surface-sunken text-fg-muted",
                         post.status === "ARCHIVED" && "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
                       )}>
                         <StatusIcon className="h-3 w-3" />
@@ -180,13 +179,13 @@ export default function AdminBlogPage() {
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="flex items-center gap-1 text-sm text-gray-500">
+                      <span className="flex items-center gap-1 text-sm text-fg-muted">
                         <Eye className="h-3.5 w-3.5" />
                         {post.viewCount.toLocaleString("ar")}
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-fg-subtle">
                         {formatDistanceToNow(new Date(post.publishedAt || post.createdAt), { addSuffix: true, locale: ar })}
                       </span>
                     </td>
@@ -197,20 +196,20 @@ export default function AdminBlogPage() {
                             href={`/blog/${post.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
+                            className="p-1.5 text-fg-subtle hover:text-blue-500 transition-colors"
                           >
                             <Eye className="h-4 w-4" />
                           </a>
                         )}
                         <button
                           onClick={() => router.push(`/admin/blog/${post.id}`)}
-                          className="p-1.5 text-gray-400 hover:text-primary-500 transition-colors"
+                          className="p-1.5 text-fg-subtle hover:text-primary-500 transition-colors"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => setDeleteId(post.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                          className="p-1.5 text-fg-subtle hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

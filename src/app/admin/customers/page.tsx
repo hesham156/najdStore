@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Users, Search, Eye, UserCheck, ShoppingBag, DollarSign } from "lucide-react";
-import { Input } from "@/components/ui/Input";
-import { Badge } from "@/components/ui/Badge";
-import { AdminStats } from "@/components/admin/AdminStats";
-import { DataTable, Column, Pagination } from "@/components/ui/DataTable";
-import { formatDate, formatCurrency } from "@/lib/utils";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { DollarSign, Eye, ShoppingBag, UserCheck, Users, UsersRound } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Column, DataTable, Pagination } from "@/components/ui/DataTable";
+import { EmptyState, NoResultsState } from "@/components/ui/States";
+import { Tabs } from "@/components/ui/Tabs";
+import { AdminStats, statColors } from "@/components/admin/AdminStats";
+import { PageHeader } from "@/components/admin/PageHeader";
+import { SearchInput, Toolbar, ToolbarSpacer } from "@/components/admin/Toolbar";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface Customer {
   id: string;
@@ -21,38 +26,106 @@ interface Customer {
   totalSpent?: number;
 }
 
+type StatusFilter = "all" | "active" | "inactive" | "buyers";
+type SortKey = "name" | "orders" | "totalSpent" | "createdAt";
+
 export default function AdminCustomersPage() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/admin/customers?search=${search}`);
-    const data = await res.json();
-    if (data.success) setCustomers(data.data);
-    setLoading(false);
+    setError(false);
+    try {
+      const res = await fetch(`/api/admin/customers?search=${encodeURIComponent(search)}`);
+      const data = await res.json();
+      if (data.success) setCustomers(data.data);
+      else setError(true);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [search]);
 
   useEffect(() => {
-    const t = setTimeout(() => { fetchCustomers(); setPage(1); }, 300);
+    const t = setTimeout(() => {
+      fetchCustomers();
+      setPage(1);
+    }, 300);
     return () => clearTimeout(t);
   }, [fetchCustomers]);
+
+  const counts = useMemo(
+    () => ({
+      all: customers.length,
+      active: customers.filter((c) => c.isActive).length,
+      inactive: customers.filter((c) => !c.isActive).length,
+      buyers: customers.filter((c) => (c._count?.orders ?? 0) > 0).length,
+    }),
+    [customers]
+  );
+
+  const stats = useMemo(() => {
+    const spent = customers.reduce((s, c) => s + (Number(c.totalSpent) || 0), 0);
+    return { total: customers.length, active: counts.active, withOrders: counts.buyers, spent };
+  }, [customers, counts]);
+
+  const filtered = useMemo(() => {
+    const rows = customers.filter((c) => {
+      if (status === "active") return c.isActive;
+      if (status === "inactive") return !c.isActive;
+      if (status === "buyers") return (c._count?.orders ?? 0) > 0;
+      return true;
+    });
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      switch (sortKey) {
+        case "name":
+          return a.name.localeCompare(b.name, "ar") * dir;
+        case "orders":
+          return ((a._count?.orders ?? 0) - (b._count?.orders ?? 0)) * dir;
+        case "totalSpent":
+          return ((Number(a.totalSpent) || 0) - (Number(b.totalSpent) || 0)) * dir;
+        default:
+          return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * dir;
+      }
+    });
+  }, [customers, status, sortKey, sortDir]);
+
+  useEffect(() => setPage(1), [status]);
+
+  const filtersActive = search !== "" || status !== "all";
+  const clearFilters = () => {
+    setSearch("");
+    setStatus("all");
+  };
 
   const columns: Column<Customer>[] = [
     {
       key: "name",
       title: "العميل",
+      sortable: true,
+      primary: true,
       render: (_, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-[13px] font-bold text-white"
+            aria-hidden
+          >
             {row.name.charAt(0)}
-          </div>
-          <div>
-            <p className="font-semibold text-sm">{row.name}</p>
-            <p className="text-xs text-gray-500">{row.email}</p>
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-semibold text-fg">{row.name}</p>
+            <p className="truncate text-[11px] text-fg-muted">{row.email}</p>
           </div>
         </div>
       ),
@@ -60,81 +133,134 @@ export default function AdminCustomersPage() {
     {
       key: "phone",
       title: "الهاتف",
-      render: (val) => <span className="text-sm">{String(val || "—")}</span>,
+      hideOnMobile: true,
+      render: (val) => (
+        <span className="text-[13px] text-fg-muted" dir="ltr">
+          {String(val || "—")}
+        </span>
+      ),
     },
     {
-      key: "_count",
+      key: "orders",
       title: "الطلبات",
-      render: (val) => <span className="font-bold">{(val as { orders: number }).orders}</span>,
+      sortable: true,
+      align: "center",
+      render: (_, row) => <span className="text-[13px] font-semibold tnum text-fg">{row._count?.orders ?? 0}</span>,
     },
     {
       key: "totalSpent",
-      title: "الإنفاق",
-      render: (val) => <span className="font-semibold text-sm text-gray-700 dark:text-gray-300">{val != null ? formatCurrency(Number(val)) : "—"}</span>,
+      title: "إجمالي الإنفاق",
+      sortable: true,
+      render: (val) => (
+        <span className="whitespace-nowrap text-[13px] font-bold tnum text-fg">
+          {val != null ? formatCurrency(Number(val)) : "—"}
+        </span>
+      ),
     },
     {
       key: "isActive",
       title: "الحالة",
-      render: (val) => <Badge variant={val ? "success" : "danger"}>{val ? "نشط" : "معطل"}</Badge>,
+      render: (val) => (
+        <Badge variant={val ? "success" : "danger"} dot>
+          {val ? "نشط" : "معطل"}
+        </Badge>
+      ),
     },
     {
       key: "createdAt",
       title: "تاريخ التسجيل",
-      render: (val) => <span className="text-xs text-gray-500">{formatDate(String(val))}</span>,
+      sortable: true,
+      hideOnMobile: true,
+      render: (val) => <span className="whitespace-nowrap text-xs text-fg-muted">{formatDate(String(val))}</span>,
     },
     {
-      key: "id",
-      title: "إجراءات",
+      key: "actions",
+      title: "",
+      align: "end",
+      cardHidden: true,
       render: (_, row) => (
-        <Link href={`/admin/customers/${row.id}`} className="text-sm text-primary-600 hover:underline flex items-center gap-1">
-          <Eye className="h-3.5 w-3.5" />
-          عرض
+        <Link href={`/admin/customers/${row.id}`} onClick={(e) => e.stopPropagation()}>
+          <Button size="sm" variant="secondary" icon={<Eye className="h-3.5 w-3.5" />}>
+            عرض
+          </Button>
         </Link>
       ),
     },
   ];
 
-  const stats = useMemo(() => {
-    const active = customers.filter(c => c.isActive).length;
-    const withOrders = customers.filter(c => (c._count?.orders ?? 0) > 0).length;
-    const spent = customers.reduce((s, c) => s + (Number(c.totalSpent) || 0), 0);
-    return { total: customers.length, active, withOrders, spent };
-  }, [customers]);
-
-  const totalPages = Math.ceil(customers.length / pageSize);
-  const paginatedCustomers = customers.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">العملاء</h1>
-          <p className="text-gray-500 text-sm mt-1">{customers.length} عميل</p>
-        </div>
-      </div>
+    <div className="space-y-5 animate-fade-in">
+      <PageHeader title="العملاء" description={`${filtered.length} عميل${filtersActive ? " بعد التصفية" : ""}`} />
 
-      <AdminStats items={[
-        { label: "إجمالي العملاء", value: stats.total, icon: Users, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
-        { label: "نشطون", value: stats.active, icon: UserCheck, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
-        { label: "لديهم طلبات", value: stats.withOrders, icon: ShoppingBag, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
-        { label: "إجمالي الإنفاق", value: formatCurrency(stats.spent), icon: DollarSign, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
-      ]} />
+      <AdminStats
+        items={[
+          { label: "إجمالي العملاء", value: stats.total, icon: Users, color: statColors.blue },
+          { label: "حسابات نشطة", value: stats.active, icon: UserCheck, color: statColors.green },
+          { label: "لديهم طلبات", value: stats.withOrders, icon: ShoppingBag, color: statColors.amber },
+          { label: "إجمالي الإنفاق", value: formatCurrency(stats.spent), icon: DollarSign, color: statColors.primary },
+        ]}
+      />
 
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث بالاسم أو البريد..." className="ps-10" />
-        </div>
-      </div>
+      <Toolbar>
+        <SearchInput value={search} onChange={setSearch} placeholder="الاسم، البريد، الجوال..." label="بحث عن عميل" />
+        <Tabs
+          ariaLabel="تصفية العملاء"
+          value={status}
+          onChange={(v) => setStatus(v as StatusFilter)}
+          items={[
+            { value: "all", label: "الكل", count: counts.all },
+            { value: "buyers", label: "لديهم طلبات", count: counts.buyers },
+            { value: "active", label: "نشط", count: counts.active },
+            { value: "inactive", label: "معطل", count: counts.inactive },
+          ]}
+        />
+        <ToolbarSpacer />
+        {filtersActive && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            مسح التصفية
+          </Button>
+        )}
+      </Toolbar>
 
-      <DataTable columns={columns} data={paginatedCustomers} loading={loading} emptyMessage="لا توجد عملاء" />
+      <DataTable
+        columns={columns}
+        data={paginated}
+        loading={loading}
+        error={error}
+        onRetry={fetchCustomers}
+        onRowClick={(row) => router.push(`/admin/customers/${row.id}`)}
+        sortKey={sortKey}
+        sortDirection={sortDir}
+        onSort={(key, dir) => {
+          setSortKey(key as SortKey);
+          setSortDir(dir);
+        }}
+        empty={
+          filtersActive ? (
+            <NoResultsState query={search} onClear={clearFilters} />
+          ) : (
+            <EmptyState
+              icon={UsersRound}
+              title="لا يوجد عملاء بعد"
+              description="سيظهر العملاء هنا بمجرد تسجيل أول حساب في المتجر."
+            />
+          )
+        }
+      />
+
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        totalItems={customers.length}
+        totalItems={filtered.length}
         pageSize={pageSize}
         onPageChange={setPage}
-        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+        onPageSizeChange={(s) => {
+          setPageSize(s);
+          setPage(1);
+        }}
       />
     </div>
   );

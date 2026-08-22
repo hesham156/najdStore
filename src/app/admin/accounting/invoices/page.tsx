@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import toast from "react-hot-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface InvoiceRow {
   id: string;
@@ -71,13 +72,15 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الفواتير الضريبية</h1>
-          <p className="text-gray-500 text-sm mt-1">إصدار وإدارة فواتير ضريبة القيمة المضافة</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: "لوحة التحكم", href: "/admin" },
+          { label: "المحاسبة", href: "/admin/accounting" },
+          { label: "الفواتير الضريبية" },
+        ]}
+        title="الفواتير الضريبية"
+        description="إصدار وإدارة فواتير ضريبة القيمة المضافة"
+      />
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -86,8 +89,8 @@ export default function InvoicesPage() {
             <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-xl font-black text-gray-900 dark:text-white">{invoices.length}</p>
-            <p className="text-xs text-gray-500">إجمالي الفواتير</p>
+            <p className="text-xl font-black text-fg">{invoices.length}</p>
+            <p className="text-xs text-fg-muted">إجمالي الفواتير</p>
           </div>
         </Card>
         <Card className="p-4 flex items-center gap-3">
@@ -95,8 +98,8 @@ export default function InvoicesPage() {
             <CheckCircle2 className="h-5 w-5 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <p className="text-xl font-black text-gray-900 dark:text-white">{totalRevenue.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</p>
-            <p className="text-xs text-gray-500">إجمالي الإيراد المفوتر</p>
+            <p className="text-xl font-black text-fg">{totalRevenue.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</p>
+            <p className="text-xs text-fg-muted">إجمالي الإيراد المفوتر</p>
           </div>
         </Card>
         <Card className="p-4 flex items-center gap-3">
@@ -104,15 +107,15 @@ export default function InvoicesPage() {
             <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <p className="text-xl font-black text-gray-900 dark:text-white">{totalTax.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</p>
-            <p className="text-xs text-gray-500">إجمالي ضريبة القيمة المضافة</p>
+            <p className="text-xl font-black text-fg">{totalTax.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</p>
+            <p className="text-xs text-fg-muted">إجمالي ضريبة القيمة المضافة</p>
           </div>
         </Card>
       </div>
 
       {/* Generate new invoice */}
-      <Card className="p-5 border-2 border-dashed border-gray-200 dark:border-gray-700">
-        <h3 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+      <Card className="p-5 border-2 border-dashed border-line">
+        <h3 className="font-bold text-fg mb-3 flex items-center gap-2">
           <Plus className="h-4 w-4" /> إصدار فاتورة لطلب
         </h3>
         <div className="flex gap-3">
@@ -128,33 +131,33 @@ export default function InvoicesPage() {
             <Receipt className="h-4 w-4" /> إصدار
           </Button>
         </div>
-        <p className="text-xs text-gray-400 mt-2">💡 انسخ الـ ID من قائمة الطلبات أو من URL صفحة الطلب</p>
+        <p className="text-xs text-fg-subtle mt-2">💡 انسخ الـ ID من قائمة الطلبات أو من URL صفحة الطلب</p>
       </Card>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-subtle" />
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="بحث برقم الفاتورة أو الطلب أو العميل..."
-          className="w-full ps-4 pe-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+          className="w-full ps-4 pe-10 py-2.5 rounded-xl border border-line bg-surface text-sm text-fg placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
         />
       </div>
 
       {/* Invoices table */}
       <Card className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 animate-pulse">جاري التحميل...</div>
+          <div className="p-8 text-center text-fg-subtle animate-pulse">جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <div className="text-5xl mb-3">🧾</div>
-            <p className="font-semibold text-gray-600 dark:text-gray-400">لا توجد فواتير</p>
-            <p className="text-sm text-gray-400 mt-1">أصدر أول فاتورة باستخدام النموذج أعلاه</p>
+            <p className="font-semibold text-fg-muted">لا توجد فواتير</p>
+            <p className="text-sm text-fg-subtle mt-1">أصدر أول فاتورة باستخدام النموذج أعلاه</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
-            <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-800/50 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <div className="divide-y divide-line/60">
+            <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-surface-muted text-xs font-bold text-fg-muted uppercase tracking-wider">
               <div className="col-span-2">رقم الفاتورة</div>
               <div className="col-span-2">رقم الطلب</div>
               <div className="col-span-3">العميل</div>
@@ -164,20 +167,20 @@ export default function InvoicesPage() {
               <div className="col-span-1 text-center">طباعة</div>
             </div>
             {filtered.map(inv => (
-              <div key={inv.id} className="grid grid-cols-12 gap-3 px-5 py-4 items-center hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+              <div key={inv.id} className="grid grid-cols-12 gap-3 px-5 py-4 items-center hover:bg-surface-hover transition-colors">
                 <div className="col-span-2">
                   <span className="font-mono text-xs font-bold text-primary-600 dark:text-primary-400">{inv.invoiceNumber}</span>
                 </div>
-                <div className="col-span-2 font-mono text-xs text-gray-600 dark:text-gray-400">{inv.order?.orderNumber}</div>
+                <div className="col-span-2 font-mono text-xs text-fg-muted">{inv.order?.orderNumber}</div>
                 <div className="col-span-3">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{inv.order?.user?.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{inv.order?.user?.email}</p>
+                  <p className="text-sm font-medium text-fg truncate">{inv.order?.user?.name}</p>
+                  <p className="text-xs text-fg-subtle truncate">{inv.order?.user?.email}</p>
                 </div>
-                <div className="col-span-2 text-sm text-gray-500">{new Date(inv.issuedAt).toLocaleDateString("ar-SA")}</div>
+                <div className="col-span-2 text-sm text-fg-muted">{new Date(inv.issuedAt).toLocaleDateString("ar-SA")}</div>
                 <div className="col-span-1 text-end text-sm font-semibold text-amber-600 dark:text-amber-400">
                   {Number(inv.taxAmount).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
                 </div>
-                <div className="col-span-1 text-end text-sm font-black text-gray-900 dark:text-white">
+                <div className="col-span-1 text-end text-sm font-black text-fg">
                   {Number(inv.total).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
                 </div>
                 <div className="col-span-1 flex justify-center">
@@ -185,7 +188,7 @@ export default function InvoicesPage() {
                     href={`/api/admin/accounting/invoices/${inv.id}/print`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                    className="p-1.5 rounded-lg text-fg-subtle hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
                     title="عرض وطباعة"
                   >
                     <Printer className="h-4 w-4" />

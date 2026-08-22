@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Save, Eye, EyeOff, CheckCircle2, XCircle, CreditCard,
-  Building2, Wallet, ShieldCheck, Zap, Globe, Lock,
-} from "lucide-react";
+import { Save, Eye, EyeOff, CheckCircle2, XCircle, Building2, ShieldCheck, Zap, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Setting { key: string; value: string }
 
@@ -21,7 +19,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none",
-        checked ? "bg-primary-600" : "bg-gray-300 dark:bg-gray-600"
+        checked ? "bg-primary-600" : "bg-line-strong"
       )}
     >
       <span className={cn(
@@ -39,7 +37,7 @@ function PasswordInput({ label, value, onChange, placeholder }: {
   const [show, setShow] = useState(false);
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
+      <label className="block text-sm font-medium text-fg">{label}</label>
       <div className="relative">
         <input
           type={show ? "text" : "password"}
@@ -47,15 +45,15 @@ function PasswordInput({ label, value, onChange, placeholder }: {
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder || "••••••••••••"}
           className={cn(
-            "w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-mono",
+            "w-full rounded-control border border-line bg-surface px-4 py-2.5 text-sm font-mono text-fg",
             "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
-            "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 transition-colors"
+            "transition-colors"
           )}
         />
         <button
           type="button"
           onClick={() => setShow(!show)}
-          className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className="absolute start-3 top-1/2 -translate-y-1/2 text-fg-subtle hover:text-fg"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
@@ -72,18 +70,18 @@ function PaymentCard({ title, subtitle, logo, color, enabled, onToggle, children
 }) {
   return (
     <Card className="overflow-hidden p-0">
-      <div className={cn("flex items-center justify-between px-5 py-4 border-b dark:border-gray-700", color)}>
+      <div className={cn("flex items-center justify-between px-5 py-4 border-b dark:border-line", color)}>
         <div className="flex items-center gap-3">
           <div className="text-2xl">{logo}</div>
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-white">{title}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
+            <h3 className="font-bold text-fg">{title}</h3>
+            <p className="text-xs text-fg-muted">{subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-3" dir="ltr">
           {enabled
             ? <span className="flex items-center gap-1 text-xs font-semibold text-green-600"><CheckCircle2 className="h-4 w-4" />مفعّل</span>
-            : <span className="flex items-center gap-1 text-xs font-semibold text-gray-400"><XCircle className="h-4 w-4" />معطّل</span>
+            : <span className="flex items-center gap-1 text-xs font-semibold text-fg-subtle"><XCircle className="h-4 w-4" />معطّل</span>
           }
           <Toggle checked={enabled} onChange={onToggle} />
         </div>
@@ -134,8 +132,8 @@ export default function PaymentMethodsPage() {
   if (loading) {
     return (
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 animate-pulse">
-        <div className="space-y-4">{[1, 2, 3, 4].map(i => <div key={i} className="h-20 rounded-2xl bg-gray-200 dark:bg-gray-700" />)}</div>
-        <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />)}</div>
+        <div className="space-y-4">{[1, 2, 3, 4].map(i => <div key={i} className="h-20 rounded-card skeleton" />)}</div>
+        <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-32 rounded-card skeleton" />)}</div>
       </div>
     );
   }
@@ -150,18 +148,16 @@ export default function PaymentMethodsPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <CreditCard className="h-6 w-6 text-primary-600" />طرق الدفع
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">تحكم في بوابات الدفع وإعداداتها</p>
-        </div>
-        <Button onClick={handleSave} loading={saving}>
-          <Save className="h-4 w-4" />حفظ التغييرات
-        </Button>
-      </div>
+      <PageHeader
+        className="mb-6"
+        title="طرق الدفع"
+        description="تحكم في بوابات الدفع وإعداداتها"
+        actions={
+          <Button onClick={handleSave} loading={saving} icon={<Save className="h-4 w-4" />}>
+            حفظ التغييرات
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 items-start">
 
@@ -212,15 +208,15 @@ export default function PaymentMethodsPage() {
             <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-400">
               ⚠️ PayPal لا يدعم SAR أو EGP. استخدم USD مع سعر تحويل مناسب. مثال: 1 USD = 3.75 SAR → اكتب <strong>0.267</strong>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">بيئة التشغيل</span>
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-muted">
+              <span className="text-sm font-medium text-fg">بيئة التشغيل</span>
               <div className="flex gap-2 ms-auto">
                 {["sandbox", "live"].map(mode => (
                   <button key={mode} type="button" onClick={() => set("pm_paypal_mode", mode)}
                     className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
                       values["pm_paypal_mode"] === mode
                         ? mode === "live" ? "bg-green-600 text-white" : "bg-amber-500 text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        : "bg-surface-sunken text-fg-muted"
                     )}>
                     {mode === "live" ? "🟢 Live" : "🟡 Sandbox"}
                   </button>
@@ -257,10 +253,10 @@ export default function PaymentMethodsPage() {
             {/* ── بيانات الربط ── */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-bold text-gray-900 dark:text-white">بيانات الربط</h4>
-                <span className="h-px flex-1 bg-gray-100 dark:bg-gray-700" />
+                <h4 className="text-sm font-bold text-fg">بيانات الربط</h4>
+                <span className="h-px flex-1 bg-surface-sunken" />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+              <p className="text-xs text-fg-muted leading-relaxed">
                 احصل على البيانات التالية من حسابك في بوابة الدفع، ثم انسخها والصقها في الحقول المخصصة. انتقل إلى{" "}
                 <a href="https://partners.tamara.co" target="_blank" rel="noreferrer" className="text-primary-600 dark:text-primary-400 underline font-semibold">حسابك على تمارا</a>.
               </p>
@@ -281,13 +277,13 @@ export default function PaymentMethodsPage() {
             {/* ── الإعدادات ── */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-bold text-gray-900 dark:text-white">الإعدادات</h4>
-                <span className="h-px flex-1 bg-gray-100 dark:bg-gray-700" />
+                <h4 className="text-sm font-bold text-fg">الإعدادات</h4>
+                <span className="h-px flex-1 bg-surface-sunken" />
               </div>
 
               {/* Show badge on product page */}
-              <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-surface-muted/60">
+                <span className="text-sm font-medium text-fg">
                   إظهار شعار تمارا في صفحة المنتج
                 </span>
                 <Toggle checked={bool("tamara_enabled")} onChange={v => set("tamara_enabled", String(v))} />
@@ -295,15 +291,15 @@ export default function PaymentMethodsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Environment */}
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">البيئة</span>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-muted/60">
+                  <span className="text-sm font-medium text-fg">البيئة</span>
                   <div className="flex gap-2 ms-auto">
                     {["sandbox", "live"].map(mode => (
                       <button key={mode} type="button" onClick={() => set("pm_tamara_mode", mode)}
                         className={cn("px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
                           (values["pm_tamara_mode"] || "sandbox") === mode
                             ? mode === "live" ? "bg-green-600 text-white" : "bg-amber-500 text-white"
-                            : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                            : "bg-surface-sunken text-fg-muted"
                         )}>
                         {mode === "live" ? "🟢 Live" : "🟡 Sandbox"}
                       </button>
@@ -340,9 +336,9 @@ export default function PaymentMethodsPage() {
                 type="checkbox"
                 checked={bool("pm_tamara_agreement")}
                 onChange={e => set("pm_tamara_agreement", String(e.target.checked))}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                className="mt-0.5 h-4 w-4 rounded border-line-strong text-primary-600 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-fg-muted">
                 أوافق على{" "}
                 <a href="https://tamara.co/ar/terms-and-conditions" target="_blank" rel="noreferrer" className="text-primary-600 dark:text-primary-400 underline">
                   اتفاقية استخدام تمارا
@@ -365,7 +361,7 @@ export default function PaymentMethodsPage() {
 
           {/* Status overview */}
           <Card className="p-5 space-y-4">
-            <h2 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+            <h2 className="font-bold text-sm text-fg flex items-center gap-2">
               <Zap className="h-4 w-4 text-primary-600" />حالة البوابات
             </h2>
             <div className="grid grid-cols-2 gap-3">
@@ -373,9 +369,9 @@ export default function PaymentMethodsPage() {
                 <p className="text-3xl font-black text-green-600 dark:text-green-400">{enabledCount}</p>
                 <p className="text-xs text-green-700 dark:text-green-500 mt-0.5">مفعّلة</p>
               </div>
-              <div className="text-center p-3 rounded-xl bg-gray-100 dark:bg-gray-800">
-                <p className="text-3xl font-black text-gray-500 dark:text-gray-400">{methods.length - enabledCount}</p>
-                <p className="text-xs text-gray-500 mt-0.5">معطّلة</p>
+              <div className="text-center p-3 rounded-xl bg-surface-sunken">
+                <p className="text-3xl font-black text-fg-muted">{methods.length - enabledCount}</p>
+                <p className="text-xs text-fg-muted mt-0.5">معطّلة</p>
               </div>
             </div>
 
@@ -388,16 +384,16 @@ export default function PaymentMethodsPage() {
                     "flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all",
                     bool(key)
                       ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
-                      : "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 opacity-60"
+                      : "border-line bg-surface-muted opacity-60"
                   )}
                 >
                   <span className="text-lg">{icon}</span>
-                  <span className={cn("text-sm font-medium flex-1", bool(key) ? "text-green-700 dark:text-green-400" : "text-gray-500")}>
+                  <span className={cn("text-sm font-medium flex-1", bool(key) ? "text-green-700 dark:text-green-400" : "text-fg-muted")}>
                     {label}
                   </span>
                   {bool(key)
                     ? <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-                    : <XCircle className="h-4 w-4 text-gray-300 shrink-0" />
+                    : <XCircle className="h-4 w-4 text-fg-subtle shrink-0" />
                   }
                 </div>
               ))}
@@ -406,10 +402,10 @@ export default function PaymentMethodsPage() {
 
           {/* Security tips */}
           <Card className="p-5 space-y-3">
-            <h2 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+            <h2 className="font-bold text-sm text-fg flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-amber-500" />نصائح الأمان
             </h2>
-            <div className="space-y-2.5 text-xs text-gray-500 dark:text-gray-400">
+            <div className="space-y-2.5 text-xs text-fg-muted">
               {[
                 { icon: <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />, text: "لا تشارك مفاتيح API مع أي شخص" },
                 { icon: <Globe className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />, text: "استخدم بيئة Sandbox للاختبار قبل الإطلاق" },
@@ -423,7 +419,7 @@ export default function PaymentMethodsPage() {
 
           {/* Quick links */}
           <Card className="p-5 space-y-3">
-            <h2 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+            <h2 className="font-bold text-sm text-fg flex items-center gap-2">
               <Globe className="h-4 w-4 text-blue-500" />روابط سريعة
             </h2>
             <div className="space-y-2">

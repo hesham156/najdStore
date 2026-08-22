@@ -23,7 +23,11 @@ export async function GET(req: NextRequest) {
 
   const products = await prisma.product.findMany({
     where,
-    include: { category: { select: { nameAr: true, icon: true } } },
+    include: {
+      category: { select: { nameAr: true, icon: true } },
+      // Sales count powers the "المبيعات" column in the admin list.
+      _count: { select: { orderItems: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 

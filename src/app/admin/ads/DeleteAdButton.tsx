@@ -42,7 +42,7 @@ export function DeleteAdButton({ id }: { id: string }) {
         </button>
         <button
           onClick={() => setConfirm(false)}
-          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg border border-gray-200"
+          className="text-xs text-fg-muted hover:text-fg px-2 py-1 rounded-lg border border-line"
         >
           إلغاء
         </button>

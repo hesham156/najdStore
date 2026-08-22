@@ -2,14 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import {
-  TrendingUp, TrendingDown, DollarSign, Receipt, CreditCard,
-  ArrowUpRight, Package, ChevronRight, RefreshCw,
-  Wallet, PiggyBank, Percent,
-} from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Receipt, CreditCard, ArrowUpRight, Package, RefreshCw, Wallet, PiggyBank, Percent } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/utils";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Summary {
   revenue: number;
@@ -48,7 +45,7 @@ const CATEGORY_COLOR: Record<string, string> = {
   TOOLS: "bg-purple-500",
   PURCHASE: "bg-green-500",
   TAX: "bg-red-500",
-  OTHER: "bg-gray-400",
+  OTHER: "bg-slate-400",
 };
 
 function KPICard({
@@ -76,9 +73,9 @@ function KPICard({
         {trend === "down" && <TrendingDown className="h-4 w-4 text-red-500" />}
       </div>
       <div>
-        <p className="text-2xl font-black text-gray-900 dark:text-white">{value}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
-        {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{sub}</p>}
+        <p className="text-2xl font-black text-fg">{value}</p>
+        <p className="text-sm text-fg-muted mt-0.5">{label}</p>
+        {sub && <p className="text-xs text-fg-subtle mt-1">{sub}</p>}
       </div>
     </Card>
   );
@@ -106,7 +103,7 @@ function MiniChart({ data }: { data: { month: string; revenue: number; expenses:
                 title={`مصاريف: ${d.expenses.toFixed(0)}`}
               />
             </div>
-            <span className="text-[9px] text-gray-400 dark:text-gray-600 truncate">
+            <span className="text-[9px] text-fg-subtle truncate">
               {MONTHS_AR[month]?.slice(0, 3)}
             </span>
           </div>
@@ -135,13 +132,11 @@ export default function AccountingDashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المحاسبة والتقارير المالية</h1>
-          <p className="text-gray-500 text-sm mt-1">نظرة شاملة على الإيرادات والمصاريف والأرباح</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
+      <PageHeader
+        title="المحاسبة والتقارير المالية"
+        description="نظرة شاملة على الإيرادات والمصاريف والأرباح"
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
           {Object.entries(PERIOD_LABELS).map(([k, v]) => (
             <button
               key={k}
@@ -149,21 +144,27 @@ export default function AccountingDashboard() {
               className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
                 period === k
                   ? "bg-primary-600 text-white shadow-md"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  : "bg-surface-sunken text-fg-muted hover:bg-surface-hover"
               }`}
             >
               {v}
             </button>
           ))}
-          <button onClick={fetchSummary} className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={fetchSummary}
+              aria-label="تحديث البيانات"
+              title="تحديث البيانات"
+              className="p-2 rounded-control bg-surface-sunken text-fg-muted hover:bg-surface-hover transition-colors"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden />
+            </button>
+          </div>
+        }
+      />
 
       {loading && !summary ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />)}
+          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-surface-sunken rounded-2xl animate-pulse" />)}
         </div>
       ) : summary ? (
         <>
@@ -180,8 +181,8 @@ export default function AccountingDashboard() {
             {/* Chart */}
             <Card className="p-5 lg:col-span-2">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-900 dark:text-white">الإيرادات والمصاريف — آخر 12 شهر</h3>
-                <div className="flex items-center gap-3 text-xs text-gray-500">
+                <h3 className="font-bold text-fg">الإيرادات والمصاريف — آخر 12 شهر</h3>
+                <div className="flex items-center gap-3 text-xs text-fg-muted">
                   <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-primary-500 inline-block" />إيراد</span>
                   <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-red-400 inline-block" />مصاريف</span>
                 </div>
@@ -191,9 +192,9 @@ export default function AccountingDashboard() {
 
             {/* Expense breakdown */}
             <Card className="p-5">
-              <h3 className="font-bold text-gray-900 dark:text-white mb-4">توزيع المصاريف</h3>
+              <h3 className="font-bold text-fg mb-4">توزيع المصاريف</h3>
               {summary.expensesByCategory.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">لا توجد مصاريف</p>
+                <p className="text-sm text-fg-subtle text-center py-6">لا توجد مصاريف</p>
               ) : (
                 <div className="space-y-3">
                   {summary.expensesByCategory.map((e) => {
@@ -202,11 +203,11 @@ export default function AccountingDashboard() {
                     return (
                       <div key={e.category}>
                         <div className="flex justify-between text-xs mb-1">
-                          <span className="font-medium text-gray-700 dark:text-gray-300">{CATEGORY_AR[e.category] ?? e.category}</span>
-                          <span className="text-gray-500">{fmt(amt)}</span>
+                          <span className="font-medium text-fg">{CATEGORY_AR[e.category] ?? e.category}</span>
+                          <span className="text-fg-muted">{fmt(amt)}</span>
                         </div>
-                        <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div className={`h-full ${CATEGORY_COLOR[e.category] ?? "bg-gray-400"} rounded-full`} style={{ width: `${pct}%` }} />
+                        <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">
+                          <div className={`h-full ${CATEGORY_COLOR[e.category] ?? "bg-slate-400"} rounded-full`} style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -223,8 +224,8 @@ export default function AccountingDashboard() {
                 <Receipt className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
-                <p className="text-lg font-black text-gray-900 dark:text-white">{fmt(summary.discounts)}</p>
-                <p className="text-xs text-gray-500">خصومات ممنوحة</p>
+                <p className="text-lg font-black text-fg">{fmt(summary.discounts)}</p>
+                <p className="text-xs text-fg-muted">خصومات ممنوحة</p>
               </div>
             </Card>
             <Card className="p-4 flex items-center gap-3">
@@ -232,8 +233,8 @@ export default function AccountingDashboard() {
                 <CreditCard className="h-4 w-4 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <p className="text-lg font-black text-gray-900 dark:text-white">{fmt(summary.refunds)}</p>
-                <p className="text-xs text-gray-500">مبالغ مستردة</p>
+                <p className="text-lg font-black text-fg">{fmt(summary.refunds)}</p>
+                <p className="text-xs text-fg-muted">مبالغ مستردة</p>
               </div>
             </Card>
             <Card className="p-4 flex items-center gap-3">
@@ -241,8 +242,8 @@ export default function AccountingDashboard() {
                 <Wallet className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-lg font-black text-gray-900 dark:text-white">{fmt(summary.revenue - summary.refunds)}</p>
-                <p className="text-xs text-gray-500">صافي الإيراد</p>
+                <p className="text-lg font-black text-fg">{fmt(summary.revenue - summary.refunds)}</p>
+                <p className="text-xs text-fg-muted">صافي الإيراد</p>
               </div>
             </Card>
             <Card className="p-4 flex items-center gap-3">
@@ -250,10 +251,10 @@ export default function AccountingDashboard() {
                 <Package className="h-4 w-4 text-primary-600 dark:text-primary-400" />
               </div>
               <div>
-                <p className="text-lg font-black text-gray-900 dark:text-white">
+                <p className="text-lg font-black text-fg">
                   {summary.orderCount > 0 ? fmt((summary.revenue - summary.refunds) / summary.orderCount) : "0"}
                 </p>
-                <p className="text-xs text-gray-500">متوسط قيمة الطلب</p>
+                <p className="text-xs text-fg-muted">متوسط قيمة الطلب</p>
               </div>
             </Card>
           </div>
@@ -268,11 +269,11 @@ export default function AccountingDashboard() {
                       <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 dark:text-white">إدارة المصاريف</p>
-                      <p className="text-xs text-gray-500">تسجيل وتتبع جميع التكاليف</p>
+                      <p className="font-bold text-fg">إدارة المصاريف</p>
+                      <p className="text-xs text-fg-muted">تسجيل وتتبع جميع التكاليف</p>
                     </div>
                   </div>
-                  <ArrowUpRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                  <ArrowUpRight className="h-5 w-5 text-fg-subtle group-hover:text-primary-500 transition-colors" />
                 </div>
               </Card>
             </Link>
@@ -284,18 +285,18 @@ export default function AccountingDashboard() {
                       <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 dark:text-white">الفواتير الضريبية</p>
-                      <p className="text-xs text-gray-500">إصدار وطباعة الفواتير</p>
+                      <p className="font-bold text-fg">الفواتير الضريبية</p>
+                      <p className="text-xs text-fg-muted">إصدار وطباعة الفواتير</p>
                     </div>
                   </div>
-                  <ArrowUpRight className="h-5 w-5 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                  <ArrowUpRight className="h-5 w-5 text-fg-subtle group-hover:text-primary-500 transition-colors" />
                 </div>
               </Card>
             </Link>
           </div>
         </>
       ) : (
-        <p className="text-gray-500 text-center py-12">حدث خطأ في تحميل البيانات</p>
+        <p className="text-fg-muted text-center py-12">حدث خطأ في تحميل البيانات</p>
       )}
     </div>
   );

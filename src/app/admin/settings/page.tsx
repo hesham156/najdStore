@@ -10,6 +10,7 @@ import {
   ShoppingCart, Gift, Shield, Flame, Calculator,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Setting {
   key: string;
@@ -167,7 +168,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-        checked ? "bg-primary-600" : "bg-gray-300 dark:bg-gray-600"
+        checked ? "bg-primary-600" : "bg-line-strong"
       }`}
     >
       <span
@@ -195,7 +196,7 @@ function SettingRow({
     <div className={`px-4 py-3 transition-colors rounded-xl ${isChanged ? "bg-amber-50 dark:bg-amber-900/10 ring-1 ring-amber-200 dark:ring-amber-800" : ""}`}>
       {setting.type === "boolean" ? (
         <div className="flex items-center justify-between gap-4">
-          <p className="font-medium text-sm text-gray-900 dark:text-white">{label}</p>
+          <p className="font-medium text-sm text-fg">{label}</p>
           <Toggle checked={value === "true"} onChange={(v) => onChange(String(v))} />
         </div>
       ) : (
@@ -242,20 +243,20 @@ function ConversionPanel({
             {/* Feature header */}
             <div className={`flex items-center justify-between gap-4 px-5 py-4 ${feature.headerColor}`}>
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-xl bg-white dark:bg-gray-900/40 flex items-center justify-center shadow-sm shrink-0 ${feature.iconColor}`}>
+                <div className={`w-9 h-9 rounded-xl bg-surface/40 flex items-center justify-center shadow-sm shrink-0 ${feature.iconColor}`}>
                   {feature.icon}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-base">{feature.emoji}</span>
-                    <p className="font-bold text-sm text-gray-900 dark:text-white">{feature.label}</p>
+                    <p className="font-bold text-sm text-fg">{feature.label}</p>
                     {hasChanges && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
                         تغييرات
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{feature.desc}</p>
+                  <p className="text-xs text-fg-muted mt-0.5 leading-relaxed">{feature.desc}</p>
                 </div>
               </div>
               {/* Main toggle */}
@@ -269,7 +270,7 @@ function ConversionPanel({
 
             {/* Sub-settings — only show when feature is enabled AND has sub-keys */}
             {isEnabled && subKeys.length > 0 && (
-              <div className="px-4 py-3 space-y-2 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+              <div className="px-4 py-3 space-y-2 bg-surface border-t border-line">
                 {subKeys.map((key) => {
                   const s = byKey[key];
                   if (!s) return null;
@@ -355,13 +356,13 @@ export default function AdminSettingsPage() {
       <div className="animate-pulse flex gap-6 max-w-5xl">
         <div className="w-52 shrink-0 space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+            <div key={i} className="h-10 rounded-control skeleton" />
           ))}
         </div>
         <div className="flex-1 space-y-3">
-          <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
+          <div className="h-16 rounded-card skeleton" />
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
+            <div key={i} className="h-24 rounded-card skeleton" />
           ))}
         </div>
       </div>
@@ -370,13 +371,12 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الإعدادات</h1>
-          <p className="text-gray-500 text-sm mt-1">إعدادات المتجر العامة والمتكاملة</p>
-        </div>
-        <div className="flex items-center gap-3">
+      <PageHeader
+        className="mb-6"
+        title="الإعدادات العامة"
+        description="إعدادات المتجر والمظهر والتكاملات"
+        actions={
+          <>
           {isDirty && (
             <>
               <span className="hidden sm:flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
@@ -388,12 +388,12 @@ export default function AdminSettingsPage() {
               </Button>
             </>
           )}
-          <Button onClick={handleSave} loading={saving} disabled={!isDirty}>
-            <Save className="h-4 w-4" />
-            حفظ التغييرات
-          </Button>
-        </div>
-      </div>
+            <Button onClick={handleSave} loading={saving} disabled={!isDirty} icon={<Save className="h-4 w-4" />}>
+              حفظ التغييرات
+            </Button>
+          </>
+        }
+      />
 
       <div className="flex gap-6 items-start">
         {/* Sidebar nav */}
@@ -408,10 +408,10 @@ export default function AdminSettingsPage() {
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-start ${
                   isActive
                     ? "bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    : "text-fg-muted hover:bg-surface-hover"
                 }`}
               >
-                <span className={isActive ? "text-primary-600 dark:text-primary-400" : "text-gray-400"}>
+                <span className={isActive ? "text-primary-600 dark:text-primary-400" : "text-fg-subtle"}>
                   {m?.icon ?? <Settings className="h-4 w-4" />}
                 </span>
                 {m?.label ?? group}
@@ -423,7 +423,7 @@ export default function AdminSettingsPage() {
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-5">
           {/* Group header banner */}
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl ${meta?.color ?? "bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300"}`}>
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl ${meta?.color ?? "bg-surface-muted text-fg"}`}>
             <div className="shrink-0">{meta?.icon ?? <Settings className="h-4 w-4" />}</div>
             <div>
               <p className="font-bold text-sm">{meta?.label ?? activeGroup}</p>
@@ -441,9 +441,9 @@ export default function AdminSettingsPage() {
             />
           ) : (
             /* Generic settings list for all other groups */
-            <Card className="p-0 overflow-hidden divide-y divide-gray-100 dark:divide-gray-700/60">
+            <Card className="p-0 overflow-hidden divide-y divide-line/60">
               {activeSettings.length === 0 ? (
-                <div className="px-5 py-12 text-center text-gray-400 text-sm">
+                <div className="px-5 py-12 text-center text-fg-subtle text-sm">
                   لا توجد إعدادات في هذا القسم
                 </div>
               ) : (
@@ -455,9 +455,9 @@ export default function AdminSettingsPage() {
                       {setting.type === "boolean" ? (
                         <div className="flex items-center justify-between gap-4">
                           <div>
-                            <p className="font-medium text-sm text-gray-900 dark:text-white">{label}</p>
+                            <p className="font-medium text-sm text-fg">{label}</p>
                             {setting.description && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{setting.description}</p>
+                              <p className="text-xs text-fg-muted mt-0.5">{setting.description}</p>
                             )}
                           </div>
                           <Toggle
@@ -482,15 +482,15 @@ export default function AdminSettingsPage() {
 
           {/* Sticky bottom save bar */}
           {isDirty && (
-            <div className="sticky bottom-4 z-10 flex items-center justify-between gap-3 bg-gray-900 dark:bg-black text-white rounded-2xl px-5 py-3 shadow-2xl border border-gray-700">
-              <div className="flex items-center gap-2 text-sm text-gray-300">
+            <div className="sticky bottom-4 z-10 flex items-center justify-between gap-3 bg-gray-900 dark:bg-gray-950 text-white rounded-card px-5 py-3 shadow-overlay border border-white/10">
+              <div className="flex items-center gap-2 text-sm text-fg-subtle">
                 <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
                 <span>لديك تغييرات غير محفوظة</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleDiscard}
-                  className="text-sm text-gray-400 hover:text-white transition-colors px-3 py-1"
+                  className="text-sm text-fg-subtle hover:text-white transition-colors px-3 py-1"
                 >
                   إلغاء
                 </button>

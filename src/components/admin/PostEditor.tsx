@@ -124,7 +124,7 @@ export function PostEditor({ postId }: PostEditorProps) {
   };
 
   if (loading) {
-    return <div className="py-20 text-center text-gray-400">جار التحميل...</div>;
+    return <div className="py-20 text-center text-fg-subtle">جار التحميل...</div>;
   }
 
   return (
@@ -132,16 +132,16 @@ export function PostEditor({ postId }: PostEditorProps) {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-black text-fg">
             {isEdit ? "تعديل المقال" : "مقال جديد"}
           </h1>
-          {slug && <p className="text-xs text-gray-400 mt-0.5">/blog/{slug}</p>}
+          {slug && <p className="text-xs text-fg-subtle mt-0.5">/blog/{slug}</p>}
         </div>
         <div className="flex items-center gap-2">
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as typeof status)}
-            className="text-sm border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+            className="text-sm border border-line rounded-xl px-3 py-2 bg-surface text-fg"
           >
             <option value="DRAFT">مسودة</option>
             <option value="PUBLISHED">منشور</option>
@@ -161,7 +161,7 @@ export function PostEditor({ postId }: PostEditorProps) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex gap-1 border-b border-line">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -170,7 +170,7 @@ export function PostEditor({ postId }: PostEditorProps) {
               "px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
               tab === t.id
                 ? "border-primary-500 text-primary-600 dark:text-primary-400"
-                : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                : "border-transparent text-fg-muted hover:text-fg"
             )}
           >
             {t.label}
@@ -182,29 +182,29 @@ export function PostEditor({ postId }: PostEditorProps) {
       {tab === "ar" && (
         <div className="space-y-4" dir="rtl">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">العنوان (عربي) *</label>
+            <label className="block text-sm font-medium text-fg mb-1">العنوان (عربي) *</label>
             <Input value={titleAr} onChange={(e) => handleTitleArChange(e.target.value)} placeholder="عنوان المقال بالعربية" className="text-lg font-bold" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الملخص (عربي)</label>
+            <label className="block text-sm font-medium text-fg mb-1">الملخص (عربي)</label>
             <textarea
               value={excerptAr}
               onChange={(e) => setExcerptAr(e.target.value)}
               rows={2}
               placeholder="ملخص قصير يظهر في بطاقة المقال..."
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-fg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المحتوى (Markdown) *</label>
+            <label className="block text-sm font-medium text-fg mb-1">المحتوى (Markdown) *</label>
             <textarea
               value={contentAr}
               onChange={(e) => setContentAr(e.target.value)}
               rows={20}
               placeholder="اكتب محتوى المقال هنا بصيغة Markdown..."
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-fg font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
-            <p className="text-xs text-gray-400 mt-1">يدعم صيغة Markdown: **غامق**, *مائل*, ## عنوان, - قائمة, ` كود `</p>
+            <p className="text-xs text-fg-subtle mt-1">يدعم صيغة Markdown: **غامق**, *مائل*, ## عنوان, - قائمة, ` كود `</p>
           </div>
         </div>
       )}
@@ -213,27 +213,27 @@ export function PostEditor({ postId }: PostEditorProps) {
       {tab === "en" && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title (English) *</label>
+            <label className="block text-sm font-medium text-fg mb-1">Title (English) *</label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Article title in English" className="text-lg font-bold" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Excerpt</label>
+            <label className="block text-sm font-medium text-fg mb-1">Excerpt</label>
             <textarea
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               rows={2}
               placeholder="Short summary shown in card..."
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-fg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Content (Markdown) *</label>
+            <label className="block text-sm font-medium text-fg mb-1">Content (Markdown) *</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={20}
               placeholder="Write article content in Markdown..."
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-fg font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
         </div>
@@ -249,50 +249,50 @@ export function PostEditor({ postId }: PostEditorProps) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4" dir="rtl">
-              <h3 className="font-bold text-gray-900 dark:text-white">عربي</h3>
+              <h3 className="font-bold text-fg">عربي</h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">عنوان الميتا</label>
+                <label className="block text-sm font-medium text-fg mb-1">عنوان الميتا</label>
                 <Input value={metaTitleAr} onChange={(e) => setMetaTitleAr(e.target.value)} placeholder="عنوان للمحركات — 50-60 حرف" maxLength={60} />
-                <p className="text-xs text-gray-400 mt-1">{metaTitleAr.length}/60</p>
+                <p className="text-xs text-fg-subtle mt-1">{metaTitleAr.length}/60</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">وصف الميتا</label>
+                <label className="block text-sm font-medium text-fg mb-1">وصف الميتا</label>
                 <textarea
                   value={metaDescriptionAr}
                   onChange={(e) => setMetaDescriptionAr(e.target.value)}
                   rows={3}
                   placeholder="وصف للمحركات — 150-160 حرف"
                   maxLength={160}
-                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-fg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                <p className="text-xs text-gray-400 mt-1">{metaDescriptionAr.length}/160</p>
+                <p className="text-xs text-fg-subtle mt-1">{metaDescriptionAr.length}/160</p>
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="font-bold text-gray-900 dark:text-white">English</h3>
+              <h3 className="font-bold text-fg">English</h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Meta Title</label>
+                <label className="block text-sm font-medium text-fg mb-1">Meta Title</label>
                 <Input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Search engine title — 50-60 chars" maxLength={60} />
-                <p className="text-xs text-gray-400 mt-1">{metaTitle.length}/60</p>
+                <p className="text-xs text-fg-subtle mt-1">{metaTitle.length}/60</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Meta Description</label>
+                <label className="block text-sm font-medium text-fg mb-1">Meta Description</label>
                 <textarea
                   value={metaDescription}
                   onChange={(e) => setMetaDescription(e.target.value)}
                   rows={3}
                   placeholder="Search engine description — 150-160 chars"
                   maxLength={160}
-                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-fg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                <p className="text-xs text-gray-400 mt-1">{metaDescription.length}/160</p>
+                <p className="text-xs text-fg-subtle mt-1">{metaDescription.length}/160</p>
               </div>
             </div>
           </div>
 
           {/* Google Preview */}
-          <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-5">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <div className="border border-line rounded-2xl p-5">
+            <p className="text-xs font-bold text-fg-muted uppercase tracking-wider mb-3 flex items-center gap-2">
               <Search className="h-3.5 w-3.5" /> معاينة نتيجة Google
             </p>
             <div className="space-y-1 max-w-xl">
@@ -302,7 +302,7 @@ export function PostEditor({ postId }: PostEditorProps) {
               <p className="text-xs text-green-700 dark:text-green-500 truncate">
                 {process.env.NEXTAUTH_URL || "https://yourstore.com"}/blog/{slug || "slug-المقال"}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+              <p className="text-sm text-fg-muted line-clamp-2">
                 {metaDescriptionAr || excerptAr || "وصف المقال سيظهر هنا في نتائج البحث..."}
               </p>
             </div>
@@ -314,12 +314,12 @@ export function PostEditor({ postId }: PostEditorProps) {
       {tab === "settings" && (
         <div className="space-y-6 max-w-lg">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الرابط (Slug)</label>
+            <label className="block text-sm font-medium text-fg mb-1">الرابط (Slug)</label>
             <Input value={slug} onChange={(e) => setSlug(autoSlug(e.target.value))} placeholder="article-slug-here" dir="ltr" />
-            <p className="text-xs text-gray-400 mt-1">يُستخدم في رابط الصفحة. يجب أن يكون فريداً.</p>
+            <p className="text-xs text-fg-subtle mt-1">يُستخدم في رابط الصفحة. يجب أن يكون فريداً.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">صورة الغلاف (URL)</label>
+            <label className="block text-sm font-medium text-fg mb-1">صورة الغلاف (URL)</label>
             <div className="flex gap-2">
               <Input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} placeholder="https://..." dir="ltr" />
             </div>
@@ -328,11 +328,11 @@ export function PostEditor({ postId }: PostEditorProps) {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الفئة</label>
+            <label className="block text-sm font-medium text-fg mb-1">الفئة</label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-fg focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">بدون فئة</option>
               {categories.map((c) => (
@@ -341,7 +341,7 @@ export function PostEditor({ postId }: PostEditorProps) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوسوم (Tags)</label>
+            <label className="block text-sm font-medium text-fg mb-1">الوسوم (Tags)</label>
             <div className="flex gap-2">
               <Input
                 value={tagsInput}

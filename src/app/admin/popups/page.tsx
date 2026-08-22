@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, X, ChevronDown } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -176,32 +177,29 @@ export default function AdminPopupsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in" dir="rtl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">
-            البوب آب والإشعارات
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            إدارة النوافذ المنبثقة والإشعارات التسويقية
-          </p>
-        </div>
-        <Button onClick={() => { setShowForm(true); setForm(emptyForm()); setError(""); }} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          إضافة بوب آب
-        </Button>
-      </div>
+      <PageHeader
+        title="النوافذ المنبثقة"
+        description="إدارة النوافذ المنبثقة والإشعارات التسويقية في المتجر"
+        actions={
+          <Button
+            onClick={() => { setShowForm(true); setForm(emptyForm()); setError(""); }}
+            icon={<Plus className="h-4 w-4" />}
+          >
+            إضافة نافذة
+          </Button>
+        }
+      />
 
       {/* Create Form (inline drawer) */}
       {showForm && (
         <Card className="border-2 border-primary-200 dark:border-primary-800">
           <form onSubmit={handleCreate} className="space-y-5">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">إنشاء بوب آب جديد</h2>
+              <h2 className="text-lg font-bold text-fg">إنشاء بوب آب جديد</h2>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                className="text-fg-subtle hover:text-fg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -305,7 +303,7 @@ export default function AdminPopupsPage() {
 
               {/* Colors */}
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-fg">
                   لون الخلفية
                 </label>
                 <div className="flex items-center gap-3">
@@ -313,14 +311,14 @@ export default function AdminPopupsPage() {
                     type="color"
                     value={form.bgColor}
                     onChange={(e) => setField("bgColor", e.target.value)}
-                    className="h-10 w-16 cursor-pointer rounded-xl border border-gray-300 dark:border-gray-600 p-1"
+                    className="h-10 w-16 cursor-pointer rounded-xl border border-line-strong p-1"
                   />
-                  <span className="text-sm text-gray-500 font-mono">{form.bgColor}</span>
+                  <span className="text-sm text-fg-muted font-mono">{form.bgColor}</span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-fg">
                   لون النص
                 </label>
                 <div className="flex items-center gap-3">
@@ -328,16 +326,16 @@ export default function AdminPopupsPage() {
                     type="color"
                     value={form.textColor}
                     onChange={(e) => setField("textColor", e.target.value)}
-                    className="h-10 w-16 cursor-pointer rounded-xl border border-gray-300 dark:border-gray-600 p-1"
+                    className="h-10 w-16 cursor-pointer rounded-xl border border-line-strong p-1"
                   />
-                  <span className="text-sm text-gray-500 font-mono">{form.textColor}</span>
+                  <span className="text-sm text-fg-muted font-mono">{form.textColor}</span>
                 </div>
               </div>
             </div>
 
             {/* Target pages */}
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <p className="text-sm font-medium text-fg">
                 الصفحات المستهدفة
               </p>
               <div className="flex flex-wrap gap-2">
@@ -351,7 +349,7 @@ export default function AdminPopupsPage() {
                       className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
                         active
                           ? "bg-primary-600 text-white border-primary-600 shadow-sm"
-                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary-400"
+                          : "bg-surface text-fg border-line-strong hover:border-primary-400"
                       }`}
                     >
                       {TARGET_PAGE_LABELS[page]}
@@ -370,7 +368,7 @@ export default function AdminPopupsPage() {
                   onChange={(e) => setField("showOnce", e.target.checked)}
                   className="w-4 h-4 rounded accent-primary-600"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-fg">
                   عرض مرة واحدة فقط
                 </span>
               </label>
@@ -381,14 +379,14 @@ export default function AdminPopupsPage() {
                   onChange={(e) => setField("isActive", e.target.checked)}
                   className="w-4 h-4 rounded accent-primary-600"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-fg">
                   نشط
                 </span>
               </label>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 pt-2 border-t border-line">
               <Button type="submit" loading={saving}>
                 حفظ البوب آب
               </Button>
@@ -403,9 +401,9 @@ export default function AdminPopupsPage() {
       {/* Table */}
       <Card padding="none">
         {loading ? (
-          <div className="py-16 text-center text-gray-400">جاري التحميل...</div>
+          <div className="py-16 text-center text-fg-subtle">جاري التحميل...</div>
         ) : popups.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 space-y-2">
+          <div className="py-16 text-center text-fg-subtle space-y-2">
             <p className="text-lg font-medium">لا توجد بوب آب حتى الآن</p>
             <p className="text-sm">اضغط على "إضافة بوب آب" للبدء</p>
           </div>
@@ -413,37 +411,37 @@ export default function AdminPopupsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                <tr className="border-b border-line bg-surface-muted">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     العنوان
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     النوع
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     الصفحات المستهدفة
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     الحالة
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     الترتيب
                   </th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 dark:text-gray-400">
+                  <th className="text-right px-5 py-3.5 font-semibold text-fg-muted">
                     إجراءات
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              <tbody className="divide-y divide-line">
                 {popups.map((popup) => (
                   <tr
                     key={popup.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
+                    className="hover:bg-surface-hover/30 transition-colors"
                   >
                     {/* Title */}
                     <td className="px-5 py-4">
                       <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
+                        <p className="font-semibold text-fg">
                           {popup.titleAr}
                         </p>
                         {popup.couponCode && (
@@ -467,7 +465,7 @@ export default function AdminPopupsPage() {
                         {popup.targetPages.map((page) => (
                           <span
                             key={page}
-                            className="inline-flex items-center rounded-md bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300"
+                            className="inline-flex items-center rounded-md bg-surface-sunken px-2 py-0.5 text-xs text-fg-muted"
                           >
                             {TARGET_PAGE_LABELS[page] || page}
                           </span>
@@ -482,7 +480,7 @@ export default function AdminPopupsPage() {
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                           popup.isActive
                             ? "bg-primary-600"
-                            : "bg-gray-300 dark:bg-gray-600"
+                            : "bg-line-strong"
                         }`}
                         title={popup.isActive ? "إيقاف" : "تفعيل"}
                       >
@@ -495,7 +493,7 @@ export default function AdminPopupsPage() {
                     </td>
 
                     {/* Sort order */}
-                    <td className="px-5 py-4 text-gray-500 dark:text-gray-400">
+                    <td className="px-5 py-4 text-fg-muted">
                       {popup.sortOrder}
                     </td>
 

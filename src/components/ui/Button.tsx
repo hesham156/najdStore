@@ -4,53 +4,99 @@ import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "danger"
+  | "success"
+  | "soft-danger";
+
+type ButtonSize = "xs" | "sm" | "md" | "lg" | "icon" | "icon-sm";
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "success";
-  size?: "sm" | "md" | "lg" | "icon";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
   fullWidth?: boolean;
+  /** Rendered before the label; hidden while `loading` so the row never jumps. */
+  icon?: React.ReactNode;
 }
 
+const VARIANTS: Record<ButtonVariant, string> = {
+  primary:
+    "bg-primary-600 text-white shadow-xs hover:bg-primary-700 active:bg-primary-800 focus-visible:outline-primary-600",
+  secondary:
+    "bg-surface text-fg border border-line shadow-xs hover:bg-surface-hover active:bg-surface-sunken",
+  outline:
+    "border border-primary-300 text-primary-700 hover:bg-primary-50 dark:border-primary-500/40 dark:text-primary-300 dark:hover:bg-primary-500/10",
+  ghost:
+    "text-fg-muted hover:bg-surface-hover hover:text-fg",
+  danger:
+    "bg-red-600 text-white shadow-xs hover:bg-red-700 active:bg-red-800 focus-visible:outline-red-600",
+  success:
+    "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700 active:bg-emerald-800 focus-visible:outline-emerald-600",
+  "soft-danger":
+    "bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20",
+};
+
+const SIZES: Record<ButtonSize, string> = {
+  xs: "h-7 px-2.5 text-xs rounded-lg gap-1.5",
+  sm: "h-8 px-3 text-[13px] rounded-lg gap-1.5",
+  md: "h-10 px-4 text-sm rounded-control gap-2",
+  lg: "h-11 px-5 text-sm rounded-control gap-2",
+  icon: "h-10 w-10 rounded-control",
+  "icon-sm": "h-8 w-8 rounded-lg",
+};
+
+/**
+ * The one button in the system. Icon-only sizes (`icon`, `icon-sm`) must be
+ * given an `aria-label` or `title` so screen readers announce something.
+ */
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", loading, fullWidth, children, disabled, ...props }, ref) => {
-    const base =
-      "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed";
-
-    const variants = {
-      primary:
-        "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-lg shadow-primary-500/20 hover:shadow-primary-500/30",
-      secondary:
-        "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600",
-      outline:
-        "border-2 border-primary-600 text-primary-600 hover:bg-primary-50 focus:ring-primary-500 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-950",
-      ghost:
-        "text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:text-gray-300 dark:hover:bg-gray-800",
-      danger:
-        "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-lg shadow-red-500/20",
-      success:
-        "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-lg shadow-green-500/20",
-    };
-
-    const sizes = {
-      sm: "px-3 py-1.5 text-sm",
-      md: "px-5 py-2.5 text-sm",
-      lg: "px-6 py-3 text-base",
-      icon: "p-2.5",
-    };
-
-    return (
-      <button
-        ref={ref}
-        disabled={disabled || loading}
-        className={cn(base, variants[variant], sizes[size], fullWidth && "w-full", className)}
-        {...props}
-      >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-        {children}
-      </button>
-    );
-  }
+  (
+    { className, variant = "primary", size = "md", loading, fullWidth, icon, children, disabled, type, ...props },
+    ref
+  ) => (
+    <button
+      ref={ref}
+      type={type ?? "button"}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center whitespace-nowrap font-semibold",
+        "transition-[background-color,color,box-shadow,opacity] duration-150",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+        "disabled:pointer-events-none disabled:opacity-50",
+        VARIANTS[variant],
+        SIZES[size],
+        fullWidth && "w-full",
+        className
+      )}
+      {...props}
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+      ) : (
+        icon
+      )}
+      {children}
+    </button>
+  )
 );
 
 Button.displayName = "Button";
-export { Button };
+
+/** Small square button for table rows and toolbars. Always pass `label`. */
+const IconButton = forwardRef<
+  HTMLButtonElement,
+  Omit<ButtonProps, "children" | "size"> & { label: string; size?: "icon" | "icon-sm" }
+>(({ label, size = "icon-sm", variant = "ghost", ...props }, ref) => (
+  <Button ref={ref} size={size} variant={variant} aria-label={label} title={label} {...props} />
+));
+
+IconButton.displayName = "IconButton";
+
+export { Button, IconButton };
+export type { ButtonProps, ButtonVariant, ButtonSize };

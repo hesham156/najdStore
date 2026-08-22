@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ConfirmModal } from "@/components/ui/Modal";
 import toast from "react-hot-toast";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface PostCategory {
   id: string;
@@ -32,23 +33,23 @@ function CategoryForm({ initial, onSave, onCancel }: {
   const autoSlug = (t: string) => t.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim();
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 space-y-4">
+    <div className="bg-surface-muted border border-line rounded-2xl p-5 space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">الاسم (عربي)</label>
+          <label className="block text-xs font-medium text-fg-muted mb-1">الاسم (عربي)</label>
           <Input value={nameAr} onChange={(e) => setNameAr(e.target.value)} placeholder="مثال: تقنية" dir="rtl" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Name (English)</label>
+          <label className="block text-xs font-medium text-fg-muted mb-1">Name (English)</label>
           <Input value={name} onChange={(e) => { setName(e.target.value); if (!initial?.slug) setSlug(autoSlug(e.target.value)); }} placeholder="e.g. technology" />
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">الرابط (Slug)</label>
+        <label className="block text-xs font-medium text-fg-muted mb-1">الرابط (Slug)</label>
         <Input value={slug} onChange={(e) => setSlug(autoSlug(e.target.value))} placeholder="technology" dir="ltr" />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">اللون</label>
+        <label className="block text-xs font-medium text-fg-muted mb-2">اللون</label>
         <div className="flex gap-2">
           {COLORS.map((c) => (
             <button
@@ -120,27 +121,35 @@ export default function BlogCategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-gray-900 dark:text-white">فئات المقالات</h1>
-        <Button size="sm" onClick={() => setShowNew(true)}>
-          <Plus className="h-4 w-4 ms-1" /> فئة جديدة
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: "لوحة التحكم", href: "/admin" },
+          { label: "المقالات", href: "/admin/blog" },
+          { label: "التصنيفات" },
+        ]}
+        title="تصنيفات المقالات"
+        description="تنظيم المقالات في تصنيفات تظهر في المدونة"
+        actions={
+          <Button onClick={() => setShowNew(true)} icon={<Plus className="h-4 w-4" />}>
+            تصنيف جديد
+          </Button>
+        }
+      />
 
       {showNew && (
         <CategoryForm onSave={handleCreate} onCancel={() => setShowNew(false)} />
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-line overflow-hidden">
         {loading ? (
-          <div className="py-16 text-center text-gray-400">جار التحميل...</div>
+          <div className="py-16 text-center text-fg-subtle">جار التحميل...</div>
         ) : categories.length === 0 ? (
           <div className="py-16 text-center">
-            <Tag className="h-10 w-10 mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500">لا توجد فئات بعد</p>
+            <Tag className="h-10 w-10 mx-auto text-fg-subtle mb-3" />
+            <p className="text-fg-muted">لا توجد فئات بعد</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <div className="divide-y divide-line">
             {categories.map((cat) => (
               <div key={cat.id}>
                 {editId === cat.id ? (
@@ -152,18 +161,18 @@ export default function BlogCategoriesPage() {
                     />
                   </div>
                 ) : (
-                  <div className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                  <div className="flex items-center gap-4 px-5 py-4 hover:bg-surface-hover/30 transition-colors">
                     <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: cat.color || "#6366f1" }} />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 dark:text-white">{cat.nameAr}</p>
-                      <p className="text-xs text-gray-400">{cat.name} · /{cat.slug}</p>
+                      <p className="font-semibold text-fg">{cat.nameAr}</p>
+                      <p className="text-xs text-fg-subtle">{cat.name} · /{cat.slug}</p>
                     </div>
-                    <span className="text-sm text-gray-500">{cat._count.posts} مقال</span>
+                    <span className="text-sm text-fg-muted">{cat._count.posts} مقال</span>
                     <div className="flex gap-2">
-                      <button onClick={() => setEditId(cat.id)} className="p-1.5 text-gray-400 hover:text-primary-500 transition-colors">
+                      <button onClick={() => setEditId(cat.id)} className="p-1.5 text-fg-subtle hover:text-primary-500 transition-colors">
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button onClick={() => setDeleteId(cat.id)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => setDeleteId(cat.id)} className="p-1.5 text-fg-subtle hover:text-red-500 transition-colors">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>

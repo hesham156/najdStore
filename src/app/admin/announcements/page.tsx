@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Modal, ConfirmModal } from "@/components/ui/Modal";
 import toast from "react-hot-toast";
 import { formatDate } from "@/lib/utils";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Announcement {
   id: string;
@@ -142,7 +143,7 @@ export default function AnnouncementsPage() {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نص الإعلان *</label>
+          <label className="block text-sm font-medium text-fg mb-1">نص الإعلان *</label>
           <Input
             value={form.titleAr}
             onChange={(e) => setForm((f) => ({ ...f, titleAr: e.target.value }))}
@@ -153,7 +154,7 @@ export default function AnnouncementsPage() {
 
         {/* Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نوع الإعلان</label>
+          <label className="block text-sm font-medium text-fg mb-2">نوع الإعلان</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {TYPE_OPTIONS.map((t) => {
               const TIcon = t.icon;
@@ -164,7 +165,7 @@ export default function AnnouncementsPage() {
                   className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-sm font-medium ${
                     form.type === t.value
                       ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      : "border-line hover:border-line-strong"
                   }`}
                 >
                   <span className={`w-6 h-6 rounded-lg ${t.color} flex items-center justify-center shrink-0`}>
@@ -179,19 +180,19 @@ export default function AnnouncementsPage() {
 
         {/* Coupon Code */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">كود الكوبون (اختياري)</label>
+          <label className="block text-sm font-medium text-fg mb-1">كود الكوبون (اختياري)</label>
           <Input
             value={form.couponCode}
             onChange={(e) => setForm((f) => ({ ...f, couponCode: e.target.value.toUpperCase() }))}
             placeholder="مثال: SAVE20"
             className="font-mono tracking-widest"
           />
-          <p className="text-xs text-gray-400 mt-1">سيظهر للزوار مع زر نسخ تلقائي</p>
+          <p className="text-xs text-fg-subtle mt-1">سيظهر للزوار مع زر نسخ تلقائي</p>
         </div>
 
         {/* Link */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط (اختياري)</label>
+          <label className="block text-sm font-medium text-fg mb-1">رابط (اختياري)</label>
           <Input
             value={form.link}
             onChange={(e) => setForm((f) => ({ ...f, link: e.target.value }))}
@@ -202,7 +203,7 @@ export default function AnnouncementsPage() {
         {/* Colors */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">لون الخلفية</label>
+            <label className="block text-sm font-medium text-fg mb-2">لون الخلفية</label>
             <div className="flex flex-wrap gap-2 mb-2">
               {PRESET_COLORS.map((c) => (
                 <button key={c} type="button" onClick={() => setForm((f) => ({ ...f, bgColor: c }))}
@@ -212,11 +213,11 @@ export default function AnnouncementsPage() {
               ))}
             </div>
             <input type="color" value={form.bgColor} onChange={(e) => setForm((f) => ({ ...f, bgColor: e.target.value }))}
-              className="w-full h-9 rounded-lg cursor-pointer border border-gray-200 dark:border-gray-700"
+              className="w-full h-9 rounded-lg cursor-pointer border border-line"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">لون النص</label>
+            <label className="block text-sm font-medium text-fg mb-2">لون النص</label>
             <div className="flex gap-2 mb-2">
               {["#ffffff", "#000000", "#fef08a"].map((c) => (
                 <button key={c} type="button" onClick={() => setForm((f) => ({ ...f, textColor: c }))}
@@ -226,14 +227,14 @@ export default function AnnouncementsPage() {
               ))}
             </div>
             <input type="color" value={form.textColor} onChange={(e) => setForm((f) => ({ ...f, textColor: e.target.value }))}
-              className="w-full h-9 rounded-lg cursor-pointer border border-gray-200 dark:border-gray-700"
+              className="w-full h-9 rounded-lg cursor-pointer border border-line"
             />
           </div>
         </div>
 
         {/* Preview */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">معاينة</label>
+          <label className="block text-sm font-medium text-fg mb-1">معاينة</label>
           <div
             className="w-full py-2.5 px-4 rounded-xl text-center text-sm font-semibold"
             style={{ backgroundColor: form.bgColor, color: form.textColor }}
@@ -245,22 +246,22 @@ export default function AnnouncementsPage() {
         {/* Expiry + Sort */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">تاريخ الانتهاء (اختياري)</label>
+            <label className="block text-sm font-medium text-fg mb-1">تاريخ الانتهاء (اختياري)</label>
             <Input type="date" value={form.expiresAt} onChange={(e) => setForm((f) => ({ ...f, expiresAt: e.target.value }))} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الترتيب</label>
+            <label className="block text-sm font-medium text-fg mb-1">الترتيب</label>
             <Input type="number" value={form.sortOrder} onChange={(e) => setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))} min={0} />
           </div>
         </div>
 
         {/* Active toggle */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">تفعيل الإعلان</span>
+        <div className="flex items-center justify-between p-3 rounded-xl bg-surface-muted">
+          <span className="text-sm font-medium text-fg">تفعيل الإعلان</span>
           <button type="button" onClick={() => setForm((f) => ({ ...f, isActive: !f.isActive }))} className="transition-colors">
             {form.isActive
               ? <ToggleRight className="h-8 w-8 text-primary-600" />
-              : <ToggleLeft  className="h-8 w-8 text-gray-400" />
+              : <ToggleLeft  className="h-8 w-8 text-fg-subtle" />
             }
           </button>
         </div>
@@ -277,15 +278,15 @@ export default function AnnouncementsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الإعلانات والعروض</h1>
-          <p className="text-gray-500 text-sm mt-1">إدارة الإعلانات وكوبونات الخصم والعروض المعروضة في الموقع</p>
-        </div>
-        <Button onClick={openAdd}>
-          <Plus className="h-4 w-4" /> إضافة إعلان
-        </Button>
-      </div>
+      <PageHeader
+        title="الإعلانات والعروض"
+        description="إدارة الإعلانات وكوبونات الخصم والعروض المعروضة في الموقع"
+        actions={
+          <Button onClick={openAdd} icon={<Plus className="h-4 w-4" />}>
+            إضافة إعلان
+          </Button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -295,22 +296,22 @@ export default function AnnouncementsPage() {
           { label: "كوبونات",          value: rows.filter((r) => r.couponCode).length,color: "text-purple-600" },
           { label: "عروض وخصومات",    value: rows.filter((r) => r.type === "SALE").length, color: "text-rose-600" },
         ].map((s) => (
-          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <div key={s.label} className="bg-surface rounded-2xl border border-line p-4 text-center">
             <p className={`text-3xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-1">{s.label}</p>
+            <p className="text-xs text-fg-muted mt-1">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-line overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">جاري التحميل...</div>
+          <div className="p-8 text-center text-fg-subtle">جاري التحميل...</div>
         ) : rows.length === 0 ? (
           <div className="p-12 text-center">
-            <Megaphone className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="font-semibold text-gray-500 dark:text-gray-400">لا توجد إعلانات بعد</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">أضف أول إعلان لعرضه في الموقع</p>
+            <Megaphone className="h-12 w-12 text-fg-subtle mx-auto mb-3" />
+            <p className="font-semibold text-fg-muted">لا توجد إعلانات بعد</p>
+            <p className="text-sm text-fg-subtle mt-1">أضف أول إعلان لعرضه في الموقع</p>
             <Button onClick={openAdd} className="mt-4">
               <Plus className="h-4 w-4" /> إضافة أول إعلان
             </Button>
@@ -319,7 +320,7 @@ export default function AnnouncementsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                <tr className="bg-surface-muted text-fg-muted border-b border-line">
                   <th className="text-start px-4 py-3 font-semibold">الإعلان</th>
                   <th className="text-start px-4 py-3 font-semibold">النوع</th>
                   <th className="text-start px-4 py-3 font-semibold">الكوبون</th>
@@ -328,12 +329,12 @@ export default function AnnouncementsPage() {
                   <th className="text-start px-4 py-3 font-semibold">إجراءات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              <tbody className="divide-y divide-line">
                 {rows.map((row) => {
                   const cfg = typeCfg(row.type);
                   const TIcon = cfg.icon;
                   return (
-                    <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <tr key={row.id} className="hover:bg-surface-hover/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg shrink-0" style={{ backgroundColor: row.bgColor }}>
@@ -342,8 +343,8 @@ export default function AnnouncementsPage() {
                             </div>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white line-clamp-1">{row.titleAr}</p>
-                            {row.link && <p className="text-xs text-gray-400 truncate max-w-[160px]">{row.link}</p>}
+                            <p className="font-medium text-fg line-clamp-1">{row.titleAr}</p>
+                            {row.link && <p className="text-xs text-fg-subtle truncate max-w-[160px]">{row.link}</p>}
                           </div>
                         </div>
                       </td>
@@ -355,17 +356,17 @@ export default function AnnouncementsPage() {
                       <td className="px-4 py-3">
                         {row.couponCode
                           ? <span className="font-mono font-bold text-primary-600 dark:text-primary-400 tracking-wider bg-primary-50 dark:bg-primary-900/20 px-2 py-0.5 rounded">{row.couponCode}</span>
-                          : <span className="text-gray-300 dark:text-gray-600">—</span>
+                          : <span className="text-fg-subtle">—</span>
                         }
                       </td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
-                        {row.expiresAt ? formatDate(row.expiresAt) : <span className="text-gray-300 dark:text-gray-600">غير محدد</span>}
+                      <td className="px-4 py-3 text-fg-muted text-xs">
+                        {row.expiresAt ? formatDate(row.expiresAt) : <span className="text-fg-subtle">غير محدد</span>}
                       </td>
                       <td className="px-4 py-3">
                         <button onClick={() => toggleActive(row)} className="transition-colors" title={row.isActive ? "إيقاف" : "تفعيل"}>
                           {row.isActive
                             ? <ToggleRight className="h-7 w-7 text-emerald-500" />
-                            : <ToggleLeft  className="h-7 w-7 text-gray-300 dark:text-gray-600" />
+                            : <ToggleLeft  className="h-7 w-7 text-fg-subtle" />
                           }
                         </button>
                       </td>
@@ -373,13 +374,13 @@ export default function AnnouncementsPage() {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => openEdit(row)}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            className="p-1.5 rounded-lg text-fg-subtle hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setDeleteId(row.id)}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            className="p-1.5 rounded-lg text-fg-subtle hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
