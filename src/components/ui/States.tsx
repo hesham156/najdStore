@@ -1,4 +1,13 @@
-"use client";
+/**
+ * Intentionally NOT a client component. These are pure presentational
+ * blocks, and the server-rendered dashboard passes lucide icons to
+ * <EmptyState icon={...} />. lucide-react has no "use client" of its own,
+ * so its icons are raw forwardRef objects — React cannot serialize one
+ * across a server -> client prop boundary.
+ *
+ * `onRetry` / `onClear` are forwarded to <Button> (a client component), so
+ * ErrorState and NoResultsState must only be used from client components.
+ */
 
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle, Inbox, RefreshCw, SearchX, WifiOff } from "lucide-react";
