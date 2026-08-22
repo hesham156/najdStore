@@ -65,10 +65,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export async function generateStaticParams() {
-  const posts = await prisma.post.findMany({ where: { status: "PUBLISHED" }, select: { slug: true } });
-  return posts.map((p) => ({ slug: p.slug }));
-}
 
 const renderer = new marked.Renderer();
 renderer.heading = ({ text, depth }: { text: string; depth: number }) => {

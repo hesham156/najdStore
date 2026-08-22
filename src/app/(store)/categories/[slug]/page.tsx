@@ -13,11 +13,6 @@ const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
 
 interface Props { params: { slug: string } }
 
-export async function generateStaticParams() {
-  const cats = await prisma.category.findMany({ where: { isActive: true }, select: { slug: true } });
-  return cats.map((c) => ({ slug: c.slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cat = await prisma.category.findUnique({ where: { slug: params.slug } });
   if (!cat) return { title: "الفئة غير موجودة" };

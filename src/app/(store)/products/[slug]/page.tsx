@@ -14,20 +14,15 @@ interface PublicSettings {
 
 const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
 
+// Rendered on demand — the database is not available at build time
+export const dynamic = "force-dynamic";
+
 /** Safely serialize JSON-LD — escapes </script> injection vectors */
 function safeJsonLd(obj: unknown): string {
   return JSON.stringify(obj)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e")
     .replace(/&/g, "\\u0026");
-}
-
-export async function generateStaticParams() {
-  const products = await prisma.product.findMany({
-    where: { isActive: true, isDeleted: false },
-    select: { slug: true },
-  });
-  return products.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata(

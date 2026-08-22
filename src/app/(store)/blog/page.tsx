@@ -5,6 +5,9 @@ import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Clock, Eye, ChevronLeft } from "lucide-react";
 
+// Rendered on demand — the database is not available at build time
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "المدونة — مقالات ونصائح حول المنتجات والخدمات",
   description: "اقرأ أحدث المقالات والنصائح حول المنتجات والخدمات، أدوات الذكاء الاصطناعي، خدمات البث، والبرمجيات.",

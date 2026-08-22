@@ -6,6 +6,9 @@ import type { Metadata } from "next";
 
 const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
 
+// Rendered on demand — the database is not available at build time
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
   const title = searchParams.search
     ? `نتائج البحث عن "${searchParams.search}" | جميع المنتجات`
