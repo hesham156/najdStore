@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Search, ToggleLeft, ToggleRight, Filter } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Plus, Edit, Trash2, Search, ToggleLeft, ToggleRight, Filter, Layers, Package, CheckCircle, Star, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
 import { ConfirmModal } from "@/components/ui/Modal";
 import { DataTable, Column, Pagination } from "@/components/ui/DataTable";
 import { formatCurrency } from "@/lib/utils";
@@ -72,6 +73,14 @@ export default function AdminProductsPage() {
     setDeleteLoading(false);
     setDeleteId(null);
   };
+
+  /* ── Stats ── */
+  const stats = useMemo(() => {
+    const active = products.filter(p => p.isActive).length;
+    const featured = products.filter(p => p.isFeatured).length;
+    const value = products.reduce((s, p) => s + (parseFloat(String(p.price)) || 0), 0);
+    return { total: products.length, active, featured, value };
+  }, [products]);
 
   /* ── Client-side filter ── */
   const filtered = products.filter(p => {
@@ -168,6 +177,9 @@ export default function AdminProductsPage() {
           <Button size="sm" variant="secondary" onClick={() => router.push(`/admin/products/${row.id}`)}>
             <Edit className="h-3.5 w-3.5" />تعديل
           </Button>
+          <Button size="sm" variant="ghost" onClick={() => router.push(`/admin/products/${row.id}/options`)} title="الخيارات والأسعار">
+            <Layers className="h-3.5 w-3.5" />
+          </Button>
           <Button size="sm" variant="danger" onClick={() => setDeleteId(row.id)}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -194,6 +206,28 @@ export default function AdminProductsPage() {
         <Button onClick={() => router.push("/admin/products/new")}>
           <Plus className="h-4 w-4" />منتج جديد
         </Button>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "إجمالي المنتجات", value: stats.total, icon: Package, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
+          { label: "نشطة", value: stats.active, icon: CheckCircle, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
+          { label: "مميزة", value: stats.featured, icon: Star, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
+          { label: "قيمة الكتالوج", value: formatCurrency(stats.value), icon: DollarSign, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
+        ].map((s) => (
+          <Card key={s.label}>
+            <div className="flex items-center gap-3">
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", s.color)}>
+                <s.icon className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xl font-black text-gray-900 dark:text-white truncate">{s.value}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{s.label}</p>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
 
       {/* Search + Filter */}
