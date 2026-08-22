@@ -9,6 +9,7 @@ import {
   Megaphone,
   MessageSquare,
   Package,
+  Palette,
   Plug,
   Receipt,
   SearchCheck,
@@ -99,6 +100,7 @@ export const navGroups: NavGroup[] = [
       { href: "/admin/admins", label: "المشرفون", icon: Shield, keywords: "admins staff" },
       { href: "/admin/logs", label: "سجل النشاطات", icon: FileText, keywords: "logs activity" },
       { href: "/admin/settings", label: "الإعدادات العامة", icon: Settings, keywords: "settings" },
+      { href: "/admin/design-system", label: "نظام التصميم", icon: Palette, keywords: "design system ui components tokens" },
     ],
   },
 ];

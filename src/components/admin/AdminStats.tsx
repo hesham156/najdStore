@@ -1,4 +1,8 @@
-"use client";
+/**
+ * Intentionally NOT a client component: it renders no interactive state, and
+ * the server-rendered dashboard imports `statColors` from here. A "use client"
+ * directive would turn that export into a client-reference proxy on the server.
+ */
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";

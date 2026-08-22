@@ -3,18 +3,14 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { Tabs } from "@/components/ui/Tabs";
-
-export const RANGE_OPTIONS = [
-  { value: "7", label: "آخر 7 أيام", short: "7 أيام", compareLabel: "مقارنة بالأسبوع السابق" },
-  { value: "30", label: "آخر 30 يوماً", short: "30 يوماً", compareLabel: "مقارنة بالفترة السابقة" },
-  { value: "90", label: "آخر 90 يوماً", short: "90 يوماً", compareLabel: "مقارنة بالفترة السابقة" },
-] as const;
-
-export type RangeKey = (typeof RANGE_OPTIONS)[number]["value"];
+import { RANGE_OPTIONS, type RangeKey } from "./period-options";
 
 /**
  * Writes the selected period into the URL so the server component can
  * re-query — the choice survives a refresh and can be shared as a link.
+ *
+ * The options themselves live in `period-options.ts` (a plain module) because
+ * the server component reads them too.
  */
 export function PeriodPicker({ value }: { value: RangeKey }) {
   const router = useRouter();

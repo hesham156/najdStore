@@ -22,11 +22,11 @@ import { formatCurrency, formatDate, serializeData } from "@/lib/utils";
 import { Badge, getStatusBadge } from "@/components/ui/Badge";
 import { Card, Section } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/States";
-import { Tabs } from "@/components/ui/Tabs";
 import { AdminStats, statColors, type StatItem } from "@/components/admin/AdminStats";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { SalesChart, type SalesPoint } from "@/components/admin/SalesChart";
-import { PeriodPicker, RANGE_OPTIONS, type RangeKey } from "@/components/admin/PeriodPicker";
+import { PeriodPicker } from "@/components/admin/PeriodPicker";
+import { resolveRange, type RangeKey } from "@/components/admin/period-options";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +50,9 @@ export default async function AdminDashboardPage({
 }: {
   searchParams?: { range?: string };
 }) {
-  const rangeKey: RangeKey = (RANGE_OPTIONS.find((o) => o.value === searchParams?.range)?.value ?? "30") as RangeKey;
+  const range = resolveRange(searchParams?.range);
+  const rangeKey: RangeKey = range.value;
   const days = Number(rangeKey);
-  const rangeLabel = RANGE_OPTIONS.find((o) => o.value === rangeKey)!.compareLabel;
 
   const now = new Date();
   const periodStart = new Date(now.getTime() - days * 86_400_000);
@@ -172,7 +172,7 @@ export default async function AdminDashboardPage({
       icon: DollarSign,
       color: statColors.primary,
       delta: pctChange(revenue, prevRevenue),
-      deltaLabel: rangeLabel,
+      deltaLabel: range.compareLabel,
     },
     {
       label: "الطلبات",
@@ -180,7 +180,7 @@ export default async function AdminDashboardPage({
       icon: ShoppingBag,
       color: statColors.blue,
       delta: pctChange(orderCount, prevOrderCount),
-      deltaLabel: rangeLabel,
+      deltaLabel: range.compareLabel,
       href: "/admin/orders",
     },
     {
@@ -189,7 +189,7 @@ export default async function AdminDashboardPage({
       icon: Receipt,
       color: statColors.amber,
       delta: pctChange(aov, prevAov),
-      deltaLabel: rangeLabel,
+      deltaLabel: range.compareLabel,
     },
     {
       label: "عملاء جدد",
@@ -197,7 +197,7 @@ export default async function AdminDashboardPage({
       icon: Users,
       color: statColors.green,
       delta: pctChange(newCustomers, prevNewCustomers),
-      deltaLabel: rangeLabel,
+      deltaLabel: range.compareLabel,
       href: "/admin/customers",
     },
   ];
@@ -206,7 +206,7 @@ export default async function AdminDashboardPage({
     <div className="space-y-5 animate-fade-in">
       <PageHeader
         title="لوحة التحكم"
-        description={`نظرة على أداء المتجر خلال ${RANGE_OPTIONS.find((o) => o.value === rangeKey)!.label}`}
+        description={`نظرة على أداء المتجر خلال ${range.label}`}
         actions={
           <>
             <PeriodPicker value={rangeKey} />
@@ -265,7 +265,7 @@ export default async function AdminDashboardPage({
         <Section
           className="xl:col-span-2"
           title="تحليل المبيعات"
-          description={`الإيرادات وعدد الطلبات خلال ${RANGE_OPTIONS.find((o) => o.value === rangeKey)!.label}`}
+          description={`الإيرادات وعدد الطلبات خلال ${range.label}`}
         >
           <SalesChart data={series} emptyHint="ستظهر المبيعات هنا فور تسجيل أول طلب في هذه الفترة." />
         </Section>
