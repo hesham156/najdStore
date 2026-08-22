@@ -18,37 +18,36 @@ const navGroups = [
     ],
   },
   {
-    label: "المتجر",
+    label: "الكتالوج",
     items: [
       { href: "/admin/products", label: "المنتجات", icon: Package },
       { href: "/admin/categories", label: "الفئات", icon: Tag },
-      { href: "/admin/stock", label: "مخزون الاشتراكات", icon: Archive },
-      { href: "/admin/coupons",        label: "الكوبونات",         icon: TicketPercent },
+      { href: "/admin/stock", label: "المخزون", icon: Archive },
+    ],
+  },
+  {
+    label: "المبيعات",
+    items: [
+      { href: "/admin/orders", label: "الطلبات", icon: ShoppingBag },
+      { href: "/admin/payments", label: "المدفوعات", icon: CreditCard },
+      { href: "/admin/customers", label: "العملاء", icon: Users },
+      { href: "/admin/coupons", label: "الكوبونات", icon: TicketPercent },
+    ],
+  },
+  {
+    label: "التسويق",
+    items: [
       { href: "/admin/announcements",  label: "الإعلانات والعروض", icon: Megaphone },
       { href: "/admin/ads",            label: "البنرات الإعلانية", icon: Tag },
       { href: "/admin/popups",         label: "البوب آب",           icon: Bell },
       { href: "/admin/upsells",        label: "عروض Upsell",        icon: TrendingUp },
-    ],
-  },
-  {
-    label: "العمليات",
-    items: [
-      { href: "/admin/orders", label: "الطلبات", icon: ShoppingBag },
-      { href: "/admin/payments", label: "المدفوعات", icon: CreditCard },
-      { href: "/admin/payment-methods", label: "طرق الدفع", icon: Wallet },
-      { href: "/admin/customers", label: "العملاء", icon: Users },
-    ],
-  },
-  {
-    label: "المحتوى",
-    items: [
-      { href: "/admin/blog", label: "المقالات", icon: BookOpen },
+      { href: "/admin/blog",           label: "المقالات",           icon: BookOpen },
     ],
   },
   {
     label: "المالية",
     items: [
-      { href: "/admin/accounting",           label: "لوحة المحاسبة",    icon: Calculator },
+      { href: "/admin/accounting",           label: "لوحة المحاسبة",    icon: Calculator, exact: true },
       { href: "/admin/accounting/expenses",  label: "المصاريف",         icon: TrendingDown },
       { href: "/admin/accounting/invoices",  label: "الفواتير الضريبية", icon: Receipt },
     ],
@@ -60,18 +59,19 @@ const navGroups = [
     ],
   },
   {
-    label: "النظام",
+    label: "الإعدادات",
     items: [
+      { href: "/admin/payment-methods", label: "طرق الدفع", icon: Wallet },
+      { href: "/admin/integrations", label: "التكاملات", icon: Plug },
+      { href: "/admin/seo", label: "إعدادات SEO", icon: SearchCheck },
       { href: "/admin/admins", label: "المشرفون", icon: Shield },
       { href: "/admin/logs", label: "سجل النشاطات", icon: FileText },
-      { href: "/admin/seo", label: "إعدادات SEO", icon: SearchCheck },
-      { href: "/admin/integrations", label: "التكاملات", icon: Plug },
-      { href: "/admin/settings", label: "الإعدادات", icon: Settings },
+      { href: "/admin/settings", label: "الإعدادات العامة", icon: Settings },
     ],
   },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ storeName = "المتجر", onNavigate }: { storeName?: string; onNavigate?: () => void }) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -84,9 +84,9 @@ export function AdminSidebar() {
       <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2.5">
           <SiteLogo size="sm" />
-          <div>
+          <div className="min-w-0">
             <p className="font-black text-gray-900 dark:text-white text-sm">لوحة الإدارة</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">متجر رقمي</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{storeName}</p>
           </div>
         </div>
       </div>
@@ -119,6 +119,7 @@ export function AdminSidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={onNavigate}
                     className={cn(
                       "sidebar-link",
                       isActive(item.href, exact) && "sidebar-link-active"
@@ -139,7 +140,7 @@ export function AdminSidebar() {
 
       {/* Footer */}
       <div className="p-3 border-t border-gray-200 dark:border-gray-700 space-y-1">
-        <Link href="/" className="sidebar-link">
+        <Link href="/" onClick={onNavigate} className="sidebar-link">
           <Home className="h-4 w-4 shrink-0" />
           المتجر
         </Link>

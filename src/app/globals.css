@@ -117,6 +117,10 @@
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
+
+  .animate-drawer {
+    animation: slideInRight 0.25s ease-out;
+  }
 }
 
 @keyframes fadeIn {
