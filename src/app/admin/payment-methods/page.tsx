@@ -249,22 +249,106 @@ export default function PaymentMethodsPage() {
 
           {/* Tamara */}
           <PaymentCard
-            title="Tamara" subtitle="قسّم مشترياتك – اشتري الآن وادفع لاحقاً"
-            logo={<div className="w-8 h-8 rounded-lg bg-[#00B3A4] flex items-center justify-center text-white text-xs font-black">Tm</div>}
+            title="تمارا — Tamara" subtitle="قسّم مشترياتك – اشتري الآن وادفع لاحقاً"
+            logo={<div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3AC7B3] to-[#7B5CD6] flex items-center justify-center text-white text-xs font-black">تم</div>}
             color="bg-cyan-50 dark:bg-cyan-900/10"
             enabled={bool("pm_tamara_enabled")} onToggle={() => toggle("pm_tamara_enabled")}
           >
-            <div className="p-3 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 text-xs text-cyan-800 dark:text-cyan-300">
-              💡 للحصول على مفاتيح Tamara، سجّل في{" "}
-              <a href="https://merchants.tamara.co" target="_blank" rel="noreferrer" className="underline font-semibold">merchants.tamara.co</a>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <PasswordInput label="API Token" value={values["pm_tamara_api_token"] || ""} onChange={v => set("pm_tamara_api_token", v)} />
-              <PasswordInput label="Notification Key" value={values["pm_tamara_notification_key"] || ""} onChange={v => set("pm_tamara_notification_key", v)} />
-              <div className="sm:col-span-2">
-                <Input label="Merchant URL" value={values["pm_tamara_merchant_url"] || ""} onChange={e => set("pm_tamara_merchant_url", e.target.value)} placeholder="https://yourdomain.com" />
+            {/* ── بيانات الربط ── */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">بيانات الربط</h4>
+                <span className="h-px flex-1 bg-gray-100 dark:bg-gray-700" />
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                احصل على البيانات التالية من حسابك في بوابة الدفع، ثم انسخها والصقها في الحقول المخصصة. انتقل إلى{" "}
+                <a href="https://partners.tamara.co" target="_blank" rel="noreferrer" className="text-primary-600 dark:text-primary-400 underline font-semibold">حسابك على تمارا</a>.
+              </p>
+              <PasswordInput
+                label="Merchant Key"
+                value={values["pm_tamara_api_token"] || ""}
+                onChange={v => set("pm_tamara_api_token", v)}
+                placeholder="eyJ0eXAiOiJKV1QiLCJhbGci..."
+              />
+              <Input
+                label="Public Key"
+                value={values["pm_tamara_public_key"] || ""}
+                onChange={e => set("pm_tamara_public_key", e.target.value)}
+                placeholder="88eed269-b0f2-4d2b-b302-682fda5120bd"
+              />
             </div>
+
+            {/* ── الإعدادات ── */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">الإعدادات</h4>
+                <span className="h-px flex-1 bg-gray-100 dark:bg-gray-700" />
+              </div>
+
+              {/* Show badge on product page */}
+              <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  إظهار شعار تمارا في صفحة المنتج
+                </span>
+                <Toggle checked={bool("tamara_enabled")} onChange={v => set("tamara_enabled", String(v))} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Environment */}
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">البيئة</span>
+                  <div className="flex gap-2 ms-auto">
+                    {["sandbox", "live"].map(mode => (
+                      <button key={mode} type="button" onClick={() => set("pm_tamara_mode", mode)}
+                        className={cn("px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                          (values["pm_tamara_mode"] || "sandbox") === mode
+                            ? mode === "live" ? "bg-green-600 text-white" : "bg-amber-500 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        )}>
+                        {mode === "live" ? "🟢 Live" : "🟡 Sandbox"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <Input
+                  label="عدد الدفعات"
+                  type="number"
+                  value={values["pm_tamara_installments"] || "3"}
+                  onChange={e => set("pm_tamara_installments", e.target.value)}
+                  placeholder="3"
+                />
+              </div>
+
+              <PasswordInput
+                label="Notification Key (لاستقبال إشعارات تمارا)"
+                value={values["pm_tamara_notification_key"] || ""}
+                onChange={v => set("pm_tamara_notification_key", v)}
+              />
+            </div>
+
+            {/* Notification URL hint */}
+            <div className="p-3 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 text-xs text-cyan-800 dark:text-cyan-300 leading-relaxed">
+              💡 في لوحة تمارا، اضبط رابط الإشعارات (Notification URL) على:{" "}
+              <code className="font-mono bg-cyan-100 dark:bg-cyan-900/40 px-1.5 py-0.5 rounded break-all">
+                {values["pm_tamara_merchant_url"] || "https://yourdomain.com"}/api/payments/tamara/webhook
+              </code>
+            </div>
+
+            {/* ── الموافقة ── */}
+            <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={bool("pm_tamara_agreement")}
+                onChange={e => set("pm_tamara_agreement", String(e.target.checked))}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                أوافق على{" "}
+                <a href="https://tamara.co/ar/terms-and-conditions" target="_blank" rel="noreferrer" className="text-primary-600 dark:text-primary-400 underline">
+                  اتفاقية استخدام تمارا
+                </a>
+              </span>
+            </label>
           </PaymentCard>
 
           {/* Save footer */}

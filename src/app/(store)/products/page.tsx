@@ -11,8 +11,8 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
     ? `نتائج البحث عن "${searchParams.search}" | جميع المنتجات`
     : searchParams.category
     ? `تصفح فئة ${searchParams.category}`
-    : "جميع المنتجات - اشتراكات رقمية بأفضل الأسعار";
-  const description = "تصفح مجموعة واسعة من الاشتراكات الرقمية - نتفليكس، سبوتيفاي، ChatGPT، VPN وأكثر بأسعار تنافسية";
+    : "جميع المنتجات بأفضل الأسعار";
+  const description = "تصفح مجموعة واسعة من المنتجات والخدمات بأسعار تنافسية وتسليم سريع";
   return {
     title,
     description,

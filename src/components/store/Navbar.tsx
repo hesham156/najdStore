@@ -62,8 +62,8 @@ export function Navbar() {
               <SiteLogo size="sm" />
             </motion.div>
             <div className="hidden sm:block">
-              <span className="font-bold text-gray-900 dark:text-white text-base leading-tight block">متجر رقمي</span>
-              <span className="text-xs text-primary-600 dark:text-primary-400 leading-tight block">للاشتراكات الرقمية</span>
+              <span className="font-bold text-gray-900 dark:text-white text-base leading-tight block">متجرك الإلكتروني</span>
+              <span className="text-xs text-primary-600 dark:text-primary-400 leading-tight block">أفضل الأسعار وأعلى جودة</span>
             </div>
           </Link>
 

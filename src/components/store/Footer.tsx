@@ -1,15 +1,8 @@
 import Link from "next/link";
 import { Mail, Phone, MapPin, Twitter, Instagram, Youtube } from "lucide-react";
 import { SiteLogo } from "@/components/ui/site-logo";
-
-const categories = [
-  { href: "/categories/streaming", label: "خدمات البث" },
-  { href: "/categories/software", label: "تراخيص البرامج" },
-  { href: "/categories/ai-tools", label: "أدوات الذكاء الاصطناعي" },
-  { href: "/categories/vpn", label: "خدمات VPN" },
-  { href: "/categories/gaming", label: "الألعاب" },
-  { href: "/categories/cloud", label: "التخزين السحابي" },
-];
+import { getActiveCategories } from "@/lib/queries";
+import { getSettings } from "@/lib/settings";
 
 const quickLinks = [
   { href: "/", label: "الرئيسية" },
@@ -20,7 +13,26 @@ const quickLinks = [
   { href: "/terms", label: "الشروط والأحكام" },
 ];
 
-export function Footer() {
+export async function Footer() {
+  const [allCategories, s] = await Promise.all([
+    getActiveCategories().catch(() => []),
+    getSettings({
+      site_name: "متجرك الإلكتروني",
+      footer_description: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.",
+      site_email: "support@store.com",
+      site_phone: "+966 50 123 4567",
+    }).catch(() => ({
+      site_name: "متجرك الإلكتروني",
+      footer_description: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.",
+      site_email: "support@store.com",
+      site_phone: "+966 50 123 4567",
+    })),
+  ]);
+
+  const categories = (allCategories as Array<{ slug: string; nameAr: string }>)
+    .slice(0, 6)
+    .map((c) => ({ href: `/categories/${c.slug}`, label: c.nameAr }));
+
   return (
     <footer className="bg-gray-900 dark:bg-gray-950 text-gray-300 mt-16">
       <div className="container-custom py-12">
@@ -30,12 +42,11 @@ export function Footer() {
             <div className="flex items-center gap-2">
               <SiteLogo size="sm" />
               <div>
-                <p className="font-bold text-white text-base">متجر رقمي</p>
-                <p className="text-xs text-primary-400">للاشتراكات الرقمية</p>
+                <p className="font-bold text-white text-base">{s.site_name}</p>
               </div>
             </div>
             <p className="text-sm leading-relaxed text-gray-400">
-              منصتك الموثوقة لشراء الاشتراكات الرقمية بأسعار مناسبة مع تسليم فوري وآمن.
+              {s.footer_description}
             </p>
             <div className="flex items-center gap-3">
               {[
@@ -59,6 +70,9 @@ export function Footer() {
           <div>
             <h3 className="font-bold text-white mb-4">الفئات</h3>
             <ul className="space-y-2">
+              {categories.length === 0 && (
+                <li><Link href="/products" className="text-sm text-gray-400 hover:text-primary-400 transition-colors">جميع المنتجات</Link></li>
+              )}
               {categories.map((cat) => (
                 <li key={cat.href}>
                   <Link
@@ -95,11 +109,11 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <Mail className="h-4 w-4 text-primary-400 shrink-0" />
-                support@store.com
+                {s.site_email}
               </li>
-              <li className="flex items-center gap-3 text-sm text-gray-400">
+              <li className="flex items-center gap-3 text-sm text-gray-400" dir="ltr">
                 <Phone className="h-4 w-4 text-primary-400 shrink-0" />
-                +966 50 123 4567
+                {s.site_phone}
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <MapPin className="h-4 w-4 text-primary-400 shrink-0" />
@@ -119,7 +133,7 @@ export function Footer() {
       <div className="border-t border-gray-800">
         <div className="container-custom py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} متجر الاشتراكات الرقمية. جميع الحقوق محفوظة.
+            © {new Date().getFullYear()} {s.site_name}. جميع الحقوق محفوظة.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">

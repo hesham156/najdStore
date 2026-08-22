@@ -10,6 +10,7 @@ import { FeaturesTimeline } from "@/components/store/FeaturesTimeline";
 import { ChevronLeft } from "lucide-react";
 import type { ProductWithCategory } from "@/types";
 import { getActiveCategories, getFeaturedProducts, getRecentProducts } from "@/lib/queries";
+import { getBranding } from "@/lib/settings";
 import { PromoSection } from "@/components/store/PromoSection";
 import AdBanner from "@/components/store/AdBanner";
 import type { Metadata } from "next";
@@ -17,16 +18,16 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
-const siteName = "منصة الخدمات الرقمية المتكاملة";
+const siteName = "متجرك الإلكتروني المتكامل";
 
 export const metadata: Metadata = {
-  title: `خدماتك الرقمية واشتراكاتك بأفضل الأسعار | ${siteName}`,
-  description: "منصتك الموثوقة لخدمات البرمجة، التصميم، الموشن جرافيك، والاشتراكات الرقمية العالمية بأفضل الأسعار مع تسليم فوري.",
-  keywords: ["خدمات رقمية", "برمجة", "تصميم", "موشن جرافيك", "اشتراكات رقمية", "تطوير مواقع"],
+  title: `تسوّق أفضل المنتجات والخدمات بأفضل الأسعار | ${siteName}`,
+  description: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة، تسليم سريع، وتجربة شراء سلسة وآمنة.",
+  keywords: ["متجر إلكتروني", "تسوق", "منتجات", "خدمات", "أفضل الأسعار", "تسليم سريع"],
   alternates: { canonical: siteUrl },
   openGraph: {
     title: siteName,
-    description: "منصتك الموثوقة لخدمات البرمجة والتصميم والاشتراكات الرقمية بأفضل الأسعار.",
+    description: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.",
     url: siteUrl, locale: "ar_SA", type: "website",
     images: [{ url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: siteName }],
   },
@@ -34,17 +35,28 @@ export const metadata: Metadata = {
 
 
 export default async function HomePage() {
-  const [featured, categories, recent] = await Promise.all([
+  const [featured, categories, recent, branding] = await Promise.all([
     getFeaturedProducts(),
     getActiveCategories(),
     getRecentProducts(),
+    getBranding(),
   ]);
 
   return (
     <div className="min-h-screen">
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <HeroContent />
+      <HeroContent
+        badge={branding.hero_badge}
+        title={branding.hero_title}
+        titleHighlight={branding.hero_title_highlight}
+        subtitle={branding.hero_subtitle}
+        stats={[
+          { value: branding.hero_stat_1_value, label: branding.hero_stat_1_label },
+          { value: branding.hero_stat_2_value, label: branding.hero_stat_2_label },
+          { value: branding.hero_stat_3_value, label: branding.hero_stat_3_label },
+        ]}
+      />
 
       {/* ── Top Ads ──────────────────────────────────────────────────── */}
       <AdBanner placement="STORE_HOME_TOP" />
@@ -161,7 +173,7 @@ export default async function HomePage() {
           <AnimatedSection>
             <h2 className="text-3xl font-black text-white mb-4">جاهز للبدء؟</h2>
             <p className="text-white/80 mb-8 text-lg max-w-xl mx-auto">
-              سجل حساباً مجانياً الآن واستفد من خدماتنا الرقمية الشاملة واشتراكاتنا المميزة
+              سجل حساباً مجانياً الآن واستفد من أفضل عروضنا ومنتجاتنا المميزة
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link

@@ -19,7 +19,7 @@ import AdBanner from "@/components/store/AdBanner";
 interface BankTransfer { enabled: boolean; accountName: string; bankName: string; accountNumber: string; iban: string }
 interface PayPalConfig  { enabled: boolean; mode: string }
 interface TabbyConfig   { enabled: boolean; publicKey: string; merchantCode: string }
-interface TamaraConfig  { enabled: boolean; merchantUrl: string }
+interface TamaraConfig  { enabled: boolean; installments: number; merchantUrl: string }
 interface PaymentMethods { bankTransfer: BankTransfer; paypal: PayPalConfig; tabby: TabbyConfig; tamara: TamaraConfig }
 
 /* ─── Copy helper ─── */
@@ -215,6 +215,8 @@ if (items.length === 0) {
         clearCart();
         if (data.paypalApproveLink) {
           window.location.href = data.paypalApproveLink;
+        } else if (data.tamaraCheckoutUrl) {
+          window.location.href = data.tamaraCheckoutUrl;
         } else {
           // Redirect everyone to the unified thank-you page
           router.push(
@@ -233,7 +235,7 @@ if (items.length === 0) {
   if (gateways?.bankTransfer.enabled) enabledMethods.push({ value: "BANK_TRANSFER", label: "تحويل بنكي",    desc: "تحويل عبر البنك مع رفع إثبات الدفع",   icon: Landmark });
   if (gateways?.paypal.enabled)        enabledMethods.push({ value: "PAYPAL",         label: "PayPal",         desc: "بطاقات ائتمانية ودفع دولي",             icon: Wallet  });
   if (gateways?.tabby.enabled)         enabledMethods.push({ value: "TABBY",          label: "Tabby — تابي",  desc: "4 دفعات بدون فوائد",                    icon: CreditCard });
-  if (gateways?.tamara.enabled)        enabledMethods.push({ value: "TAMARA",         label: "Tamara — تمارا", desc: "3 دفعات بدون فوائد",                   icon: CreditCard });
+  if (gateways?.tamara.enabled)        enabledMethods.push({ value: "TAMARA",         label: "تمارا — Tamara", desc: `${gateways.tamara.installments || 3} دفعات بدون فوائد`, icon: CreditCard });
 
   const hasNoMethods = !gatewaysLoading && enabledMethods.length === 0;
 
@@ -370,22 +372,25 @@ if (items.length === 0) {
             )}
 
             {/* ── Tamara notice ── */}
-            {paymentMethod === "TAMARA" && (
-              <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-2xl p-5 space-y-2">
-                <h3 className="font-bold text-cyan-900 dark:text-cyan-300">
-                  Tamara — 3 دفعات بدون فوائد
-                </h3>
-                <div className="grid grid-cols-3 gap-2 mt-3">
-                  {[1, 2, 3].map(n => (
-                    <div key={n} className="text-center p-2.5 rounded-xl bg-cyan-100 dark:bg-cyan-900/40">
-                      <p className="text-sm font-bold text-cyan-800 dark:text-cyan-300">{formatAmount(total / 3)}</p>
-                      <p className="text-xs text-cyan-600 dark:text-cyan-500">دفعة {n}</p>
-                    </div>
-                  ))}
+            {paymentMethod === "TAMARA" && (() => {
+              const n = gateways?.tamara.installments || 3;
+              return (
+                <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-2xl p-5 space-y-2">
+                  <h3 className="font-bold text-cyan-900 dark:text-cyan-300">
+                    تمارا — {n} دفعات بدون فوائد
+                  </h3>
+                  <div className="grid gap-2 mt-3" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
+                    {Array.from({ length: n }, (_, i) => i + 1).map(p => (
+                      <div key={p} className="text-center p-2.5 rounded-xl bg-cyan-100 dark:bg-cyan-900/40">
+                        <p className="text-sm font-bold text-cyan-800 dark:text-cyan-300">{formatAmount(total / n)}</p>
+                        <p className="text-xs text-cyan-600 dark:text-cyan-500">دفعة {p}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-2">سيتم تحويلك لصفحة تمارا لإتمام الدفع.</p>
                 </div>
-                <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-2">سيتم تحويلك لصفحة Tamara لإتمام الطلب.</p>
-              </div>
-            )}
+              );
+            })()}
 
             {/* ── Coupon ── */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">

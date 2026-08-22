@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateOrderNumber } from "@/lib/utils";
 import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
+import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
 import { notifyOrderCreated } from "@/lib/hayyak";
 import bcrypt from "bcryptjs";
 
@@ -40,6 +41,17 @@ export async function POST(req: NextRequest) {
       if (!paypalConfig.enabled || !paypalConfig.clientId || !paypalConfig.clientSecret) {
         return NextResponse.json(
           { success: false, error: "PayPal غير مهيأ بشكل صحيح. يرجى التواصل مع الدعم أو اختيار طريقة دفع أخرى." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate Tamara credentials BEFORE touching the DB
+    if (paymentMethod === "TAMARA") {
+      const tamaraConfig = await getTamaraConfig();
+      if (!tamaraConfig.enabled || !tamaraConfig.apiToken) {
+        return NextResponse.json(
+          { success: false, error: "تمارا غير مهيأة بشكل صحيح. يرجى التواصل مع الدعم أو اختيار طريقة دفع أخرى." },
           { status: 400 }
         );
       }
@@ -179,7 +191,7 @@ export async function POST(req: NextRequest) {
       include: {
         items: { include: { product: true } },
         payment: true,
-        user: { select: { name: true, phone: true } },
+        user: { select: { name: true, phone: true, email: true } },
       },
     });
 
@@ -237,10 +249,67 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Handle Tamara Checkout integration
+    let tamaraCheckoutUrl: string | undefined;
+    if (paymentMethod === "TAMARA" && total > 0) {
+      try {
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        const currencySetting = await prisma.setting.findUnique({ where: { key: "currency" } });
+        const currency = currencySetting?.value || "SAR";
+
+        const nameParts = (order.user?.name || "Customer").trim().split(/\s+/);
+        const firstName = nameParts[0] || "Customer";
+        const lastName = nameParts.slice(1).join(" ") || "-";
+
+        const session = await createTamaraCheckoutSession({
+          orderNumber: order.orderNumber,
+          amount: total,
+          subtotal,
+          discount,
+          currency,
+          description: `طلب رقم ${order.orderNumber}`,
+          consumer: {
+            firstName,
+            lastName,
+            phone: order.user?.phone || "500000000",
+            email: order.user?.email || guestEmail || "customer@example.com",
+          },
+          items: order.items.map((it) => ({
+            id: it.productId,
+            name: it.product.nameAr || it.product.name,
+            sku: it.product.slug || it.productId,
+            quantity: it.quantity,
+            unitPrice: parseFloat(String(it.price)),
+          })),
+          urls: {
+            success:      `${baseUrl}/api/payments/tamara/callback?orderId=${order.id}&status=success`,
+            failure:      `${baseUrl}/api/payments/tamara/callback?orderId=${order.id}&status=failure`,
+            cancel:       `${baseUrl}/api/payments/tamara/callback?orderId=${order.id}&status=cancel`,
+            notification: `${baseUrl}/api/payments/tamara/webhook`,
+          },
+        });
+
+        if (session.checkoutUrl) {
+          tamaraCheckoutUrl = session.checkoutUrl;
+          await prisma.payment.update({
+            where: { orderId: order.id },
+            data: { transactionId: session.tamaraOrderId },
+          });
+        }
+      } catch (err) {
+        console.error("Error integrating Tamara:", err);
+        await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+        return NextResponse.json(
+          { success: false, error: "فشل الاتصال بتمارا. تحقق من البيانات أو اختر طريقة دفع أخرى." },
+          { status: 400 }
+        );
+      }
+    }
+
     // إشعار حياك: تم إنشاء الطلب → رسالة تأكيد واتساب للعميل (لا يوقف الاستجابة عند الفشل)
     await notifyOrderCreated(order);
 
-    return NextResponse.json({ success: true, data: order, paypalApproveLink });
+    return NextResponse.json({ success: true, data: order, paypalApproveLink, tamaraCheckoutUrl });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ success: false, error: "حدث خطأ" }, { status: 500 });

@@ -22,8 +22,8 @@ const cairo = Cairo({
 
 const rawUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
 const siteUrl = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
-const siteName = "متجر الاشتراكات الرقمية";
-const siteDesc = "منصة رائدة لبيع الاشتراكات الرقمية - نتفليكس، سبوتيفاي، ChatGPT، VPN، برامج وألعاب بأفضل الأسعار في السعودية والخليج";
+const siteName = "متجرك الإلكتروني";
+const siteDesc = "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة، تسليم سريع، وتجربة شراء سلسة وآمنة في السعودية والخليج";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -33,10 +33,9 @@ export const metadata: Metadata = {
   },
   description: siteDesc,
   keywords: [
-    "اشتراكات رقمية", "نتفليكس", "سبوتيفاي",
-    "ChatGPT", "VPN", "ألعاب", "برامج",
-    "اشتراك نتفليكس رخيص", "اشتراك سبوتيفاي رخيص",
-    "متجر اشتراكات", "اشتراكات رخيصة السعودية",
+    "متجر إلكتروني", "تسوق أونلاين", "منتجات",
+    "خدمات", "أفضل الأسعار", "تسليم سريع",
+    "متجر السعودية", "تسوق الخليج",
   ],
   authors: [{ name: siteName, url: siteUrl }],
   creator: siteName,

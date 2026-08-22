@@ -32,8 +32,14 @@ const PAYMENT_KEYS = [
 
   // Tamara
   "pm_tamara_api_token",
+  "pm_tamara_public_key",
   "pm_tamara_notification_key",
   "pm_tamara_merchant_url",
+  "pm_tamara_mode",
+  "pm_tamara_installments",
+  "pm_tamara_agreement",
+  // Product-page installment badge (shared with settings → "payments" group)
+  "tamara_enabled",
 ];
 
 const DEFAULT_LABELS: Record<string, { labelAr: string; type: string }> = {
@@ -53,9 +59,14 @@ const DEFAULT_LABELS: Record<string, { labelAr: string; type: string }> = {
   pm_tabby_public_key:           { labelAr: "Public Key", type: "text" },
   pm_tabby_secret_key:           { labelAr: "Secret Key", type: "password" },
   pm_tabby_merchant_code:        { labelAr: "Merchant Code", type: "text" },
-  pm_tamara_api_token:           { labelAr: "API Token", type: "password" },
+  pm_tamara_api_token:           { labelAr: "Merchant Key", type: "password" },
+  pm_tamara_public_key:          { labelAr: "Public Key", type: "text" },
   pm_tamara_notification_key:    { labelAr: "Notification Key", type: "password" },
   pm_tamara_merchant_url:        { labelAr: "Merchant URL", type: "text" },
+  pm_tamara_mode:                { labelAr: "بيئة التشغيل", type: "select" },
+  pm_tamara_installments:        { labelAr: "عدد الدفعات", type: "text" },
+  pm_tamara_agreement:           { labelAr: "الموافقة على اتفاقية استخدام تمارا", type: "boolean" },
+  tamara_enabled:                { labelAr: "إظهار شعار تمارا في صفحة المنتج", type: "boolean" },
 };
 
 export async function GET() {

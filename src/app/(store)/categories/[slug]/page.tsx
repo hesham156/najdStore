@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cat = await prisma.category.findUnique({ where: { slug: params.slug } });
   if (!cat) return { title: "الفئة غير موجودة" };
 
-  const title = `${cat.nameAr} - اشتراكات رقمية`;
-  const description = cat.descriptionAr || `تصفح أفضل اشتراكات ${cat.nameAr} بأسعار تنافسية مع تسليم فوري.`;
+  const title = `${cat.nameAr}`;
+  const description = cat.descriptionAr || `تصفح أفضل منتجات ${cat.nameAr} بأسعار تنافسية مع تسليم فوري.`;
 
   const jsonLd = {
     "@context": "https://schema.org",

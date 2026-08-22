@@ -6,7 +6,7 @@ import { parseProductVariants } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
-const siteName = "متجر الاشتراكات الرقمية";
+const siteName = "متجرك الإلكتروني";
 
 interface Props { params: { slug: string } }
 
@@ -42,7 +42,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     product.nameAr,
     product.name,
     product.category.nameAr,
-    `اشتراك ${product.nameAr}`,
     `شراء ${product.nameAr}`,
     `${product.nameAr} رخيص`,
     `${product.nameAr} السعودية`,
@@ -196,7 +195,7 @@ async function getSchemas(slug: string) {
       ...(variants.length > 0
         ? [{
             "@type": "Question",
-            name: `ما خيارات الاشتراك لـ ${product.nameAr}؟`,
+            name: `ما الخيارات المتاحة لـ ${product.nameAr}؟`,
             acceptedAnswer: {
               "@type": "Answer",
               text: `الخيارات: ${variants.map((v) => `${v.label} بسعر ${v.price} ر.س`).join("، ")}.`,

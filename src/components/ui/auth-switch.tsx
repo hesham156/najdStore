@@ -24,7 +24,7 @@ interface AuthSwitchProps {
 const EASE = [0.25, 0.46, 0.45, 0.94] as const;
 
 const perks = [
-  { icon: Zap,         text: "تسليم فوري لمعظم الاشتراكات"   },
+  { icon: Zap,         text: "تسليم فوري لمعظم الطلبات"   },
   { icon: Shield,      text: "حماية كاملة لبياناتك"           },
   { icon: Star,        text: "أفضل الأسعار في السوق"          },
   { icon: Headphones,  text: "دعم على مدار الساعة"            },
@@ -188,7 +188,7 @@ export function AuthSwitch({ defaultMode = "login" }: AuthSwitchProps) {
           <div className="px-8 pt-8 pb-6 text-center">
             <Link href="/" className="inline-flex flex-col items-center gap-2 mb-6">
               <SiteLogo size="lg" className="shadow-xl shadow-purple-900/50" />
-              <span className="text-white/60 text-xs font-medium tracking-wide">متجر الاشتراكات الرقمية</span>
+              <span className="text-white/60 text-xs font-medium tracking-wide">متجرك الإلكتروني</span>
             </Link>
 
             {/* ── Toggle pill ────────────────────────────────── */}

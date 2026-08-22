@@ -110,7 +110,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
       url,
-      seller: { "@type": "Organization", name: "متجر الاشتراكات الرقمية" },
+      seller: { "@type": "Organization", name: "متجرك الإلكتروني" },
     },
   };
 
@@ -133,8 +133,8 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
     "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: [
-      { "@type": "Question", name: "كيف أستلم الاشتراك بعد الدفع؟", acceptedAnswer: { "@type": "Answer", text: "بعد تأكيد الدفع يصلك الاشتراك مباشرة في صفحة الطلب وعبر البريد الإلكتروني. التسليم التلقائي فوري، واليدوي خلال 1-24 ساعة." } },
-      { "@type": "Question", name: "هل يمكنني الاسترداد إذا لم يعمل الاشتراك؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نضمن جودة جميع منتجاتنا. إذا واجهت أي مشكلة افتح تذكرة دعم فني وسنحلها أو نسترد مبلغك." } },
+      { "@type": "Question", name: "كيف أستلم طلبي بعد الدفع؟", acceptedAnswer: { "@type": "Answer", text: "بعد تأكيد الدفع تصلك تفاصيل طلبك مباشرة في صفحة الطلب وعبر البريد الإلكتروني. التسليم التلقائي فوري، واليدوي خلال 1-24 ساعة." } },
+      { "@type": "Question", name: "هل يمكنني الاسترداد إذا واجهت مشكلة؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نضمن جودة جميع منتجاتنا. إذا واجهت أي مشكلة افتح تذكرة دعم فني وسنحلها أو نسترد مبلغك." } },
       { "@type": "Question", name: "ما طرق الدفع المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نقبل التحويل البنكي، بطاقات الائتمان، والعملات المشفرة. جميع طرق الدفع آمنة ومشفرة." } },
       { "@type": "Question", name: "كم يستغرق التوصيل؟", acceptedAnswer: { "@type": "Answer", text: deliveryAnswer } },
     ],

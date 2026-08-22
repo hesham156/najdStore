@@ -463,8 +463,20 @@ async function main() {
 
   // Settings
   const settings = [
-    { key: "site_name", value: "متجر الاشتراكات الرقمية", type: "text", label: "Site Name", labelAr: "اسم الموقع", group: "general" },
+    { key: "site_name", value: "متجرك الإلكتروني", type: "text", label: "Site Name", labelAr: "اسم الموقع", group: "general" },
     { key: "site_email", value: "support@store.com", type: "text", label: "Support Email", labelAr: "بريد الدعم", group: "general" },
+    // Branding / marketing copy — re-theme the store for any niche from Settings
+    { key: "hero_badge",           value: "تسليم سريع وجودة موثوقة", type: "text", label: "Hero Badge", labelAr: "الهيرو — الشارة العلوية", group: "general" },
+    { key: "hero_title",           value: "كل ما تحتاجه في مكان واحد", type: "text", label: "Hero Title", labelAr: "الهيرو — العنوان الرئيسي", group: "general" },
+    { key: "hero_title_highlight", value: "بأفضل الأسعار وأعلى جودة", type: "text", label: "Hero Title Highlight", labelAr: "الهيرو — العنوان المميّز (ملوّن)", group: "general" },
+    { key: "hero_subtitle",        value: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتجربة شراء سلسة.", type: "text", label: "Hero Subtitle", labelAr: "الهيرو — النص الفرعي", group: "general" },
+    { key: "hero_stat_1_value",    value: "+5000", type: "text", label: "Stat 1 Value", labelAr: "إحصائية 1 — الرقم", group: "general" },
+    { key: "hero_stat_1_label",    value: "عميل راضٍ", type: "text", label: "Stat 1 Label", labelAr: "إحصائية 1 — النص", group: "general" },
+    { key: "hero_stat_2_value",    value: "+50", type: "text", label: "Stat 2 Value", labelAr: "إحصائية 2 — الرقم", group: "general" },
+    { key: "hero_stat_2_label",    value: "منتج متاح", type: "text", label: "Stat 2 Label", labelAr: "إحصائية 2 — النص", group: "general" },
+    { key: "hero_stat_3_value",    value: "+10K", type: "text", label: "Stat 3 Value", labelAr: "إحصائية 3 — الرقم", group: "general" },
+    { key: "hero_stat_3_label",    value: "طلب مكتمل", type: "text", label: "Stat 3 Label", labelAr: "إحصائية 3 — النص", group: "general" },
+    { key: "footer_description",   value: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.", type: "text", label: "Footer Description", labelAr: "الفوتر — وصف المتجر", group: "general" },
     { key: "site_phone", value: "+966501234567", type: "text", label: "Phone", labelAr: "الهاتف", group: "general" },
     { key: "currency", value: "SAR", type: "text", label: "Currency", labelAr: "العملة", group: "general" },
     { key: "currency_symbol", value: "ر.س", type: "text", label: "Currency Symbol", labelAr: "رمز العملة", group: "general" },
@@ -495,9 +507,13 @@ async function main() {
     { key: "pm_tabby_secret_key",            value: "",                           type: "password",label: "Tabby Secret Key",        labelAr: "Secret Key",           group: "payment_methods" },
     { key: "pm_tabby_merchant_code",         value: "",                           type: "text",    label: "Tabby Merchant Code",     labelAr: "Merchant Code",        group: "payment_methods" },
     { key: "pm_tamara_enabled",              value: "false",                      type: "boolean", label: "Tamara Enabled",          labelAr: "تفعيل Tamara",         group: "payment_methods" },
-    { key: "pm_tamara_api_token",            value: "",                           type: "password",label: "Tamara API Token",         labelAr: "API Token",            group: "payment_methods" },
+    { key: "pm_tamara_api_token",            value: "",                           type: "password",label: "Tamara Merchant Key",      labelAr: "Merchant Key",         group: "payment_methods" },
+    { key: "pm_tamara_public_key",           value: "",                           type: "text",    label: "Tamara Public Key",        labelAr: "Public Key",           group: "payment_methods" },
     { key: "pm_tamara_notification_key",     value: "",                           type: "password",label: "Tamara Notification Key",  labelAr: "Notification Key",     group: "payment_methods" },
     { key: "pm_tamara_merchant_url",         value: "",                           type: "text",    label: "Tamara Merchant URL",     labelAr: "Merchant URL",         group: "payment_methods" },
+    { key: "pm_tamara_mode",                 value: "sandbox",                    type: "select",  label: "Tamara Mode",             labelAr: "بيئة التشغيل",         group: "payment_methods" },
+    { key: "pm_tamara_installments",         value: "3",                          type: "text",    label: "Tamara Installments",     labelAr: "عدد الدفعات",          group: "payment_methods" },
+    { key: "pm_tamara_agreement",            value: "false",                      type: "boolean", label: "Tamara Agreement",        labelAr: "الموافقة على اتفاقية تمارا", group: "payment_methods" },
     // Tracking Pixels
     { key: "gtm_id", value: "", type: "text", label: "Google Tag Manager ID", labelAr: "معرف GTM", group: "tracking" },
     { key: "ga4_id", value: "", type: "text", label: "Google Analytics 4 ID", labelAr: "معرف GA4", group: "tracking" },

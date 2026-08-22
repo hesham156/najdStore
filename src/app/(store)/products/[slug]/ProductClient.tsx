@@ -186,7 +186,7 @@ export default function ProductClient({ product, publicSettings }: Props) {
               <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-5">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4 text-primary-600" />
-                  ما يتضمنه الاشتراك
+                  ما يتضمنه المنتج
                 </h3>
                 <ul className="space-y-2">
                   {product.featuresAr.map((feature) => (
@@ -202,7 +202,7 @@ export default function ProductClient({ product, publicSettings }: Props) {
               <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-5">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4 text-primary-600" />
-                  ما يتضمنه الاشتراك
+                  ما يتضمنه المنتج
                 </h3>
                 <ul className="space-y-2">
                   {product.features.map((feature) => (
@@ -218,7 +218,7 @@ export default function ProductClient({ product, publicSettings }: Props) {
             {/* Variants selector */}
             {hasVariants && (
               <div className="space-y-3">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">اختر مدة الاشتراك</p>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">اختر أحد الخيارات</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {variants.map((v) => {
                     const isSelected = selectedVariant?.label === v.label;
@@ -390,10 +390,10 @@ export default function ProductClient({ product, publicSettings }: Props) {
           <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6">الأسئلة الشائعة</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 max-w-4xl">
             {[
-              { q: "كيف أستلم الاشتراك بعد الدفع؟", a: "بعد تأكيد الدفع يصلك الاشتراك مباشرة في صفحة الطلب وعبر البريد الإلكتروني. التسليم التلقائي فوري، واليدوي خلال 1-24 ساعة." },
-              { q: "هل يمكنني الاسترداد إذا لم يعمل الاشتراك؟", a: "نعم، نضمن جودة جميع منتجاتنا. إذا واجهت أي مشكلة افتح تذكرة دعم فني وسنحلها أو نسترد مبلغك." },
-              { q: "على كم جهاز يعمل الاشتراك؟", a: "يعتمد على نوع الاشتراك، التفاصيل مذكورة في قسم المميزات أعلاه. للمزيد تواصل مع الدعم." },
-              { q: "هل يمكنني تجديد الاشتراك لاحقاً؟", a: "بالطبع، يمكنك شراء نفس المنتج مرة أخرى عند انتهاء الاشتراك بنفس السعر أو باستخدام كوبون خصم." },
+              { q: "كيف أستلم طلبي بعد الدفع؟", a: "بعد تأكيد الدفع تصلك تفاصيل طلبك مباشرة في صفحة الطلب وعبر البريد الإلكتروني. التسليم التلقائي فوري، واليدوي خلال 1-24 ساعة." },
+              { q: "هل يمكنني الاسترداد إذا واجهت مشكلة؟", a: "نعم، نضمن جودة جميع منتجاتنا. إذا واجهت أي مشكلة افتح تذكرة دعم فني وسنحلها أو نسترد مبلغك." },
+              { q: "هل تفاصيل المنتج دقيقة؟", a: "نعم، جميع التفاصيل مذكورة في قسم المميزات أعلاه. للمزيد تواصل مع الدعم." },
+              { q: "هل يمكنني الشراء مرة أخرى لاحقاً؟", a: "بالطبع، يمكنك شراء نفس المنتج مرة أخرى في أي وقت بنفس السعر أو باستخدام كوبون خصم." },
               { q: "ما طرق الدفع المتاحة؟", a: "نقبل التحويل البنكي، بطاقات الائتمان، والعملات المشفرة. جميع طرق الدفع آمنة ومشفرة." },
               { q: "كم يستغرق التوصيل؟", a: product.deliveryMethod === "AUTOMATIC" ? "التسليم فوري تلقائي — ستحصل على بياناتك مباشرة بعد تأكيد الدفع." : "التسليم يدوي ويستغرق من 1 إلى 24 ساعة بعد تأكيد الدفع." },
             ].map((item, i) => (

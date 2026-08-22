@@ -6,12 +6,12 @@ import { ar } from "date-fns/locale";
 import { Clock, Eye, ChevronLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "المدونة — مقالات ونصائح حول الاشتراكات الرقمية",
-  description: "اقرأ أحدث المقالات والنصائح حول الاشتراكات الرقمية، أدوات الذكاء الاصطناعي، خدمات البث، والبرمجيات.",
+  title: "المدونة — مقالات ونصائح حول المنتجات والخدمات",
+  description: "اقرأ أحدث المقالات والنصائح حول المنتجات والخدمات، أدوات الذكاء الاصطناعي، خدمات البث، والبرمجيات.",
   openGraph: {
     type: "website",
     title: "المدونة",
-    description: "مقالات ونصائح حول الاشتراكات الرقمية",
+    description: "مقالات ونصائح حول المنتجات والخدمات",
   },
 };
 
@@ -65,7 +65,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-4">المدونة</h1>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-            نصائح ومقالات حول الاشتراكات الرقمية، الذكاء الاصطناعي، وخدمات البث
+            نصائح ومقالات حول المنتجات والخدمات، الذكاء الاصطناعي، وخدمات البث
           </p>
         </div>
       </div>

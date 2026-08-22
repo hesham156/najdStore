@@ -7,13 +7,27 @@ import { SiteLogo } from "@/components/ui/site-logo";
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as const;
 
-const stats = [
+export interface HeroContentProps {
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  subtitle?: string;
+  stats?: Array<{ label: string; value: string }>;
+}
+
+const DEFAULT_STATS = [
   { label: "عميل راضٍ",  value: "+5000" },
-  { label: "منتج رقمي",  value: "+50"   },
+  { label: "منتج متاح",  value: "+50"   },
   { label: "طلب مكتمل", value: "+10K"  },
 ];
 
-export default function HeroContent() {
+export default function HeroContent({
+  badge = "تسليم سريع وجودة موثوقة",
+  title = "كل ما تحتاجه في مكان واحد",
+  titleHighlight = "بأفضل الأسعار وأعلى جودة",
+  subtitle = "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتجربة شراء سلسة.",
+  stats = DEFAULT_STATS,
+}: HeroContentProps) {
   const reduced = useReducedMotion();
 
   const container = {
@@ -131,7 +145,7 @@ export default function HeroContent() {
         <motion.div variants={item}>
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm text-white/80 border border-white/15">
             <Zap className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
-            تنفيذ احترافي وتسليم سريع للخدمات
+            {badge}
           </span>
         </motion.div>
 
@@ -140,10 +154,10 @@ export default function HeroContent() {
           variants={item}
           className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight"
         >
-          خدماتك الرقمية المتكاملة
+          {title}
           <br />
           <span className="mt-2 text-transparent bg-clip-text bg-gradient-to-l from-yellow-400 via-orange-400 to-pink-400">
-            بأعلى جودة وأفضل سعر
+            {titleHighlight}
           </span>
         </motion.h1>
 
@@ -152,7 +166,7 @@ export default function HeroContent() {
           variants={item}
           className="text-lg text-white/60 max-w-xl mx-auto leading-relaxed"
         >
-          منصتك الموثوقة لخدمات البرمجة، التصميم الاحترافي، الموشن جرافيك، والاشتراكات الرقمية العالمية بأسعار مناسبة.
+          {subtitle}
         </motion.p>
 
         {/* CTAs */}
