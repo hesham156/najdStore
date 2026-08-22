@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Users, Search, Eye } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Users, Search, Eye, UserCheck, ShoppingBag, DollarSign } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { AdminStats } from "@/components/admin/AdminStats";
 import { DataTable, Column, Pagination } from "@/components/ui/DataTable";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -67,6 +68,11 @@ export default function AdminCustomersPage() {
       render: (val) => <span className="font-bold">{(val as { orders: number }).orders}</span>,
     },
     {
+      key: "totalSpent",
+      title: "الإنفاق",
+      render: (val) => <span className="font-semibold text-sm text-gray-700 dark:text-gray-300">{val != null ? formatCurrency(Number(val)) : "—"}</span>,
+    },
+    {
       key: "isActive",
       title: "الحالة",
       render: (val) => <Badge variant={val ? "success" : "danger"}>{val ? "نشط" : "معطل"}</Badge>,
@@ -88,6 +94,13 @@ export default function AdminCustomersPage() {
     },
   ];
 
+  const stats = useMemo(() => {
+    const active = customers.filter(c => c.isActive).length;
+    const withOrders = customers.filter(c => (c._count?.orders ?? 0) > 0).length;
+    const spent = customers.reduce((s, c) => s + (Number(c.totalSpent) || 0), 0);
+    return { total: customers.length, active, withOrders, spent };
+  }, [customers]);
+
   const totalPages = Math.ceil(customers.length / pageSize);
   const paginatedCustomers = customers.slice((page - 1) * pageSize, page * pageSize);
 
@@ -99,6 +112,13 @@ export default function AdminCustomersPage() {
           <p className="text-gray-500 text-sm mt-1">{customers.length} عميل</p>
         </div>
       </div>
+
+      <AdminStats items={[
+        { label: "إجمالي العملاء", value: stats.total, icon: Users, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
+        { label: "نشطون", value: stats.active, icon: UserCheck, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
+        { label: "لديهم طلبات", value: stats.withOrders, icon: ShoppingBag, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
+        { label: "إجمالي الإنفاق", value: formatCurrency(stats.spent), icon: DollarSign, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
+      ]} />
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">

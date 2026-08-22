@@ -5,7 +5,7 @@ import { Plus, Edit, Trash2, Search, ToggleLeft, ToggleRight, Filter, Layers, Pa
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
+import { AdminStats } from "@/components/admin/AdminStats";
 import { ConfirmModal } from "@/components/ui/Modal";
 import { DataTable, Column, Pagination } from "@/components/ui/DataTable";
 import { formatCurrency } from "@/lib/utils";
@@ -208,27 +208,12 @@ export default function AdminProductsPage() {
         </Button>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "إجمالي المنتجات", value: stats.total, icon: Package, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
-          { label: "نشطة", value: stats.active, icon: CheckCircle, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
-          { label: "مميزة", value: stats.featured, icon: Star, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
-          { label: "قيمة الكتالوج", value: formatCurrency(stats.value), icon: DollarSign, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
-        ].map((s) => (
-          <Card key={s.label}>
-            <div className="flex items-center gap-3">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", s.color)}>
-                <s.icon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-black text-gray-900 dark:text-white truncate">{s.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{s.label}</p>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+      <AdminStats items={[
+        { label: "إجمالي المنتجات", value: stats.total, icon: Package, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
+        { label: "نشطة", value: stats.active, icon: CheckCircle, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
+        { label: "مميزة", value: stats.featured, icon: Star, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
+        { label: "قيمة الكتالوج", value: formatCurrency(stats.value), icon: DollarSign, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
+      ]} />
 
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">

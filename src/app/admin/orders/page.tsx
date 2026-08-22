@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Badge, getStatusBadge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
+import { AdminStats } from "@/components/admin/AdminStats";
 import { DataTable, Column, Pagination } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/Input";
 import { Search, ShoppingBag, DollarSign, Clock, CheckCircle } from "lucide-react";
@@ -136,13 +136,6 @@ export default function AdminOrdersPage() {
   const totalPages = Math.ceil(filteredOrders.length / pageSize);
   const paginatedOrders = filteredOrders.slice((page - 1) * pageSize, page * pageSize);
 
-  const statCards = [
-    { label: "إجمالي الطلبات", value: stats.total, icon: ShoppingBag, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
-    { label: "الإيرادات المحصّلة", value: formatCurrency(stats.revenue), icon: DollarSign, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
-    { label: "قيد التنفيذ", value: stats.pending, icon: Clock, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
-    { label: "مكتملة", value: stats.delivered, icon: CheckCircle, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
-  ];
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -150,22 +143,12 @@ export default function AdminOrdersPage() {
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{orders.length} طلب</p>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((s) => (
-          <Card key={s.label}>
-            <div className="flex items-center gap-3">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", s.color)}>
-                <s.icon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-black text-gray-900 dark:text-white truncate">{s.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{s.label}</p>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+      <AdminStats items={[
+        { label: "إجمالي الطلبات", value: stats.total, icon: ShoppingBag, color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400" },
+        { label: "الإيرادات المحصّلة", value: formatCurrency(stats.revenue), icon: DollarSign, color: "text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400" },
+        { label: "قيد التنفيذ", value: stats.pending, icon: Clock, color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400" },
+        { label: "مكتملة", value: stats.delivered, icon: CheckCircle, color: "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400" },
+      ]} />
 
       {/* Search */}
       <div className="relative max-w-sm">
