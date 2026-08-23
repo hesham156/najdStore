@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import {
   Settings, Save, CreditCard, BarChart2, ShoppingBag,
   Globe, AlertCircle, TrendingUp, Bell, Clock, Eye,
-  ShoppingCart, Gift, Shield, Flame, Calculator,
+  ShoppingCart, Gift, Shield, Flame, Calculator, Code2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -69,6 +69,12 @@ const GROUP_META: Record<string, {
     icon: <Calculator className="h-4 w-4" />,
     description: "إعدادات ضريبة القيمة المضافة، الرقم الضريبي، وبيانات الشركة للفواتير",
     color: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20",
+  },
+  custom_code: {
+    label: "أكواد مخصّصة (CSS/JS)",
+    icon: <Code2 className="h-4 w-4" />,
+    description: "أضِف CSS وJavaScript خاصاً بك يُحقن في جميع صفحات المتجر. أدخل أكواد JS بدون وسم <script>. الأكواد تُنفَّذ كما هي — أدخل مصادر تثق بها فقط.",
+    color: "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/40",
   },
 };
 
@@ -463,6 +469,19 @@ export default function AdminSettingsPage() {
                           <Toggle
                             checked={values[setting.key] === "true"}
                             onChange={(v) => set(setting.key, String(v))}
+                          />
+                        </div>
+                      ) : setting.type === "code" ? (
+                        <div>
+                          <label className="block font-medium text-sm text-fg mb-1.5">{label}</label>
+                          <textarea
+                            dir="ltr"
+                            spellCheck={false}
+                            rows={10}
+                            value={values[setting.key] || ""}
+                            onChange={(e) => set(setting.key, e.target.value)}
+                            placeholder={setting.key === "custom_css" ? "/* مثال */\n.header { background: #7c3aed; }" : "// مثال\nconsole.log('مرحباً');"}
+                            className="w-full rounded-card border border-line bg-gray-950 text-gray-100 font-mono text-xs leading-relaxed p-3 focus:outline-none focus:ring-2 focus:ring-primary-500/40 resize-y placeholder:text-gray-600"
                           />
                         </div>
                       ) : (

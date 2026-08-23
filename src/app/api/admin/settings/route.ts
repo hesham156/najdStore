@@ -20,19 +20,33 @@ const BRANDING_KEYS: Array<{ key: string; value: string; labelAr: string; type?:
   { key: "footer_description",    value: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.",      labelAr: "الفوتر — وصف المتجر" },
 ];
 
+// Custom code injection — CSS/JS the merchant adds to the storefront (group "custom_code").
+const CUSTOM_CODE_KEYS: Array<{ key: string; value: string; labelAr: string }> = [
+  { key: "custom_css",       value: "", labelAr: "كود CSS مخصّص — يُحقن داخل <style> في كل صفحات المتجر" },
+  { key: "custom_header_js", value: "", labelAr: "كود JavaScript (الهيدر) — أدخل الكود بدون وسم <script>" },
+  { key: "custom_footer_js", value: "", labelAr: "كود JavaScript (الفوتر) — أدخل الكود بدون وسم <script>" },
+];
+
 export async function GET(req: NextRequest) {
   if (!await requireAdmin()) return unauthorized();
 
   // Ensure branding keys exist (create only when missing — never overwrite edits)
-  await Promise.all(
-    BRANDING_KEYS.map((b) =>
+  await Promise.all([
+    ...BRANDING_KEYS.map((b) =>
       prisma.setting.upsert({
         where: { key: b.key },
         update: {},
         create: { key: b.key, value: b.value, type: b.type || "text", labelAr: b.labelAr, group: "general" },
       })
-    )
-  );
+    ),
+    ...CUSTOM_CODE_KEYS.map((c) =>
+      prisma.setting.upsert({
+        where: { key: c.key },
+        update: {},
+        create: { key: c.key, value: c.value, type: "code", labelAr: c.labelAr, group: "custom_code" },
+      })
+    ),
+  ]);
 
   const settings = await prisma.setting.findMany({ orderBy: { group: "asc" } });
   return NextResponse.json({ success: true, data: settings });

@@ -12,6 +12,7 @@ import { UpsellProvider } from "@/components/store/UpsellModal";
 import { ConversionProvider } from "@/context/ConversionContext";
 import { LiveActivityToast } from "@/components/store/LiveActivityToast";
 import { VisitTracker } from "@/components/store/VisitTracker";
+import { CustomCodeInjector } from "@/components/providers/CustomCodeInjector";
 import type { ConversionSettings } from "@/context/ConversionContext";
 
 const CONVERSION_KEYS: (keyof ConversionSettings)[] = [
@@ -77,6 +78,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
           <PopupManager />
           <LiveActivityToast />
           <VisitTracker />
+          <CustomCodeInjector />
           <main className="min-h-screen">{children}</main>
           <Footer />
         </UpsellProvider>
