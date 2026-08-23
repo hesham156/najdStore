@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { NajdLanding } from "@/components/store/NajdLanding";
-import { getFeaturedProducts, getRecentProducts } from "@/lib/queries";
+import { HomeSections } from "@/components/store/HomeSections";
+import { getActiveCategories, getFeaturedProducts, getRecentProducts } from "@/lib/queries";
+import { getBranding } from "@/lib/settings";
+import { getHomeSections } from "@/lib/home-layout";
 
 export const dynamic = "force-dynamic";
 
@@ -24,14 +26,20 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [featured, recent] = await Promise.all([
+  const [sections, categories, featured, recent, branding] = await Promise.all([
+    getHomeSections(),
+    getActiveCategories(),
     getFeaturedProducts(),
     getRecentProducts(),
+    getBranding(),
   ]);
 
   return (
     <div className="min-h-screen">
-      <NajdLanding featured={featured} recent={recent} />
+      <HomeSections
+        sections={sections}
+        data={{ categories: categories as never, featured, recent, branding: branding as unknown as Record<string, string> }}
+      />
     </div>
   );
 }

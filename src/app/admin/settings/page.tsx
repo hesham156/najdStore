@@ -377,7 +377,7 @@ export default function AdminSettingsPage() {
     toast("تم إلغاء التغييرات", { icon: "↩️" });
   };
 
-  const EXCLUDED_GROUPS = ["payment_methods"];
+  const EXCLUDED_GROUPS = ["payment_methods", "homepage"];
   const groups = Array.from(new Set(settings.map((s) => s.group))).filter((g) => !EXCLUDED_GROUPS.includes(g));
   const activeSettings = settings.filter((s) => s.group === activeGroup);
   const meta = GROUP_META[activeGroup];
