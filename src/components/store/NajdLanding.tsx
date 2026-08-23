@@ -1,5 +1,6 @@
 import { ProductCard } from "@/components/store/ProductCard";
 import { NajdPortfolio } from "@/components/store/NajdPortfolio";
+import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/store/AnimatedSection";
 import type { ProductWithCategory } from "@/types";
 
 const ROOT_ID = "najd-landing-block";
@@ -270,7 +271,7 @@ const CSS = `
   @media (min-width: 1024px) { #${ROOT_ID} .najd-slider-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 `;
 
-const HERO_SERVICES_HTML = `
+const HERO_HTML = `
   <section class="najd-hero">
     <div class="najd-hero-blur-1"></div>
     <div class="najd-hero-blur-2"></div>
@@ -306,7 +307,9 @@ const HERO_SERVICES_HTML = `
       </div>
     </div>
   </section>
+`;
 
+const SERVICES_HTML = `
   <section class="najd-services">
     <div class="najd-services-top-line"></div>
     <div class="najd-container">
@@ -449,7 +452,7 @@ const SMALL_QUANTITIES_HTML = `
   </section>
 `;
 
-const WHY_DIGITAL_LARGE_HTML = `
+const WHY_HTML = `
   <section class="najd-why-us">
     <div class="najd-container">
       <div class="najd-why-wrap">
@@ -508,7 +511,9 @@ const WHY_DIGITAL_LARGE_HTML = `
       </div>
     </div>
   </section>
+`;
 
+const DIGITAL_HTML = `
   <section class="najd-digital-print">
     <div class="najd-container">
       <div class="najd-digital-wrap">
@@ -529,7 +534,9 @@ const WHY_DIGITAL_LARGE_HTML = `
       </div>
     </div>
   </section>
+`;
 
+const LARGE_HTML = `
   <section class="najd-large-format">
     <div class="najd-large-bg-shape"></div>
     <div class="najd-container">
@@ -580,11 +587,13 @@ function ProductSlider({ title, subtitle, products }: { title: string; subtitle?
           <h2>{title}</h2>
           {subtitle && <p>{subtitle}</p>}
         </div>
-        <div className="najd-slider-grid">
+        <StaggerContainer className="najd-slider-grid">
           {products.slice(0, 8).map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <StaggerItem key={p.id}>
+              <ProductCard product={p} />
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );
@@ -594,13 +603,46 @@ export function NajdLanding({ featured, recent }: { featured: ProductWithCategor
   return (
     <div id={ROOT_ID}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div dangerouslySetInnerHTML={{ __html: HERO_SERVICES_HTML }} />
-      <ProductSlider title="أحدث منتجاتنا" subtitle="اكتشف أحدث أعمالنا في الطباعة والتغليف الفاخر" products={featured} />
-      <div dangerouslySetInnerHTML={{ __html: STICKERS_HTML }} />
-      <ProductSlider title="أحدث الملصقات" products={recent} />
-      <div dangerouslySetInnerHTML={{ __html: SMALL_QUANTITIES_HTML }} />
-      <NajdPortfolio />
-      <div dangerouslySetInnerHTML={{ __html: WHY_DIGITAL_LARGE_HTML }} />
+
+      <AnimatedSection direction="none">
+        <div dangerouslySetInnerHTML={{ __html: HERO_HTML }} />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <div dangerouslySetInnerHTML={{ __html: SERVICES_HTML }} />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <ProductSlider title="أحدث منتجاتنا" subtitle="اكتشف أحدث أعمالنا في الطباعة والتغليف الفاخر" products={featured} />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <div dangerouslySetInnerHTML={{ __html: STICKERS_HTML }} />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <ProductSlider title="أحدث الملصقات" products={recent} />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <div dangerouslySetInnerHTML={{ __html: SMALL_QUANTITIES_HTML }} />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <NajdPortfolio />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <div dangerouslySetInnerHTML={{ __html: WHY_HTML }} />
+      </AnimatedSection>
+
+      <AnimatedSection direction="right">
+        <div dangerouslySetInnerHTML={{ __html: DIGITAL_HTML }} />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <div dangerouslySetInnerHTML={{ __html: LARGE_HTML }} />
+      </AnimatedSection>
     </div>
   );
 }
