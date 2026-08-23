@@ -1,13 +1,16 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { ChevronsLeft, ChevronsRight, LogOut, Store } from "lucide-react";
+import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Store } from "lucide-react";
 import { SiteLogo } from "@/components/ui/site-logo";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 import { navGroups } from "./nav-config";
+
+const STORAGE_KEY = "admin_sidebar_groups";
 
 interface AdminSidebarProps {
   storeName?: string;
@@ -27,6 +30,31 @@ export function AdminSidebar({
   const { data: session } = useSession();
 
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname.startsWith(href));
+
+  // ── Collapsible groups: active group is always open; others collapse (persisted) ──
+  const activeGroupLabel = navGroups.find((g) => g.items.some((i) => isActive(i.href, i.exact)))?.label;
+  const [userOpen, setUserOpen] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setUserOpen(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  const isGroupOpen = (label: string) => {
+    if (label === activeGroupLabel) return true;      // never hide the section you're in
+    if (label in userOpen) return userOpen[label];     // remembered preference
+    return false;                                      // default collapsed → short & tidy
+  };
+
+  const toggleGroup = (label: string) => {
+    setUserOpen((prev) => {
+      const next = { ...prev, [label]: !isGroupOpen(label) };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   const roleLabel = session?.user.role === "ADMIN" ? "مدير عام" : "موظف";
   const initial = session?.user.name?.trim().charAt(0) || "م";
@@ -69,14 +97,11 @@ export function AdminSidebar({
 
       {/* ── Navigation ── */}
       <nav aria-label="التنقل الرئيسي" className={cn("flex-1 overflow-y-auto overflow-x-hidden py-3", collapsed ? "px-2" : "px-3")}>
-        {navGroups.map((group, groupIdx) => (
-          <div key={group.label} className="mb-3 last:mb-0">
-            {collapsed ? (
-              groupIdx > 0 && <div className="mx-auto mb-2 h-px w-6 bg-line" aria-hidden />
-            ) : (
-              <p className="sidebar-group-label">{group.label}</p>
-            )}
-            <ul className="space-y-0.5" role="list">
+        {navGroups.map((group, groupIdx) => {
+          const open = collapsed || isGroupOpen(group.label);
+          const groupId = `nav-group-${groupIdx}`;
+          const ItemList = (
+            <ul id={groupId} className="space-y-0.5" role="list">
               {group.items.map((item) => {
                 const active = isActive(item.href, item.exact);
                 const Icon = item.icon;
@@ -98,8 +123,33 @@ export function AdminSidebar({
                 );
               })}
             </ul>
-          </div>
-        ))}
+          );
+
+          return (
+            <div key={group.label} className="mb-2 last:mb-0">
+              {collapsed ? (
+                <>
+                  {groupIdx > 0 && <div className="mx-auto mb-2 h-px w-6 bg-line" aria-hidden />}
+                  {ItemList}
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.label)}
+                    aria-expanded={open}
+                    aria-controls={groupId}
+                    className="group flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-fg-subtle transition-colors hover:bg-surface-hover hover:text-fg-muted"
+                  >
+                    <span className="truncate">{group.label}</span>
+                    <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200", !open && "-rotate-90")} aria-hidden />
+                  </button>
+                  {open && <div className="mt-0.5 animate-fade-in">{ItemList}</div>}
+                </>
+              )}
+            </div>
+          );
+        })}
       </nav>
 
       {/* ── Account + footer ── */}
