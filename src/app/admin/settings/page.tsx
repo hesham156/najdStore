@@ -189,9 +189,10 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         checked ? "bg-primary-600" : "bg-line-strong"
       }`}
     >
+      {/* logical `start-*` keeps the knob correct in RTL (moves from start→end) */}
       <span
-        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-          checked ? "translate-x-6" : "translate-x-1"
+        className={`absolute h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200 ${
+          checked ? "start-6" : "start-1"
         }`}
       />
     </button>
