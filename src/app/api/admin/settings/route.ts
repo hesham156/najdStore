@@ -110,8 +110,13 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const { settings } = await req.json();
+    // upsert (not update) so a key that doesn't exist yet is created instead of throwing
     const updates = Object.entries(settings).map(([key, value]) =>
-      prisma.setting.update({ where: { key }, data: { value: String(value) } })
+      prisma.setting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value), type: typeof value === "boolean" ? "boolean" : "text" },
+      })
     );
     await Promise.all(updates);
 
