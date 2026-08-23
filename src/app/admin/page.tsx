@@ -27,6 +27,8 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { SalesChart, type SalesPoint } from "@/components/admin/SalesChart";
 import { PeriodPicker } from "@/components/admin/PeriodPicker";
 import { resolveRange, type RangeKey } from "@/components/admin/period-options";
+import { MonthlySummaryCard } from "@/components/admin/MonthlySummaryCard";
+import { LastHourVisitsCard } from "@/components/admin/LastHourVisitsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -222,6 +224,10 @@ export default async function AdminDashboardPage({
       />
 
       <AdminStats items={kpis} />
+
+      {/* ── Salla-style monthly summary + live visits ── */}
+      <MonthlySummaryCard />
+      <LastHourVisitsCard />
 
       {/* ── Needs attention ── */}
       <section aria-labelledby="attention-heading" className="space-y-3">

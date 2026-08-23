@@ -11,6 +11,7 @@ import { PopupManager } from "@/components/store/PopupManager";
 import { UpsellProvider } from "@/components/store/UpsellModal";
 import { ConversionProvider } from "@/context/ConversionContext";
 import { LiveActivityToast } from "@/components/store/LiveActivityToast";
+import { VisitTracker } from "@/components/store/VisitTracker";
 import type { ConversionSettings } from "@/context/ConversionContext";
 
 const CONVERSION_KEYS: (keyof ConversionSettings)[] = [
@@ -75,6 +76,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
           <CartSidebar />
           <PopupManager />
           <LiveActivityToast />
+          <VisitTracker />
           <main className="min-h-screen">{children}</main>
           <Footer />
         </UpsellProvider>

@@ -29,6 +29,7 @@ import { EmptyState, NoResultsState } from "@/components/ui/States";
 import { Tabs } from "@/components/ui/Tabs";
 import { AdminStats, statColors } from "@/components/admin/AdminStats";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ImportExportBar } from "@/components/admin/ImportExportBar";
 import { FilterSelect, SearchInput, Toolbar, ToolbarSpacer } from "@/components/admin/Toolbar";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { ProductWithCategory } from "@/types";
@@ -331,9 +332,12 @@ export default function AdminProductsPage() {
         title="المنتجات"
         description={`${filtered.length} منتج ${filtersActive ? "بعد التصفية" : "في الكتالوج"}`}
         actions={
-          <Button onClick={() => router.push("/admin/products/new")} icon={<Plus className="h-4 w-4" />}>
-            منتج جديد
-          </Button>
+          <div className="flex items-center gap-2">
+            <ImportExportBar entity="products" onImported={fetchProducts} />
+            <Button onClick={() => router.push("/admin/products/new")} icon={<Plus className="h-4 w-4" />}>
+              منتج جديد
+            </Button>
+          </div>
         }
       />
 

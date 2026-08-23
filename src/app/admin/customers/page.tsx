@@ -11,6 +11,7 @@ import { EmptyState, NoResultsState } from "@/components/ui/States";
 import { Tabs } from "@/components/ui/Tabs";
 import { AdminStats, statColors } from "@/components/admin/AdminStats";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ImportExportBar } from "@/components/admin/ImportExportBar";
 import { SearchInput, Toolbar, ToolbarSpacer } from "@/components/admin/Toolbar";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -193,7 +194,11 @@ export default function AdminCustomersPage() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <PageHeader title="العملاء" description={`${filtered.length} عميل${filtersActive ? " بعد التصفية" : ""}`} />
+      <PageHeader
+        title="العملاء"
+        description={`${filtered.length} عميل${filtersActive ? " بعد التصفية" : ""}`}
+        actions={<ImportExportBar entity="customers" onImported={fetchCustomers} />}
+      />
 
       <AdminStats
         items={[

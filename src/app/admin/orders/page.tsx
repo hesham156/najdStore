@@ -11,6 +11,7 @@ import { EmptyState, NoResultsState } from "@/components/ui/States";
 import { Tabs } from "@/components/ui/Tabs";
 import { AdminStats, statColors } from "@/components/admin/AdminStats";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ImportExportBar } from "@/components/admin/ImportExportBar";
 import { FilterSelect, SearchInput, Toolbar, ToolbarSpacer } from "@/components/admin/Toolbar";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { OrderWithDetails } from "@/types";
@@ -218,6 +219,7 @@ export default function AdminOrdersPage() {
       <PageHeader
         title="الطلبات"
         description={`${filteredOrders.length} طلب ${filtersActive ? "بعد التصفية" : ""}`.trim()}
+        actions={<ImportExportBar entity="orders" onImported={fetchOrders} />}
       />
 
       <AdminStats

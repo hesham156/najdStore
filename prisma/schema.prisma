@@ -523,6 +523,31 @@ model Expense {
   @@map("expenses")
 }
 
+// ── Analytics & Goals ─────────────────────────────────────────────────────
+
+model PageVisit {
+  id        String   @id @default(cuid())
+  path      String
+  title     String?
+  referrer  String?
+  visitorId String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@map("page_visits")
+}
+
+model StoreGoal {
+  id        String   @id @default(cuid())
+  month     String   @unique // format: "YYYY-MM"
+  target    Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("store_goals")
+}
+
 model Invoice {
   id            String   @id @default(cuid())
   invoiceNumber String   @unique
