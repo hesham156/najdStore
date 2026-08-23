@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Truck, RefreshCw, FileText, ExternalLink, X, PackageCheck } from "lucide-react";
 import { Section } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -36,19 +36,38 @@ const STATUS_STYLE: Record<string, "success" | "danger" | "warning" | "info" | "
   CREATED: "info",
 };
 
+interface CarrierInfo { id: string; label: string }
+
 export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: () => void }) {
   const shipment = order.shipment;
   const [loading, setLoading] = useState<string | null>(null);
+  const [carriers, setCarriers] = useState<CarrierInfo[]>([]);
+  const [carrier, setCarrier] = useState<string>("");
   const [form, setForm] = useState({
     shipName: order.shipName || order.user.name || "",
     shipPhone: order.shipPhone || order.user.phone || "",
     shipCity: order.shipCity || "",
     shipAddress: order.shipAddress || "",
+    shipPostal: "",
   });
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
+  useEffect(() => {
+    if (shipment) return; // no need to pick a carrier for an existing shipment
+    fetch("/api/admin/shipping/carriers")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          setCarriers(d.data);
+          if (d.data.length > 0) setCarrier(d.data[0].id);
+        }
+      })
+      .catch(() => {});
+  }, [shipment]);
+
   const create = async () => {
+    if (!carrier) return toast.error("لا توجد شركة شحن مفعّلة");
     if (!form.shipName.trim()) return toast.error("اسم المستلم مطلوب");
     if (!form.shipPhone.trim()) return toast.error("جوال المستلم مطلوب");
     setLoading("create");
@@ -56,10 +75,11 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
       const res = await fetch(`/api/admin/orders/${order.id}/shipment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, carrier }),
       });
       const data = await res.json();
-      if (data.success) { toast.success("تم إنشاء الشحنة عبر RedBox ✓"); onChange(); }
+      const label = carriers.find((c) => c.id === carrier)?.label || carrier;
+      if (data.success) { toast.success(`تم إنشاء الشحنة عبر ${label} ✓`); onChange(); }
       else toast.error(data.error || "تعذّر إنشاء الشحنة");
     } catch { toast.error("حدث خطأ أثناء إنشاء الشحنة"); }
     finally { setLoading(null); }
@@ -141,17 +161,50 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
             )}
           </div>
         </div>
+      ) : carriers.length === 0 ? (
+        <p className="text-[13px] text-fg-muted">
+          لا توجد شركة شحن مفعّلة. فعّل RedBox أو DHL من <span className="font-medium text-fg">الإعدادات ← الشحن</span>.
+        </p>
       ) : (
         <div className="space-y-3">
-          <p className="text-[13px] text-fg-muted">أنشئ شحنة عبر RedBox لهذا الطلب. تأكد من بيانات المستلم.</p>
+          {/* Carrier selector (shown when more than one carrier is enabled) */}
+          {carriers.length > 1 ? (
+            <div>
+              <label className="block text-xs font-medium text-fg-subtle mb-1">شركة الشحن</label>
+              <div className="flex gap-2">
+                {carriers.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCarrier(c.id)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      carrier === c.id
+                        ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
+                        : "border-line text-fg-muted hover:border-primary-300"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[13px] text-fg-muted">
+              أنشئ شحنة عبر <span className="font-medium text-fg">{carriers[0]?.label}</span> لهذا الطلب. تأكد من بيانات المستلم.
+            </p>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Input label="اسم المستلم" value={form.shipName} onChange={(e) => set("shipName", e.target.value)} />
             <Input label="جوال المستلم" value={form.shipPhone} onChange={(e) => set("shipPhone", e.target.value)} />
             <Input label="المدينة" value={form.shipCity} onChange={(e) => set("shipCity", e.target.value)} />
             <Input label="العنوان" value={form.shipAddress} onChange={(e) => set("shipAddress", e.target.value)} />
+            {carrier === "DHL" && (
+              <Input label="الرمز البريدي (DHL)" value={form.shipPostal} onChange={(e) => set("shipPostal", e.target.value)} />
+            )}
           </div>
           <Button size="sm" onClick={create} loading={loading === "create"} fullWidth>
-            <PackageCheck className="h-4 w-4" /> إنشاء شحنة RedBox
+            <PackageCheck className="h-4 w-4" /> إنشاء الشحنة
           </Button>
         </div>
       )}

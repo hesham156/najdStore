@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, notFound, serverError } from "@/lib/api";
-import { getRedboxConfig, cancelShipment, RedboxError } from "@/lib/redbox";
+import { cancelShipment, type Carrier } from "@/lib/shipping";
+import { RedboxError } from "@/lib/redbox";
+import { DhlError } from "@/lib/dhl";
 
 export const dynamic = "force-dynamic";
 
-/** Cancel the RedBox shipment for this order. */
+/** Cancel the shipment (RedBox or DHL) for this order. */
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await requireAdmin();
   if (!session) return unauthorized();
@@ -14,9 +16,8 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     const shipment = await prisma.shipment.findUnique({ where: { orderId: params.id } });
     if (!shipment) return notFound("لا توجد شحنة لهذا الطلب");
 
-    const config = await getRedboxConfig();
     if (shipment.carrierId) {
-      await cancelShipment(config, shipment.carrierId);
+      await cancelShipment(shipment.carrier as Carrier, shipment.carrierId);
     }
 
     const updated = await prisma.shipment.update({
@@ -36,7 +37,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {
-    if (err instanceof RedboxError) {
+    if (err instanceof RedboxError || err instanceof DhlError) {
       return NextResponse.json({ success: false, error: err.message }, { status: 502 });
     }
     return serverError("POST /api/admin/orders/[id]/shipment/cancel", err);

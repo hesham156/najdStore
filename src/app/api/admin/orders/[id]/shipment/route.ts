@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, notFound, badRequest, serverError } from "@/lib/api";
-import {
-  getRedboxConfig, createShipment, getShipmentStatus, getShipmentLabel, getTrackingPage,
-  RedboxError,
-} from "@/lib/redbox";
+import { createShipment, refreshStatus, isCarrierEnabled, type Carrier } from "@/lib/shipping";
+import { RedboxError } from "@/lib/redbox";
+import { DhlError } from "@/lib/dhl";
 
 export const dynamic = "force-dynamic";
 
-/** Create a RedBox shipment for this order. */
+const CARRIERS: Carrier[] = ["REDBOX", "DHL"];
+
+function carrierError(err: unknown) {
+  if (err instanceof RedboxError || err instanceof DhlError) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 502 });
+  }
+  return null;
+}
+
+/** Create a shipment (RedBox or DHL) for this order. */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await requireAdmin();
   if (!session) return unauthorized();
@@ -21,17 +29,18 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!order) return notFound("الطلب غير موجود");
     if (order.shipment) return badRequest("توجد شحنة مسبقاً لهذا الطلب");
 
-    const config = await getRedboxConfig();
-    if (!config.enabled) return badRequest("شركة الشحن RedBox غير مفعّلة. فعّلها من الإعدادات → الشحن");
-    if (!config.token) return badRequest("توكن RedBox غير مضبوط في الإعدادات");
-
     const body = await req.json().catch(() => ({}));
+    const carrier: Carrier = CARRIERS.includes(body.carrier) ? body.carrier : "REDBOX";
 
-    // Persist any address fields sent from the admin form onto the order.
+    if (!(await isCarrierEnabled(carrier))) {
+      return badRequest(`شركة الشحن ${carrier} غير مفعّلة. فعّلها من الإعدادات → الشحن`);
+    }
+
     const shipName = (body.shipName ?? order.shipName ?? order.user.name)?.trim();
     const shipPhone = (body.shipPhone ?? order.shipPhone ?? order.user.phone ?? "")?.trim();
     const shipCity = (body.shipCity ?? order.shipCity ?? "")?.trim();
     const shipAddress = (body.shipAddress ?? order.shipAddress ?? "")?.trim();
+    const shipPostal = (body.shipPostal ?? "")?.trim();
 
     if (!shipName) return badRequest("اسم المستلم مطلوب");
     if (!shipPhone) return badRequest("جوال المستلم مطلوب");
@@ -41,38 +50,31 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       data: { shipName, shipPhone, shipCity: shipCity || null, shipAddress: shipAddress || null },
     });
 
-    // COD: collect the total only when the order was not paid online.
     const paidOnline = order.payment?.status === "APPROVED";
     const codAmount = body.codAmount !== undefined ? Number(body.codAmount) : (paidOnline ? 0 : Number(order.total));
 
-    const parsed = await createShipment(config, {
+    const parsed = await createShipment(carrier, {
       reference: order.orderNumber,
-      customerName: shipName,
-      customerPhone: shipPhone,
-      customerEmail: order.user.email || undefined,
-      customerCity: shipCity || undefined,
-      customerAddress: shipAddress || undefined,
-      customerCountry: order.shipCountry || "SA",
+      name: shipName,
+      phone: shipPhone,
+      email: order.user.email || undefined,
+      city: shipCity || undefined,
+      address: shipAddress || undefined,
+      postalCode: shipPostal || undefined,
+      country: order.shipCountry || "SA",
       codAmount: Number.isFinite(codAmount) ? codAmount : 0,
-      codCurrency: "SAR",
+      declaredValue: Number(order.total),
+      currency: "SAR",
     });
-
-    // Best-effort enrich with label + tracking page URLs.
-    let labelUrl = parsed.labelUrl;
-    let trackingUrl = parsed.trackingUrl;
-    if (parsed.carrierId) {
-      if (!labelUrl) labelUrl = await getShipmentLabel(config, parsed.carrierId).catch(() => null);
-      if (!trackingUrl) trackingUrl = await getTrackingPage(config, parsed.carrierId).catch(() => null);
-    }
 
     const shipment = await prisma.shipment.create({
       data: {
         orderId: order.id,
-        carrier: "REDBOX",
+        carrier,
         carrierId: parsed.carrierId,
         trackingNumber: parsed.trackingNumber,
-        labelUrl,
-        trackingUrl,
+        labelUrl: parsed.labelUrl,
+        trackingUrl: parsed.trackingUrl,
         status: parsed.status || "CREATED",
         codAmount: Number.isFinite(codAmount) ? codAmount : 0,
         raw: parsed.raw as object,
@@ -85,20 +87,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         action: "CREATE_SHIPMENT",
         entity: "Shipment",
         entityId: shipment.id,
-        details: { orderNumber: order.orderNumber, carrierId: parsed.carrierId, tracking: parsed.trackingNumber },
+        details: { carrier, orderNumber: order.orderNumber, tracking: parsed.trackingNumber },
       },
     });
 
     return NextResponse.json({ success: true, data: shipment });
   } catch (err) {
-    if (err instanceof RedboxError) {
-      return NextResponse.json({ success: false, error: err.message }, { status: 502 });
-    }
-    return serverError("POST /api/admin/orders/[id]/shipment", err);
+    return carrierError(err) || serverError("POST /api/admin/orders/[id]/shipment", err);
   }
 }
 
-/** Refresh the shipment status from RedBox. */
+/** Refresh the shipment status from the carrier. */
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   if (!(await requireAdmin())) return unauthorized();
 
@@ -107,18 +106,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     if (!shipment) return notFound("لا توجد شحنة لهذا الطلب");
     if (!shipment.carrierId) return NextResponse.json({ success: true, data: shipment });
 
-    const config = await getRedboxConfig();
-    const { status } = await getShipmentStatus(config, shipment.carrierId);
-
+    const status = await refreshStatus(shipment.carrier as Carrier, shipment.carrierId);
     const updated = status && status !== shipment.status
       ? await prisma.shipment.update({ where: { id: shipment.id }, data: { status } })
       : shipment;
 
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {
-    if (err instanceof RedboxError) {
-      return NextResponse.json({ success: false, error: err.message }, { status: 502 });
-    }
-    return serverError("GET /api/admin/orders/[id]/shipment", err);
+    return carrierError(err) || serverError("GET /api/admin/orders/[id]/shipment", err);
   }
 }

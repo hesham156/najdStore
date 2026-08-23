@@ -36,6 +36,22 @@ const SHIPPING_KEYS: Array<{ key: string; value: string; labelAr: string; type: 
   { key: "redbox_sender_phone",   value: "",         labelAr: "جوال المرسِل", type: "text" },
   { key: "redbox_sender_city",    value: "",         labelAr: "مدينة المرسِل", type: "text" },
   { key: "redbox_sender_address", value: "",         labelAr: "عنوان استلام الشحنة من المتجر", type: "text" },
+  // DHL Express (MyDHL API)
+  { key: "dhl_enabled",         value: "false",    labelAr: "تفعيل شركة الشحن DHL Express", type: "boolean" },
+  { key: "dhl_mode",            value: "test",     labelAr: "بيئة DHL — test أو live", type: "text" },
+  { key: "dhl_api_key",         value: "",         labelAr: "DHL API Key (اسم المستخدم)", type: "text" },
+  { key: "dhl_api_secret",      value: "",         labelAr: "DHL API Secret (كلمة المرور)", type: "text" },
+  { key: "dhl_account",         value: "",         labelAr: "رقم حساب DHL Express", type: "text" },
+  { key: "dhl_product_code",    value: "N",        labelAr: "كود منتج DHL (N للشحن المحلي، P للدولي)", type: "text" },
+  { key: "dhl_sender_name",     value: "نجد برنت", labelAr: "DHL — اسم المرسِل", type: "text" },
+  { key: "dhl_sender_company",  value: "نجد برنت", labelAr: "DHL — اسم الشركة المرسِلة", type: "text" },
+  { key: "dhl_sender_phone",    value: "",         labelAr: "DHL — جوال المرسِل", type: "text" },
+  { key: "dhl_sender_email",    value: "",         labelAr: "DHL — بريد المرسِل", type: "text" },
+  { key: "dhl_sender_city",     value: "",         labelAr: "DHL — مدينة المرسِل", type: "text" },
+  { key: "dhl_sender_postal",   value: "",         labelAr: "DHL — الرمز البريدي للمرسِل", type: "text" },
+  { key: "dhl_sender_country",  value: "SA",       labelAr: "DHL — دولة المرسِل (ISO مثل SA)", type: "text" },
+  { key: "dhl_sender_address",  value: "",         labelAr: "DHL — عنوان استلام الشحنة", type: "text" },
+  { key: "dhl_default_weight",  value: "1",        labelAr: "DHL — الوزن الافتراضي للطرد (كجم)", type: "text" },
 ];
 
 export async function GET(req: NextRequest) {
