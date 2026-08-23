@@ -145,7 +145,7 @@ export default function AbandonedCartsPage() {
       />
 
       {!loading && carts.length === 0 ? (
-        <EmptyState icon={<ShoppingCart className="h-8 w-8" />} title="لا توجد سلات متروكة" description="ستظهر هنا سلات العملاء التي لم تتحوّل إلى طلبات." />
+        <EmptyState icon={ShoppingCart} title="لا توجد سلات متروكة" description="ستظهر هنا سلات العملاء التي لم تتحوّل إلى طلبات." />
       ) : (
         <>
           <DataTable columns={columns} data={paginated} loading={loading} emptyMessage="لا توجد سلات متروكة" />
