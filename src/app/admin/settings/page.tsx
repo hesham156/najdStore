@@ -77,10 +77,16 @@ const GROUP_META: Record<string, {
     color: "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/40",
   },
   shipping: {
-    label: "الشحن (RedBox)",
+    label: "الشحن — RedBox",
     icon: <Truck className="h-4 w-4" />,
     description: "ربط شركة الشحن RedBox: أدخل التوكن وبيانات المرسِل، ثم أنشئ الشحنات من صفحة الطلب. استخدم بيئة sandbox للتجربة قبل التفعيل الفعلي (live).",
     color: "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20",
+  },
+  shipping_dhl: {
+    label: "الشحن — DHL",
+    icon: <Truck className="h-4 w-4" />,
+    description: "ربط شركة الشحن DHL Express (MyDHL API): أدخل مفتاح/سر الـ API ورقم الحساب وبيانات المرسِل. استخدم بيئة test للتجربة قبل التفعيل الفعلي (live).",
+    color: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20",
   },
 };
 
