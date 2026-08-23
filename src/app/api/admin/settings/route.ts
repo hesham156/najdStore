@@ -76,8 +76,9 @@ export async function GET(req: NextRequest) {
     ...BRANDING_KEYS.map((b) =>
       prisma.setting.upsert({
         where: { key: b.key },
-        update: {},
-        create: { key: b.key, value: b.value, type: b.type || "text", labelAr: b.labelAr, group: "general" },
+        // migrate existing rows into their own focused tab (was cluttering "عام")
+        update: { group: "branding", labelAr: b.labelAr },
+        create: { key: b.key, value: b.value, type: b.type || "text", labelAr: b.labelAr, group: "branding" },
       })
     ),
     ...CUSTOM_CODE_KEYS.map((c) =>

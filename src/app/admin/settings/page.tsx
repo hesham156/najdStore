@@ -34,6 +34,12 @@ const GROUP_META: Record<string, {
     description: "اسم المتجر، العملة، ومعلومات التواصل الأساسية",
     color: "text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20",
   },
+  branding: {
+    label: "الواجهة والهيرو",
+    icon: <Globe className="h-4 w-4" />,
+    description: "نصوص الترويسة (Hero) والإحصائيات ووصف التذييل التي تظهر في المتجر.",
+    color: "text-fuchsia-700 dark:text-fuchsia-300 bg-fuchsia-50 dark:bg-fuchsia-900/20",
+  },
   payment: {
     label: "الدفع البنكي",
     icon: <CreditCard className="h-4 w-4" />,
@@ -383,10 +389,15 @@ export default function AdminSettingsPage() {
   //  - shipping_rates                    → "الشحن" (رسوم الشحن)
   //  - homepage                          → "تصميم الصفحة الرئيسية"
   const EXCLUDED_GROUPS = ["payment_methods", "payment", "payments", "shipping_rates", "shipping", "shipping_dhl", "homepage"];
-  const groups = Array.from(new Set(settings.map((s) => s.group))).filter((g) => !EXCLUDED_GROUPS.includes(g));
+  // Keys owned by dedicated pages (SEO / payment / shipping carriers) must never
+  // leak into the generic tabs even if they were saved with a stray group.
+  const DEDICATED_PREFIX = /^(seo_|pm_|redbox_|dhl_)/;
+  const visibleSettings = settings.filter((s) => !EXCLUDED_GROUPS.includes(s.group) && !DEDICATED_PREFIX.test(s.key));
+  // A tab only appears if it actually has visible settings.
+  const groups = Array.from(new Set(visibleSettings.map((s) => s.group)));
   // Never land on a hidden group — fall back to the first visible one.
   const effectiveGroup = groups.includes(activeGroup) ? activeGroup : (groups[0] ?? "");
-  const activeSettings = settings.filter((s) => s.group === effectiveGroup);
+  const activeSettings = visibleSettings.filter((s) => s.group === effectiveGroup);
   const meta = GROUP_META[effectiveGroup];
 
   if (loading) {
