@@ -121,6 +121,27 @@ export function slugify(text: string) {
 }
 
 /**
+ * Non-ASCII (Arabic) slugs can mismatch between the URL param and the stored
+ * value because of percent-encoding or Unicode normalization (NFC vs NFD).
+ * This returns every equivalent form of a slug so a lookup with
+ * `where: { slug: { in: slugCandidates(param) } }` matches regardless of how
+ * the slug was stored — e.g. products imported from Salla with encoded slugs.
+ */
+export function slugCandidates(raw: string): string[] {
+  const out = new Set<string>();
+  const add = (s?: string) => {
+    if (!s) return;
+    out.add(s);
+    try { out.add(s.normalize("NFC")); } catch { /* ignore */ }
+    try { out.add(s.normalize("NFD")); } catch { /* ignore */ }
+  };
+  add(raw);
+  try { add(decodeURIComponent(raw)); } catch { /* malformed encoding */ }
+  try { add(encodeURIComponent(raw)); } catch { /* ignore */ }
+  return Array.from(out);
+}
+
+/**
  * Serialize a Prisma product (or any object) to a plain JSON-safe object.
  * Converts Decimal fields (price, comparePrice) to plain numbers so they
  * can safely be passed from Server Components to Client Components.

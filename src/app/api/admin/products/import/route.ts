@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, badRequest, serverError } from "@/lib/api";
 import { slugify } from "@/lib/utils";
 import {
-  parseSpreadsheet, pick, parseNumber, parseBool,
+  parseSpreadsheet, pick, parseNumber, parseBool, sanitizeSlug,
   PRODUCT_ALIASES, emptyResult, type ImportResult,
 } from "@/lib/import-export";
 
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         if (price === undefined) { result.skipped++; result.errors.push({ row: rowNo, message: "السعر مفقود أو غير صالح" }); continue; }
 
         const nameAr = pick(row, PRODUCT_ALIASES.nameAr) || name;
-        const providedSlug = pick(row, PRODUCT_ALIASES.slug);
+        const providedSlug = sanitizeSlug(pick(row, PRODUCT_ALIASES.slug));
         const description = pick(row, PRODUCT_ALIASES.description);
         const comparePrice = parseNumber(pick(row, PRODUCT_ALIASES.comparePrice));
         const stock = parseNumber(pick(row, PRODUCT_ALIASES.stock));

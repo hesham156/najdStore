@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
-import { parseProductVariants } from "@/lib/utils";
+import { parseProductVariants, slugCandidates } from "@/lib/utils";
 
 // Server-rendered on demand — Neon DB not available at build time
 export const dynamic = "force-dynamic";
@@ -20,8 +20,8 @@ interface Props { params: { slug: string } }
    generateMetadata
 ───────────────────────────────────────── */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await prisma.product.findUnique({
-    where: { slug: params.slug, isActive: true },
+  const product = await prisma.product.findFirst({
+    where: { slug: { in: slugCandidates(params.slug) }, isActive: true },
     include: { category: true },
   });
 
@@ -96,8 +96,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
    Build JSON-LD schemas
 ───────────────────────────────────────── */
 async function getSchemas(slug: string) {
-  const product = await prisma.product.findUnique({
-    where: { slug, isActive: true },
+  const product = await prisma.product.findFirst({
+    where: { slug: { in: slugCandidates(slug) }, isActive: true },
     include: { category: true },
   });
   if (!product) return null;

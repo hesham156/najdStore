@@ -54,6 +54,27 @@ export function pick(row: Record<string, unknown>, aliases: string[]): string | 
   return undefined;
 }
 
+/**
+ * Turn a value from a slug/permalink column into a safe single-segment slug.
+ * Salla exports often put a full product URL (e.g.
+ * "https://najd.sa/1434990639/علب-فشار...") or a percent-encoded permalink here.
+ * We decode it, keep only the path, drop slashes/query, normalize (NFC) and trim
+ * — so the stored slug always matches what the router later resolves.
+ */
+export function sanitizeSlug(val: string | undefined): string | undefined {
+  if (!val) return undefined;
+  let s = val.trim();
+  try { s = decodeURIComponent(s); } catch { /* keep as-is if malformed */ }
+  s = s.replace(/^https?:\/\/[^/]+/i, ""); // strip protocol + domain
+  s = s.split("?")[0].split("#")[0];        // drop query/hash
+  s = s.replace(/^\/+|\/+$/g, "");          // trim leading/trailing slashes
+  s = s.replace(/\//g, "-");                // any remaining slash → dash
+  s = s.replace(/\s+/g, "-");               // spaces → dash
+  try { s = s.normalize("NFC"); } catch { /* ignore */ }
+  s = s.replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
+  return s || undefined;
+}
+
 /** Convert Arabic-Indic digits to Latin and parse a number, tolerating commas/currency text. */
 export function parseNumber(val: string | undefined): number | undefined {
   if (val === undefined) return undefined;

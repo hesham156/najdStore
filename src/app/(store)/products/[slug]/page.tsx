@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { serializeData, parseProductVariants } from "@/lib/utils";
+import { serializeData, parseProductVariants, slugCandidates } from "@/lib/utils";
 import ProductClient from "./ProductClient";
 import type { Metadata } from "next";
 import type { ProductWithCategory } from "@/types";
@@ -29,7 +29,7 @@ export async function generateMetadata(
   { params }: { params: { slug: string } }
 ): Promise<Metadata> {
   const product = await prisma.product.findFirst({
-    where: { slug: params.slug, isActive: true, isDeleted: false },
+    where: { slug: { in: slugCandidates(params.slug) }, isActive: true, isDeleted: false },
     include: { category: true },
   });
 
@@ -64,7 +64,7 @@ export async function generateMetadata(
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const [productRaw, settingsRaw] = await Promise.all([
     prisma.product.findFirst({
-      where: { slug: params.slug, isActive: true, isDeleted: false },
+      where: { slug: { in: slugCandidates(params.slug) }, isActive: true, isDeleted: false },
       include: {
         category: true,
         options: { orderBy: { sortOrder: "asc" }, include: { values: { orderBy: { sortOrder: "asc" } } } },
