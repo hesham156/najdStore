@@ -92,6 +92,10 @@ export default function CheckoutPage() {
   const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(false);
   const [guestName, setGuestName]           = useState("");
   const [guestEmail, setGuestEmail]         = useState("");
+  const [shipName, setShipName]             = useState("");
+  const [shipPhone, setShipPhone]           = useState("");
+  const [shipCity, setShipCity]             = useState("");
+  const [shipAddress, setShipAddress]       = useState("");
 
   /* Fetch enabled gateways + public settings */
   useEffect(() => {
@@ -205,6 +209,11 @@ if (items.length === 0) {
           couponCode: coupon?.code,
           notes,
           proofImageUrl,
+          // Shipping address (for carrier integrations)
+          shipName: shipName.trim(),
+          shipPhone: shipPhone.trim(),
+          shipCity: shipCity.trim(),
+          shipAddress: shipAddress.trim(),
           // Guest fields
           ...(!session && { guestName: guestName.trim(), guestEmail: guestEmail.trim().toLowerCase() }),
         }),
@@ -413,6 +422,18 @@ if (items.length === 0) {
                   <Button onClick={applyCoupon} loading={couponLoading} variant="outline">تطبيق</Button>
                 </div>
               )}
+            </div>
+
+            {/* ── Shipping address ── */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-1">عنوان الشحن</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">لشحن طلبك عبر شركات التوصيل</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input value={shipName} onChange={(e) => setShipName(e.target.value)} placeholder="اسم المستلم" className="input-base" />
+                <input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder="جوال المستلم" className="input-base" inputMode="tel" />
+                <input value={shipCity} onChange={(e) => setShipCity(e.target.value)} placeholder="المدينة" className="input-base" />
+                <input value={shipAddress} onChange={(e) => setShipAddress(e.target.value)} placeholder="العنوان التفصيلي" className="input-base" />
+              </div>
             </div>
 
             {/* ── Notes ── */}

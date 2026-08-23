@@ -27,6 +27,17 @@ const CUSTOM_CODE_KEYS: Array<{ key: string; value: string; labelAr: string }> =
   { key: "custom_footer_js", value: "", labelAr: "كود JavaScript (الفوتر) — أدخل الكود بدون وسم <script>" },
 ];
 
+// RedBox shipping integration (group "shipping").
+const SHIPPING_KEYS: Array<{ key: string; value: string; labelAr: string; type: string }> = [
+  { key: "redbox_enabled",        value: "false",    labelAr: "تفعيل شركة الشحن RedBox", type: "boolean" },
+  { key: "redbox_mode",           value: "sandbox",  labelAr: "بيئة RedBox — sandbox أو live", type: "text" },
+  { key: "redbox_token",          value: "",         labelAr: "توكن RedBox (Bearer Token — يُطلب من دعم RedBox)", type: "text" },
+  { key: "redbox_sender_name",    value: "نجد برنت", labelAr: "اسم المرسِل (المتجر)", type: "text" },
+  { key: "redbox_sender_phone",   value: "",         labelAr: "جوال المرسِل", type: "text" },
+  { key: "redbox_sender_city",    value: "",         labelAr: "مدينة المرسِل", type: "text" },
+  { key: "redbox_sender_address", value: "",         labelAr: "عنوان استلام الشحنة من المتجر", type: "text" },
+];
+
 export async function GET(req: NextRequest) {
   if (!await requireAdmin()) return unauthorized();
 
@@ -44,6 +55,13 @@ export async function GET(req: NextRequest) {
         where: { key: c.key },
         update: {},
         create: { key: c.key, value: c.value, type: "code", labelAr: c.labelAr, group: "custom_code" },
+      })
+    ),
+    ...SHIPPING_KEYS.map((sk) =>
+      prisma.setting.upsert({
+        where: { key: sk.key },
+        update: {},
+        create: { key: sk.key, value: sk.value, type: sk.type, labelAr: sk.labelAr, group: "shipping" },
       })
     ),
   ]);

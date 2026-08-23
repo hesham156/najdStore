@@ -31,6 +31,7 @@ import { Card, Section } from "@/components/ui/Card";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Alert, ErrorState, Skeleton } from "@/components/ui/States";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ShipmentCard } from "@/components/admin/ShipmentCard";
 import { formatCurrency, formatDate, formatDateTime, getPaymentMethodLabel } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { OrderWithDetails } from "@/types";
@@ -590,6 +591,11 @@ export default function AdminOrderDetailPage() {
               </dl>
             </Section>
           )}
+
+          <ShipmentCard
+            order={order as unknown as Parameters<typeof ShipmentCard>[0]["order"]}
+            onChange={loadOrder}
+          />
 
           {order.notes && (
             <Section title="ملاحظات العميل" contentClassName="pt-0">

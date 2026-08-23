@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import {
   Settings, Save, CreditCard, BarChart2, ShoppingBag,
   Globe, AlertCircle, TrendingUp, Bell, Clock, Eye,
-  ShoppingCart, Gift, Shield, Flame, Calculator, Code2,
+  ShoppingCart, Gift, Shield, Flame, Calculator, Code2, Truck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -75,6 +75,12 @@ const GROUP_META: Record<string, {
     icon: <Code2 className="h-4 w-4" />,
     description: "أضِف CSS وJavaScript خاصاً بك يُحقن في جميع صفحات المتجر. أدخل أكواد JS بدون وسم <script>. الأكواد تُنفَّذ كما هي — أدخل مصادر تثق بها فقط.",
     color: "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/40",
+  },
+  shipping: {
+    label: "الشحن (RedBox)",
+    icon: <Truck className="h-4 w-4" />,
+    description: "ربط شركة الشحن RedBox: أدخل التوكن وبيانات المرسِل، ثم أنشئ الشحنات من صفحة الطلب. استخدم بيئة sandbox للتجربة قبل التفعيل الفعلي (live).",
+    color: "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20",
   },
 };
 

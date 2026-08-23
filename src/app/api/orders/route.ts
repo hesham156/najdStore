@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { items, paymentMethod, couponCode, notes, proofImageUrl, guestName, guestEmail } = body;
+    const { items, paymentMethod, couponCode, notes, proofImageUrl, guestName, guestEmail, shipName, shipPhone, shipCity, shipAddress } = body;
 
     if (!items?.length || !paymentMethod) {
       return NextResponse.json({ success: false, error: "بيانات ناقصة" }, { status: 400 });
@@ -195,6 +195,10 @@ export async function POST(req: NextRequest) {
         total,
         couponId,
         notes,
+        shipName: shipName || null,
+        shipPhone: shipPhone || null,
+        shipCity: shipCity || null,
+        shipAddress: shipAddress || null,
         items: { create: orderItems },
         payment: {
           create: {
