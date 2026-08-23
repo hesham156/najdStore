@@ -143,6 +143,7 @@ export default function PaymentMethodsPage() {
     { key: "pm_paypal_enabled",        label: "PayPal",     icon: "🅿️", color: "indigo" },
     { key: "pm_tabby_enabled",         label: "Tabby",      icon: "💳", color: "teal" },
     { key: "pm_tamara_enabled",        label: "Tamara",     icon: "💰", color: "cyan" },
+    { key: "pm_moyasar_enabled",       label: "بطاقة",       icon: "💳", color: "blue" },
   ];
   const enabledCount = methods.filter(m => bool(m.key)).length;
 
@@ -345,6 +346,23 @@ export default function PaymentMethodsPage() {
                 </a>
               </span>
             </label>
+          </PaymentCard>
+
+          {/* Moyasar — بطاقة مدى / فيزا */}
+          <PaymentCard
+            title="بطاقة (Moyasar)" subtitle="مدى، فيزا، ماستركارد — دفع فوري وآمن"
+            logo={<div className="w-8 h-8 rounded-lg bg-[#1f6feb] flex items-center justify-center text-white text-xs font-black">M</div>}
+            color="bg-blue-50 dark:bg-blue-900/10"
+            enabled={bool("pm_moyasar_enabled")} onToggle={() => toggle("pm_moyasar_enabled")}
+          >
+            <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
+              💡 احصل على مفاتيحك من لوحة{" "}
+              <a href="https://dashboard.moyasar.com" target="_blank" rel="noreferrer" className="underline font-semibold">Moyasar</a>. استخدم مفاتيح <b>test</b> للتجربة ثم <b>live</b> للتفعيل.
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <PasswordInput label="Secret Key (المفتاح السري)" value={values["pm_moyasar_secret_key"] || ""} onChange={v => set("pm_moyasar_secret_key", v)} />
+              <Input label="Publishable Key (المفتاح العام)" value={values["pm_moyasar_publishable_key"] || ""} onChange={e => set("pm_moyasar_publishable_key", e.target.value)} placeholder="pk_live_..." />
+            </div>
           </PaymentCard>
 
           {/* Save footer */}

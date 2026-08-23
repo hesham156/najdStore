@@ -40,6 +40,11 @@ const PAYMENT_KEYS = [
   "pm_tamara_agreement",
   // Product-page installment badge (shared with settings → "payments" group)
   "tamara_enabled",
+
+  // Moyasar (Saudi card gateway — Mada/Visa/Mastercard)
+  "pm_moyasar_enabled",
+  "pm_moyasar_secret_key",
+  "pm_moyasar_publishable_key",
 ];
 
 const DEFAULT_LABELS: Record<string, { labelAr: string; type: string }> = {
@@ -67,6 +72,9 @@ const DEFAULT_LABELS: Record<string, { labelAr: string; type: string }> = {
   pm_tamara_installments:        { labelAr: "عدد الدفعات", type: "text" },
   pm_tamara_agreement:           { labelAr: "الموافقة على اتفاقية استخدام تمارا", type: "boolean" },
   tamara_enabled:                { labelAr: "إظهار شعار تمارا في صفحة المنتج", type: "boolean" },
+  pm_moyasar_enabled:            { labelAr: "تفعيل الدفع بالبطاقة (Moyasar)", type: "boolean" },
+  pm_moyasar_secret_key:         { labelAr: "Secret Key (المفتاح السري)", type: "password" },
+  pm_moyasar_publishable_key:    { labelAr: "Publishable Key (المفتاح العام)", type: "text" },
 };
 
 export async function GET() {

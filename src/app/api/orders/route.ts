@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { generateOrderNumber } from "@/lib/utils";
 import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
+import { getMoyasarConfig, createInvoice } from "@/lib/moyasar";
 import { notifyOrderCreated } from "@/lib/hayyak";
 import { reserveStock, restoreStock, type StockLine } from "@/lib/stock";
 import { sendEmail, orderConfirmationEmail } from "@/lib/email";
@@ -57,6 +58,16 @@ export async function POST(req: NextRequest) {
       if (!tamaraConfig.enabled || !tamaraConfig.apiToken) {
         return NextResponse.json(
           { success: false, error: "تمارا غير مهيأة بشكل صحيح. يرجى التواصل مع الدعم أو اختيار طريقة دفع أخرى." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (paymentMethod === "CREDIT_CARD") {
+      const moyasarConfig = await getMoyasarConfig();
+      if (!moyasarConfig.enabled) {
+        return NextResponse.json(
+          { success: false, error: "الدفع بالبطاقة غير مهيأ حالياً. اختر طريقة دفع أخرى." },
           { status: 400 }
         );
       }
@@ -208,7 +219,7 @@ export async function POST(req: NextRequest) {
       data: {
         orderNumber: generateOrderNumber(),
         userId,
-        status: (paymentMethod === "BANK_TRANSFER" || paymentMethod === "TABBY" || paymentMethod === "TAMARA")
+        status: (paymentMethod === "BANK_TRANSFER" || paymentMethod === "TABBY" || paymentMethod === "TAMARA" || paymentMethod === "CREDIT_CARD")
         ? "PENDING"
         : "PENDING_PAYMENT_REVIEW",
         subtotal,
@@ -282,10 +293,38 @@ export async function POST(req: NextRequest) {
         }
       } catch (err) {
         console.error("Error integrating PayPal:", err);
-        // Rollback: delete the order so the DB stays clean
+        // Rollback: delete the order + release reserved stock so the DB stays clean
         await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+        if (reservedLines) await restoreStock(reservedLines).catch(() => {});
+        reservedLines = null;
         return NextResponse.json(
           { success: false, error: "فشل الاتصال بـ PayPal. تحقق من بيانات الاعتماد أو اختر طريقة دفع أخرى." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Handle Moyasar (Saudi card gateway — Mada/Visa/Mastercard) integration
+    let moyasarUrl: string | undefined;
+    if (paymentMethod === "CREDIT_CARD" && total > 0) {
+      try {
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        const config = await getMoyasarConfig();
+        const invoice = await createInvoice(config, {
+          amountSar: total,
+          description: `طلب ${order.orderNumber}`,
+          callbackUrl: `${baseUrl}/api/payments/moyasar/callback?orderId=${order.id}`,
+          metadata: { order_id: order.id, order_number: order.orderNumber },
+        });
+        moyasarUrl = invoice.url;
+        await prisma.payment.update({ where: { orderId: order.id }, data: { transactionId: invoice.id } });
+      } catch (err) {
+        console.error("Error integrating Moyasar:", err);
+        await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+        if (reservedLines) await restoreStock(reservedLines).catch(() => {});
+        reservedLines = null;
+        return NextResponse.json(
+          { success: false, error: "فشل الاتصال ببوابة الدفع. حاول مجدداً أو اختر طريقة دفع أخرى." },
           { status: 400 }
         );
       }
@@ -364,7 +403,7 @@ export async function POST(req: NextRequest) {
       sendEmail({ to: order.user.email, subject: mail.subject, html: mail.html }).catch(() => {});
     }
 
-    return NextResponse.json({ success: true, data: order, paypalApproveLink, tamaraCheckoutUrl });
+    return NextResponse.json({ success: true, data: order, paypalApproveLink, tamaraCheckoutUrl, moyasarUrl });
   } catch (error) {
     console.error(error);
     if (reservedLines) await restoreStock(reservedLines).catch(() => {});

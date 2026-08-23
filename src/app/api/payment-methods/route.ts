@@ -29,6 +29,8 @@ export async function GET() {
           "pm_tamara_api_token",
           "pm_tamara_installments",
           "pm_tamara_merchant_url",
+          "pm_moyasar_enabled",
+          "pm_moyasar_secret_key",
         ],
       },
     },
@@ -63,6 +65,10 @@ export async function GET() {
       enabled:      map["pm_tamara_enabled"] === "true" && !!map["pm_tamara_api_token"],
       installments: parseInt(map["pm_tamara_installments"] || "3", 10) || 3,
       merchantUrl:  map["pm_tamara_merchant_url"] || "",
+    },
+    creditCard: {
+      // Moyasar — Mada / Visa / Mastercard
+      enabled: map["pm_moyasar_enabled"] === "true" && !!map["pm_moyasar_secret_key"],
     },
   };
 

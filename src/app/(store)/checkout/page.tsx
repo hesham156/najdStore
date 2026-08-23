@@ -20,7 +20,8 @@ interface BankTransfer { enabled: boolean; accountName: string; bankName: string
 interface PayPalConfig  { enabled: boolean; mode: string }
 interface TabbyConfig   { enabled: boolean; publicKey: string; merchantCode: string }
 interface TamaraConfig  { enabled: boolean; installments: number; merchantUrl: string }
-interface PaymentMethods { bankTransfer: BankTransfer; paypal: PayPalConfig; tabby: TabbyConfig; tamara: TamaraConfig }
+interface CreditCardConfig { enabled: boolean }
+interface PaymentMethods { bankTransfer: BankTransfer; paypal: PayPalConfig; tabby: TabbyConfig; tamara: TamaraConfig; creditCard: CreditCardConfig }
 
 /* ─── Copy helper ─── */
 function CopyRow({ label, value }: { label: string; value: string }) {
@@ -106,7 +107,8 @@ export default function CheckoutPage() {
       if (d.success) {
         setGateways(d.data);
         const g: PaymentMethods = d.data;
-        if (g.bankTransfer.enabled) setPaymentMethod("BANK_TRANSFER");
+        if (g.creditCard?.enabled)  setPaymentMethod("CREDIT_CARD");
+        else if (g.bankTransfer.enabled) setPaymentMethod("BANK_TRANSFER");
         else if (g.paypal.enabled)  setPaymentMethod("PAYPAL");
         else if (g.tabby.enabled)   setPaymentMethod("TABBY");
         else if (g.tamara.enabled)  setPaymentMethod("TAMARA");
@@ -226,6 +228,8 @@ if (items.length === 0) {
           window.location.href = data.paypalApproveLink;
         } else if (data.tamaraCheckoutUrl) {
           window.location.href = data.tamaraCheckoutUrl;
+        } else if (data.moyasarUrl) {
+          window.location.href = data.moyasarUrl;
         } else {
           // Redirect everyone to the unified thank-you page
           router.push(
@@ -241,6 +245,7 @@ if (items.length === 0) {
 
   /* Collect enabled methods for rendering */
   const enabledMethods: Array<{ value: string; label: string; desc: string; icon: React.ElementType }> = [];
+  if (gateways?.creditCard?.enabled)   enabledMethods.push({ value: "CREDIT_CARD",   label: "بطاقة مدى / فيزا", desc: "دفع فوري وآمن بالبطاقة",                icon: CreditCard });
   if (gateways?.bankTransfer.enabled) enabledMethods.push({ value: "BANK_TRANSFER", label: "تحويل بنكي",    desc: "تحويل عبر البنك مع رفع إثبات الدفع",   icon: Landmark });
   if (gateways?.paypal.enabled)        enabledMethods.push({ value: "PAYPAL",         label: "PayPal",         desc: "بطاقات ائتمانية ودفع دولي",             icon: Wallet  });
   if (gateways?.tabby.enabled)         enabledMethods.push({ value: "TABBY",          label: "Tabby — تابي",  desc: "4 دفعات بدون فوائد",                    icon: CreditCard });
