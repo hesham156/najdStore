@@ -143,12 +143,11 @@ function SectionEditor({ section: s, onChange }: { section: HomeSection; onChang
 
     case "hero":
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="الشارة" value={s.badge || ""} onChange={(e) => onChange({ badge: e.target.value })} placeholder="من الإعدادات إن تُرك فارغاً" />
-          <Input label="العنوان" value={s.title || ""} onChange={(e) => onChange({ title: e.target.value })} />
-          <Input label="العنوان المميّز" value={s.titleHighlight || ""} onChange={(e) => onChange({ titleHighlight: e.target.value })} />
-          <Input label="النص الفرعي" value={s.subtitle || ""} onChange={(e) => onChange({ subtitle: e.target.value })} />
-        </div>
+        <p className="text-[13px] text-fg-muted leading-relaxed">
+          يُدار محتوى الترويسة (العنوان، النص، الإحصائيات) من مكان واحد:{" "}
+          <a href="/admin/settings" className="font-semibold text-primary-600 hover:underline">الإعدادات ← الواجهة والهيرو</a>.
+          هنا تتحكّم فقط في <span className="font-medium text-fg">إظهاره وترتيبه</span> ضمن الصفحة.
+        </p>
       );
 
     case "categories":

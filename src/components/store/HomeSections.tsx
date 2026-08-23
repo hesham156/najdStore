@@ -51,12 +51,13 @@ function renderSection(s: HomeSection, data: HomeData) {
       return <NajdLanding featured={data.featured} recent={data.recent} />;
 
     case "hero":
+      // Single source of truth: hero content lives in Settings → "الواجهة والهيرو".
       return (
         <HeroContent
-          badge={s.badge || data.branding.hero_badge}
-          title={s.title || data.branding.hero_title}
-          titleHighlight={s.titleHighlight || data.branding.hero_title_highlight}
-          subtitle={s.subtitle || data.branding.hero_subtitle}
+          badge={data.branding.hero_badge}
+          title={data.branding.hero_title}
+          titleHighlight={data.branding.hero_title_highlight}
+          subtitle={data.branding.hero_subtitle}
           stats={[
             { value: data.branding.hero_stat_1_value, label: data.branding.hero_stat_1_label },
             { value: data.branding.hero_stat_2_value, label: data.branding.hero_stat_2_label },
