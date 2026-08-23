@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Truck, Plus, Trash2, MapPin } from "lucide-react";
+import { Truck, Plus, Trash2, MapPin, Save } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Switch } from "@/components/ui/Input";
@@ -24,18 +24,45 @@ export default function ShippingRatesPage() {
   const [cost, setCost] = useState("");
   const [adding, setAdding] = useState(false);
 
+  // General (flat) rate + free-shipping threshold — the fallback for unlisted cities
+  const [flatFee, setFlatFee] = useState("0");
+  const [freeThreshold, setFreeThreshold] = useState("0");
+  const [savingFees, setSavingFees] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/shipping-rates");
-      const data = await res.json();
-      if (data.success) setRates(data.data);
+      const [ratesRes, settingsRes] = await Promise.all([
+        fetch("/api/admin/shipping-rates").then((r) => r.json()),
+        fetch("/api/admin/settings").then((r) => r.json()),
+      ]);
+      if (ratesRes.success) setRates(ratesRes.data);
+      if (settingsRes.success) {
+        const map: Record<string, string> = {};
+        settingsRes.data.forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
+        setFlatFee(map["shipping_fee"] ?? "0");
+        setFreeThreshold(map["shipping_free_threshold"] ?? "0");
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const saveFees = async () => {
+    setSavingFees(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { shipping_fee: flatFee || "0", shipping_free_threshold: freeThreshold || "0" } }),
+      });
+      const data = await res.json();
+      if (data.success) toast.success("تم حفظ الرسوم العامة ✓");
+      else toast.error(data.error || "تعذّر الحفظ");
+    } finally { setSavingFees(false); }
+  };
 
   const add = async () => {
     if (!city.trim()) return toast.error("أدخل اسم المدينة");
@@ -74,11 +101,24 @@ export default function ShippingRatesPage() {
   return (
     <div className="space-y-5 animate-fade-in">
       <PageHeader
-        title="رسوم الشحن حسب المدينة"
-        description="حدّد رسوم شحن مختلفة لكل مدينة. المدن غير المُدرجة تُطبَّق عليها الرسوم الثابتة من الإعدادات."
+        title="الشحن"
+        description="أدِر رسوم الشحن العامة وأسعار المدن. المدن غير المُدرجة تُطبَّق عليها الرسوم العامة."
       />
 
-      {/* Add form */}
+      {/* General (flat) rates */}
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-sm text-fg flex items-center gap-2"><Truck className="h-4 w-4 text-primary-500" /> الرسوم العامة</h3>
+          <Button size="sm" onClick={saveFees} loading={savingFees}><Save className="h-3.5 w-3.5" /> حفظ</Button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input label="الرسوم الثابتة (ر.س)" type="number" min={0} value={flatFee} onChange={(e) => setFlatFee(e.target.value)} hint="تُطبَّق على المدن غير المُدرجة. 0 = شحن مجاني." />
+          <Input label="شحن مجاني فوق (ر.س)" type="number" min={0} value={freeThreshold} onChange={(e) => setFreeThreshold(e.target.value)} hint="عند تجاوز المجموع هذا المبلغ يصبح الشحن مجانياً. 0 = معطّل." />
+        </div>
+      </Card>
+
+      {/* Add city rate */}
+      <h3 className="font-semibold text-sm text-fg pt-1 flex items-center gap-2"><MapPin className="h-4 w-4 text-primary-500" /> أسعار المدن</h3>
       <Card>
         <div className="flex flex-col sm:flex-row gap-3 items-end">
           <div className="flex-1 w-full">

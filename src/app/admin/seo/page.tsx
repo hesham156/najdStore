@@ -132,7 +132,7 @@ export default function AdminSeoPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-3xl">
+    <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
       <PageHeader
         title="إعدادات SEO"
         description="تحسين محركات البحث ومشاركة المحتوى على الشبكات الاجتماعية"

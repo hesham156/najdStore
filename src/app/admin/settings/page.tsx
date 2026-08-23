@@ -377,10 +377,17 @@ export default function AdminSettingsPage() {
     toast("تم إلغاء التغييرات", { icon: "↩️" });
   };
 
-  const EXCLUDED_GROUPS = ["payment_methods", "homepage"];
+  // Groups that have their own dedicated admin pages are hidden from the
+  // generic settings tabs to avoid duplication:
+  //  - payment/payments/payment_methods → "طرق الدفع"
+  //  - shipping_rates                    → "الشحن" (رسوم الشحن)
+  //  - homepage                          → "تصميم الصفحة الرئيسية"
+  const EXCLUDED_GROUPS = ["payment_methods", "payment", "payments", "shipping_rates", "homepage"];
   const groups = Array.from(new Set(settings.map((s) => s.group))).filter((g) => !EXCLUDED_GROUPS.includes(g));
-  const activeSettings = settings.filter((s) => s.group === activeGroup);
-  const meta = GROUP_META[activeGroup];
+  // Never land on a hidden group — fall back to the first visible one.
+  const effectiveGroup = groups.includes(activeGroup) ? activeGroup : (groups[0] ?? "");
+  const activeSettings = settings.filter((s) => s.group === effectiveGroup);
+  const meta = GROUP_META[effectiveGroup];
 
   if (loading) {
     return (
@@ -431,7 +438,7 @@ export default function AdminSettingsPage() {
         <nav className="w-52 shrink-0 space-y-1 sticky top-6">
           {groups.map((group) => {
             const m = GROUP_META[group];
-            const isActive = group === activeGroup;
+            const isActive = group === effectiveGroup;
             return (
               <button
                 key={group}
