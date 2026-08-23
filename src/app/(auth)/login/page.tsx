@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "تسجيل الدخول | متجرك الإلكتروني",
+  title: "تسجيل الدخول | نجد برنت",
 };
 
 export default function LoginPage() {

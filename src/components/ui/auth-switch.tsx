@@ -188,15 +188,20 @@ export function AuthSwitch({ defaultMode = "login" }: AuthSwitchProps) {
           <div className="px-8 pt-8 pb-6 text-center">
             <Link href="/" className="inline-flex flex-col items-center gap-2 mb-6">
               <SiteLogo size="lg" className="shadow-xl shadow-purple-900/50" />
-              <span className="text-white/60 text-xs font-medium tracking-wide">متجرك الإلكتروني</span>
+              <span className="text-white/60 text-xs font-medium tracking-wide">نجد برنت</span>
             </Link>
 
             {/* ── Toggle pill ────────────────────────────────── */}
             <div className="relative flex rounded-full bg-white/8 border border-white/10 p-1">
+              {/* RTL: the first button (تسجيل الدخول) sits on the RIGHT, so the
+                  active pill hugs the right edge for login and the left for register. */}
               <motion.div
-                className="absolute top-1 bottom-1 rounded-full bg-white"
+                className="absolute top-1 bottom-1 rounded-full bg-white shadow-sm"
                 initial={false}
-                animate={{ left: mode === "login" ? "4px" : "50%", right: mode === "login" ? "50%" : "4px" }}
+                animate={{
+                  left: mode === "login" ? "50%" : "4px",
+                  right: mode === "login" ? "4px" : "50%",
+                }}
                 transition={{ type: "spring", stiffness: 400, damping: 35 }}
               />
               <button
@@ -231,15 +236,6 @@ export function AuthSwitch({ defaultMode = "login" }: AuthSwitchProps) {
                   exit={{ opacity: 0, x: 24 }}
                   transition={{ duration: 0.28, ease: EASE }}
                 >
-                  {/* Demo credentials hint */}
-                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-5 text-xs">
-                    <p className="font-bold text-blue-300 mb-1">بيانات تجريبية:</p>
-                    <p className="text-blue-400/80">
-                      مدير: admin@store.com / admin123<br />
-                      عميل: customer@example.com / customer123
-                    </p>
-                  </div>
-
                   {loginError && (
                     <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-4 text-sm text-red-400">
                       {loginError}
