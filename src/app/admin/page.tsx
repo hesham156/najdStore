@@ -29,6 +29,7 @@ import { PeriodPicker } from "@/components/admin/PeriodPicker";
 import { resolveRange, type RangeKey } from "@/components/admin/period-options";
 import { MonthlySummaryCard } from "@/components/admin/MonthlySummaryCard";
 import { LastHourVisitsCard } from "@/components/admin/LastHourVisitsCard";
+import { CrmPanel } from "@/components/admin/CrmPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -224,6 +225,9 @@ export default async function AdminDashboardPage({
       />
 
       <AdminStats items={kpis} />
+
+      {/* ── CRM: customer insights, funnel, top customers, activity feed ── */}
+      <CrmPanel />
 
       {/* ── Salla-style monthly summary + live visits ── */}
       <MonthlySummaryCard />
