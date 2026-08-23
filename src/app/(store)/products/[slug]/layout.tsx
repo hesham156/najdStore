@@ -142,13 +142,8 @@ async function getSchemas(slug: string) {
           itemCondition: "https://schema.org/NewCondition",
           seller: { "@type": "Organization", name: siteName, url: siteUrl },
         },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      bestRating: "5",
-      worstRating: "1",
-      reviewCount: "124",
-    },
+    // Note: no aggregateRating until real customer reviews exist — fabricated
+    // ratings violate Google's structured-data policy and risk a manual penalty.
     ...(product.features.length > 0 && {
       additionalProperty: product.features.map((f) => ({
         "@type": "PropertyValue",

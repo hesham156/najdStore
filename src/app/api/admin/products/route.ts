@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
         deliveryMethod: body.deliveryMethod || "MANUAL",
         isActive: body.isActive ?? true,
         isFeatured: body.isFeatured ?? false,
+        trackStock: !!body.trackStock,
+        stockCount: Math.max(0, parseInt(String(body.stockCount ?? 0)) || 0),
         sortOrder: body.sortOrder || 0,
       },
     });

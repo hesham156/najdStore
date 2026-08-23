@@ -69,6 +69,7 @@ model Product {
   duration       String?
   sortOrder      Int                 @default(0)
   stockCount     Int                 @default(0)
+  trackStock     Boolean             @default(false) // enforce & decrement stockCount on orders
   isDeleted      Boolean             @default(false)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt

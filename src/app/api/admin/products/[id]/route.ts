@@ -43,6 +43,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.tags        !== undefined) data.tags         = body.tags        || [];
     if (body.image       !== undefined) data.image        = body.image || null;
     if (body.sortOrder   !== undefined) data.sortOrder    = body.sortOrder ?? 0;
+    if (body.trackStock  !== undefined) data.trackStock   = !!body.trackStock;
+    if (body.stockCount  !== undefined) data.stockCount   = Math.max(0, parseInt(String(body.stockCount)) || 0);
 
     const product = await prisma.product.update({
       where: { id: params.id },

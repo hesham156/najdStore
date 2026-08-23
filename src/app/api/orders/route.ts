@@ -6,6 +6,7 @@ import { generateOrderNumber } from "@/lib/utils";
 import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
 import { notifyOrderCreated } from "@/lib/hayyak";
+import { reserveStock, restoreStock, type StockLine } from "@/lib/stock";
 import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   // NOTE: do NOT reject unauthenticated requests here — guest checkout is handled below
+
+  // Stock reserved for this order; restored if creation fails downstream.
+  let reservedLines: StockLine[] | null = null;
 
   try {
     const body = await req.json();
@@ -183,6 +187,22 @@ export async function POST(req: NextRequest) {
 
     const total = Math.max(0, subtotal - discount);
 
+    // Reserve stock for tracked products before creating the order (prevents overselling)
+    const stockLines: StockLine[] = orderItems.map((i: { productId: string; quantity: number; variantId?: string }) => ({
+      productId: i.productId,
+      variantId: i.variantId ?? null,
+      quantity: i.quantity,
+    }));
+    try {
+      await reserveStock(stockLines);
+      reservedLines = stockLines;
+    } catch (e) {
+      return NextResponse.json(
+        { success: false, error: e instanceof Error ? e.message : "الكمية المطلوبة غير متوفرة في المخزون" },
+        { status: 409 },
+      );
+    }
+
     const order = await prisma.order.create({
       data: {
         orderNumber: generateOrderNumber(),
@@ -320,6 +340,8 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("Error integrating Tamara:", err);
         await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+        if (reservedLines) await restoreStock(reservedLines).catch(() => {});
+        reservedLines = null;
         return NextResponse.json(
           { success: false, error: "فشل الاتصال بتمارا. تحقق من البيانات أو اختر طريقة دفع أخرى." },
           { status: 400 }
@@ -333,6 +355,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, data: order, paypalApproveLink, tamaraCheckoutUrl });
   } catch (error) {
     console.error(error);
+    if (reservedLines) await restoreStock(reservedLines).catch(() => {});
     return NextResponse.json({ success: false, error: "حدث خطأ" }, { status: 500 });
   }
 }

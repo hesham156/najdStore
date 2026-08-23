@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, notFound, badRequest, serverError } from "@/lib/api";
 import { notifyOrderStatusUpdated } from "@/lib/hayyak";
+import { restoreStock } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -116,6 +117,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         data: { status: "CANCELLED" },
         include: { user: true, payment: true, items: { include: { product: true } } },
       });
+
+      // Return reserved stock to the catalog (guard against double-restore)
+      if (order.status !== "CANCELLED") {
+        await restoreStock(
+          order.items.map((it) => ({ productId: it.productId, variantId: it.variantId, quantity: it.quantity })),
+        ).catch(() => {});
+      }
 
       await prisma.notification.create({
         data: {

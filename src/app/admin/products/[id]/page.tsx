@@ -85,6 +85,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     deliveryMethod: "MANUAL",
     isFeatured: false,
     isActive: true,
+    trackStock: false,
+    stockCount: "0",
     sortOrder: "0",
     seoTitle: "",
     seoDescription: "",
@@ -143,6 +145,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         deliveryMethod: p.deliveryMethod,
         isFeatured: p.isFeatured,
         isActive: p.isActive,
+        trackStock: p.trackStock ?? false,
+        stockCount: String(p.stockCount ?? 0),
         sortOrder: String(p.sortOrder),
         seoTitle: tags.find((t) => t.startsWith("seo_title:"))?.replace("seo_title:", "") || "",
         seoDescription: tags.find((t) => t.startsWith("seo_desc:"))?.replace("seo_desc:", "") || "",
@@ -262,6 +266,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           price: basePrice,
           comparePrice: form.comparePrice ? parseFloat(form.comparePrice) : null,
           sortOrder: parseInt(form.sortOrder),
+          stockCount: parseInt(form.stockCount) || 0,
           features: form.features.split("\n").filter(Boolean),
           featuresAr: form.featuresAr.split("\n").filter(Boolean),
           tags: [...variantTags, ...seoTags],
@@ -598,6 +603,25 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   onChange={(e) => set("sortOrder", e.target.value)}
                   hint="الأرقام الأصغر تظهر أولاً."
                 />
+              </Section>
+
+              <Section title="تتبّع الكمية" contentClassName="space-y-4 pt-0">
+                <Switch
+                  checked={form.trackStock}
+                  onChange={(v) => set("trackStock", v)}
+                  label="تتبّع المخزون لهذا المنتج"
+                  description="عند التفعيل، يُخصم من الكمية مع كل طلب ويُمنع البيع عند نفادها. اتركه معطلاً للمنتجات حسب الطلب (كمية غير محدودة)."
+                />
+                {form.trackStock && (
+                  <Input
+                    label="الكمية المتوفرة"
+                    type="number"
+                    min={0}
+                    value={form.stockCount}
+                    onChange={(e) => set("stockCount", e.target.value)}
+                    hint="عدد القطع المتاحة للبيع."
+                  />
+                )}
               </Section>
             </TabPanel>
           </form>
