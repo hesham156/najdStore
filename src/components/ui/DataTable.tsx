@@ -50,11 +50,27 @@ interface DataTableProps<T extends { id: string }> {
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string | undefined;
   className?: string;
-  /** Sticks the header while the page scrolls. */
+  /**
+   * Pins the header row while the table body scrolls.
+   *
+   * `overflow-x-auto` on the wrapper makes it a scroll container, which means
+   * a sticky header is scoped to that box rather than the viewport. So the
+   * wrapper owns the vertical scroll too (capped by `maxHeight`) and the
+   * header sticks to its top. Short tables never reach the cap and behave
+   * exactly as before.
+   */
   stickyHeader?: boolean;
+  /** Height cap for the scrolling body when `stickyHeader` is on. */
+  maxHeight?: string;
   /** Rows rendered by the loading skeleton. */
   skeletonRows?: number;
 }
+
+/* The header cells carry their own background and bottom rule: a background on
+   <tr> is unreliable once the row is sticky, and with border-collapse the
+   border belongs to the table and scrolls away — an inset shadow does not. */
+const HEAD_CELL = "bg-surface-muted shadow-[inset_0_-1px_0_rgb(var(--line))]";
+const STICKY_HEAD = "sticky top-0 z-20";
 
 const alignClass = (align?: Column<unknown>["align"]) =>
   align === "end" ? "text-end" : align === "center" ? "text-center" : "text-start";
@@ -78,6 +94,7 @@ export function DataTable<T extends { id: string }>({
   rowClassName,
   className,
   stickyHeader = true,
+  maxHeight = "70vh",
   skeletonRows = 6,
 }: DataTableProps<T>) {
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
@@ -147,12 +164,15 @@ export function DataTable<T extends { id: string }>({
       )}
 
       {/* ── Table (md and up) ── */}
-      <div className="hidden overflow-x-auto rounded-card border border-line bg-surface shadow-card md:block">
+      <div
+        className="hidden overflow-auto rounded-card border border-line bg-surface shadow-card md:block"
+        style={stickyHeader ? { maxHeight } : undefined}
+      >
         <table className="w-full min-w-full text-sm">
           <thead>
-            <tr className={cn("bg-surface-muted", stickyHeader && "sticky top-[var(--header-h)] z-10")}>
+            <tr>
               {selectable && (
-                <th scope="col" className="w-10 px-4 py-2.5">
+                <th scope="col" className={cn("w-10 px-4 py-2.5", HEAD_CELL, stickyHeader && STICKY_HEAD)}>
                   <input
                     type="checkbox"
                     aria-label="تحديد كل الصفوف"
@@ -173,7 +193,9 @@ export function DataTable<T extends { id: string }>({
                     scope="col"
                     aria-sort={sorted ? (sortDirection === "asc" ? "ascending" : "descending") : undefined}
                     className={cn(
-                      "whitespace-nowrap border-b border-line px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-fg-muted",
+                      "whitespace-nowrap px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide text-fg-muted",
+                      HEAD_CELL,
+                      stickyHeader && STICKY_HEAD,
                       alignClass(col.align),
                       col.hideOnMobile && "hidden lg:table-cell",
                       col.className
