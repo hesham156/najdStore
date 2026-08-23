@@ -382,7 +382,7 @@ export default function AdminSettingsPage() {
   //  - payment/payments/payment_methods → "طرق الدفع"
   //  - shipping_rates                    → "الشحن" (رسوم الشحن)
   //  - homepage                          → "تصميم الصفحة الرئيسية"
-  const EXCLUDED_GROUPS = ["payment_methods", "payment", "payments", "shipping_rates", "homepage"];
+  const EXCLUDED_GROUPS = ["payment_methods", "payment", "payments", "shipping_rates", "shipping", "shipping_dhl", "homepage"];
   const groups = Array.from(new Set(settings.map((s) => s.group))).filter((g) => !EXCLUDED_GROUPS.includes(g));
   // Never land on a hidden group — fall back to the first visible one.
   const effectiveGroup = groups.includes(activeGroup) ? activeGroup : (groups[0] ?? "");

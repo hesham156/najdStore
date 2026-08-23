@@ -17,6 +17,13 @@ interface Rate {
   isActive: boolean;
 }
 
+interface CarrierField {
+  key: string;
+  labelAr: string;
+  type: string;
+  group: string;
+}
+
 export default function ShippingRatesPage() {
   const [rates, setRates] = useState<Rate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +35,11 @@ export default function ShippingRatesPage() {
   const [flatFee, setFlatFee] = useState("0");
   const [freeThreshold, setFreeThreshold] = useState("0");
   const [savingFees, setSavingFees] = useState(false);
+
+  // Carrier settings (RedBox = group "shipping", DHL = group "shipping_dhl")
+  const [carrierMeta, setCarrierMeta] = useState<CarrierField[]>([]);
+  const [carrierVals, setCarrierVals] = useState<Record<string, string>>({});
+  const [savingCarriers, setSavingCarriers] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -42,6 +54,14 @@ export default function ShippingRatesPage() {
         settingsRes.data.forEach((s: { key: string; value: string }) => { map[s.key] = s.value; });
         setFlatFee(map["shipping_fee"] ?? "0");
         setFreeThreshold(map["shipping_free_threshold"] ?? "0");
+
+        const carriers: CarrierField[] = settingsRes.data
+          .filter((s: CarrierField) => s.group === "shipping" || s.group === "shipping_dhl")
+          .map((s: CarrierField) => ({ key: s.key, labelAr: s.labelAr, type: s.type, group: s.group }));
+        setCarrierMeta(carriers);
+        const cv: Record<string, string> = {};
+        carriers.forEach((c) => { cv[c.key] = map[c.key] ?? ""; });
+        setCarrierVals(cv);
       }
     } finally {
       setLoading(false);
@@ -62,6 +82,22 @@ export default function ShippingRatesPage() {
       if (data.success) toast.success("تم حفظ الرسوم العامة ✓");
       else toast.error(data.error || "تعذّر الحفظ");
     } finally { setSavingFees(false); }
+  };
+
+  const setCarrierVal = (key: string, val: string) => setCarrierVals((p) => ({ ...p, [key]: val }));
+
+  const saveCarriers = async () => {
+    setSavingCarriers(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: carrierVals }),
+      });
+      const data = await res.json();
+      if (data.success) toast.success("تم حفظ إعدادات شركات الشحن ✓");
+      else toast.error(data.error || "تعذّر الحفظ");
+    } finally { setSavingCarriers(false); }
   };
 
   const add = async () => {
@@ -117,6 +153,20 @@ export default function ShippingRatesPage() {
         </div>
       </Card>
 
+      {/* Shipping carriers (RedBox / DHL) */}
+      {carrierMeta.length > 0 && (
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm text-fg flex items-center gap-2"><Truck className="h-4 w-4 text-primary-500" /> شركات الشحن</h3>
+            <Button size="sm" onClick={saveCarriers} loading={savingCarriers}><Save className="h-3.5 w-3.5" /> حفظ</Button>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <CarrierBlock title="RedBox" fields={carrierMeta.filter((c) => c.group === "shipping")} values={carrierVals} onChange={setCarrierVal} />
+            <CarrierBlock title="DHL Express" fields={carrierMeta.filter((c) => c.group === "shipping_dhl")} values={carrierVals} onChange={setCarrierVal} />
+          </div>
+        </Card>
+      )}
+
       {/* Add city rate */}
       <h3 className="font-semibold text-sm text-fg pt-1 flex items-center gap-2"><MapPin className="h-4 w-4 text-primary-500" /> أسعار المدن</h3>
       <Card>
@@ -164,6 +214,41 @@ export default function ShippingRatesPage() {
             </div>
           ))}
         </Card>
+      )}
+    </div>
+  );
+}
+
+function CarrierBlock({
+  title, fields, values, onChange,
+}: {
+  title: string;
+  fields: CarrierField[];
+  values: Record<string, string>;
+  onChange: (key: string, val: string) => void;
+}) {
+  if (fields.length === 0) return null;
+  // show the enable toggle first, then the rest
+  const sorted = [...fields].sort((a) => (a.type === "boolean" ? -1 : 1));
+  return (
+    <div className="rounded-xl border border-line p-4 space-y-3">
+      <p className="font-bold text-sm text-fg">{title}</p>
+      {sorted.map((f) =>
+        f.type === "boolean" ? (
+          <Switch
+            key={f.key}
+            checked={values[f.key] === "true"}
+            onChange={(v) => onChange(f.key, String(v))}
+            label={f.labelAr}
+          />
+        ) : (
+          <Input
+            key={f.key}
+            label={f.labelAr}
+            value={values[f.key] || ""}
+            onChange={(e) => onChange(f.key, e.target.value)}
+          />
+        )
       )}
     </div>
   );
