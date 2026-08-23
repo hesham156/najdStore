@@ -94,6 +94,12 @@ const GROUP_META: Record<string, {
     description: "إعداد إرسال رسائل البريد (تأكيد الطلب، استعادة كلمة المرور) عبر SMTP. يعمل مع أي مزوّد: Gmail، بريد النطاق، SendGrid… لجيميل استخدم App Password.",
     color: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-900/20",
   },
+  shipping_rates: {
+    label: "رسوم الشحن",
+    icon: <Truck className="h-4 w-4" />,
+    description: "حدّد رسوم شحن ثابتة تُضاف في صفحة الدفع، مع خيار شحن مجاني عند تجاوز مبلغ معيّن. اترك الرسوم 0 لجعل الشحن مجانياً دائماً.",
+    color: "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20",
+  },
 };
 
 // Conversion features definition — each card groups related keys

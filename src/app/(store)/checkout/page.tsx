@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import {
   CreditCard, Landmark, Wallet, Tag, CheckCircle2, Upload, Copy, AlertCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, computeShipping } from "@/lib/utils";
 import AdBanner from "@/components/store/AdBanner";
 
 /* ─── Types ─── */
@@ -97,6 +97,8 @@ export default function CheckoutPage() {
   const [shipPhone, setShipPhone]           = useState("");
   const [shipCity, setShipCity]             = useState("");
   const [shipAddress, setShipAddress]       = useState("");
+  const [shipFee, setShipFee]               = useState(0);
+  const [shipFreeThreshold, setShipFreeThreshold] = useState(0);
 
   /* Fetch enabled gateways + public settings */
   useEffect(() => {
@@ -115,6 +117,8 @@ export default function CheckoutPage() {
       }
       if (s.success) {
         setGuestCheckoutEnabled(s.data.guest_checkout === true);
+        setShipFee(parseFloat(String(s.data.shipping_fee ?? 0)) || 0);
+        setShipFreeThreshold(parseFloat(String(s.data.shipping_free_threshold ?? 0)) || 0);
       }
     }).finally(() => setGatewaysLoading(false));
   }, []);
@@ -125,7 +129,8 @@ export default function CheckoutPage() {
       ? subtotal * (coupon.discountValue / 100)
       : coupon.discountValue
     : 0;
-  const total = Math.max(0, subtotal - discount);
+  const shippingCost = computeShipping(subtotal, shipFee, shipFreeThreshold);
+  const total = Math.max(0, subtotal - discount) + shippingCost;
 
   /* ── Guards ── */
   // Still loading session — wait
@@ -477,6 +482,14 @@ if (items.length === 0) {
                   <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
                     <span>خصم الكوبون</span>
                     <span>- {formatAmount(discount)}</span>
+                  </div>
+                )}
+                {shipFee > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">الشحن</span>
+                    {shippingCost > 0
+                      ? <span className="font-medium">{formatAmount(shippingCost)}</span>
+                      : <span className="font-medium text-green-600 dark:text-green-400">مجاني</span>}
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-lg border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">

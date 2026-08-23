@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateOrderNumber } from "@/lib/utils";
+import { generateOrderNumber, computeShipping } from "@/lib/utils";
 import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
 import { getMoyasarConfig, createInvoice } from "@/lib/moyasar";
@@ -197,7 +197,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const total = Math.max(0, subtotal - discount);
+    // Shipping fee (computed server-side — never trust the client)
+    const shipRows = await prisma.setting.findMany({
+      where: { key: { in: ["shipping_fee", "shipping_free_threshold"] } },
+      select: { key: true, value: true },
+    });
+    const sm: Record<string, string> = {};
+    shipRows.forEach((s) => { sm[s.key] = s.value; });
+    const shippingCost = computeShipping(
+      subtotal,
+      parseFloat(sm["shipping_fee"] || "0") || 0,
+      parseFloat(sm["shipping_free_threshold"] || "0") || 0,
+    );
+
+    const total = Math.max(0, subtotal - discount) + shippingCost;
 
     // Reserve stock for tracked products before creating the order (prevents overselling)
     const stockLines: StockLine[] = orderItems.map((i: { productId: string; quantity: number; variantId?: string }) => ({
@@ -224,6 +237,7 @@ export async function POST(req: NextRequest) {
         : "PENDING_PAYMENT_REVIEW",
         subtotal,
         discount,
+        shippingCost,
         total,
         couponId,
         notes,

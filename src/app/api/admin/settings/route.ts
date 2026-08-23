@@ -63,6 +63,9 @@ const SHIPPING_KEYS: Array<{ key: string; value: string; labelAr: string; type: 
   { key: "smtp_pass",       value: "",      labelAr: "كلمة مرور SMTP (أو App Password)", type: "text", group: "email" },
   { key: "email_from",      value: "",      labelAr: "بريد المُرسِل (From)", type: "text", group: "email" },
   { key: "email_from_name", value: "نجد برنت", labelAr: "اسم المُرسِل", type: "text", group: "email" },
+  // ── Shipping rates (group "shipping_rates") ──
+  { key: "shipping_fee",             value: "0",  labelAr: "رسوم الشحن الثابتة (ر.س) — اتركها 0 لشحن مجاني", type: "text", group: "shipping_rates" },
+  { key: "shipping_free_threshold",  value: "0",  labelAr: "شحن مجاني عند تجاوز المجموع (ر.س) — 0 لتعطيله", type: "text", group: "shipping_rates" },
 ];
 
 export async function GET(req: NextRequest) {

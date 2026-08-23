@@ -156,6 +156,7 @@ model Order {
   status        OrderStatus    @default(PENDING)
   subtotal      Decimal        @db.Decimal(10, 2)
   discount      Decimal        @default(0) @db.Decimal(10, 2)
+  shippingCost  Decimal        @default(0) @db.Decimal(10, 2)
   total         Decimal        @db.Decimal(10, 2)
   couponId      String?
   notes         String?

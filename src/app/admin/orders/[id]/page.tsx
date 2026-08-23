@@ -521,6 +521,12 @@ export default function AdminOrderDetailPage() {
                   <dd className="tnum">−{formatCurrency(order.discount)}</dd>
                 </div>
               )}
+              {parseFloat(String((order as { shippingCost?: number }).shippingCost ?? 0)) > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-fg-muted">الشحن</dt>
+                  <dd className="tnum text-fg">{formatCurrency((order as { shippingCost?: number }).shippingCost ?? 0)}</dd>
+                </div>
+              )}
               <div className="flex justify-between border-t border-line pt-2 text-base font-bold">
                 <dt>الإجمالي</dt>
                 <dd className="tnum text-primary-600 dark:text-primary-400">{formatCurrency(order.total)}</dd>

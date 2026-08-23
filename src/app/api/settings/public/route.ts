@@ -14,6 +14,8 @@ const PUBLIC_KEYS = [
   "tamara_enabled",
   "tamara_installments",
   "guest_checkout",
+  "shipping_fee",
+  "shipping_free_threshold",
   // Conversion
   "live_activity_enabled",
   "live_activity_interval",

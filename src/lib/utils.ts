@@ -142,6 +142,16 @@ export function slugCandidates(raw: string): string[] {
 }
 
 /**
+ * Flat shipping fee with an optional free-shipping threshold (based on subtotal).
+ * Kept in one place so the checkout and the server compute the same value.
+ */
+export function computeShipping(subtotal: number, fee: number, freeThreshold: number): number {
+  if (!fee || fee <= 0) return 0;
+  if (freeThreshold > 0 && subtotal >= freeThreshold) return 0;
+  return fee;
+}
+
+/**
  * Serialize a Prisma product (or any object) to a plain JSON-safe object.
  * Converts Decimal fields (price, comparePrice) to plain numbers so they
  * can safely be passed from Server Components to Client Components.
