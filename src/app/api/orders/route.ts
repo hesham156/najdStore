@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateOrderNumber, computeShipping } from "@/lib/utils";
+import { generateOrderNumber, computeShipping, resolveCityFee } from "@/lib/utils";
 import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
 import { getMoyasarConfig, createInvoice } from "@/lib/moyasar";
@@ -198,17 +198,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Shipping fee (computed server-side — never trust the client)
-    const shipRows = await prisma.setting.findMany({
-      where: { key: { in: ["shipping_fee", "shipping_free_threshold"] } },
-      select: { key: true, value: true },
-    });
+    const [shipRows, cityRateRows] = await Promise.all([
+      prisma.setting.findMany({
+        where: { key: { in: ["shipping_fee", "shipping_free_threshold"] } },
+        select: { key: true, value: true },
+      }),
+      prisma.shippingRate.findMany({ where: { isActive: true }, select: { city: true, cost: true } }),
+    ]);
     const sm: Record<string, string> = {};
     shipRows.forEach((s) => { sm[s.key] = s.value; });
-    const shippingCost = computeShipping(
-      subtotal,
-      parseFloat(sm["shipping_fee"] || "0") || 0,
-      parseFloat(sm["shipping_free_threshold"] || "0") || 0,
+    const flatFee = parseFloat(sm["shipping_fee"] || "0") || 0;
+    const freeThreshold = parseFloat(sm["shipping_free_threshold"] || "0") || 0;
+    const shippingBase = resolveCityFee(
+      shipCity,
+      cityRateRows.map((r) => ({ city: r.city, cost: Number(r.cost) })),
+      flatFee,
     );
+    const shippingCost = computeShipping(subtotal, shippingBase, freeThreshold);
 
     const total = Math.max(0, subtotal - discount) + shippingCost;
 

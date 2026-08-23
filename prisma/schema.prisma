@@ -180,6 +180,20 @@ model Order {
   @@map("orders")
 }
 
+// Per-city shipping rate. Falls back to the flat `shipping_fee` setting for
+// cities not listed here.
+model ShippingRate {
+  id        String   @id @default(cuid())
+  city      String   @unique
+  cost      Decimal  @db.Decimal(10, 2)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("shipping_city_rates")
+}
+
 // A carrier shipment for an order (currently RedBox).
 model Shipment {
   id             String   @id @default(cuid())

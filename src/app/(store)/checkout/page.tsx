@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import {
   CreditCard, Landmark, Wallet, Tag, CheckCircle2, Upload, Copy, AlertCircle,
 } from "lucide-react";
-import { cn, computeShipping } from "@/lib/utils";
+import { cn, computeShipping, resolveCityFee } from "@/lib/utils";
 import AdBanner from "@/components/store/AdBanner";
 
 /* ─── Types ─── */
@@ -99,13 +99,16 @@ export default function CheckoutPage() {
   const [shipAddress, setShipAddress]       = useState("");
   const [shipFee, setShipFee]               = useState(0);
   const [shipFreeThreshold, setShipFreeThreshold] = useState(0);
+  const [cityRates, setCityRates]           = useState<{ city: string; cost: number }[]>([]);
 
   /* Fetch enabled gateways + public settings */
   useEffect(() => {
     Promise.all([
       fetch("/api/payment-methods").then((r) => r.json()),
       fetch("/api/settings/public").then((r) => r.json()),
-    ]).then(([d, s]) => {
+      fetch("/api/shipping-rates").then((r) => r.json()),
+    ]).then(([d, s, cr]) => {
+      if (cr?.success && Array.isArray(cr.data)) setCityRates(cr.data);
       if (d.success) {
         setGateways(d.data);
         const g: PaymentMethods = d.data;
@@ -129,7 +132,9 @@ export default function CheckoutPage() {
       ? subtotal * (coupon.discountValue / 100)
       : coupon.discountValue
     : 0;
-  const shippingCost = computeShipping(subtotal, shipFee, shipFreeThreshold);
+  const shippingBase = resolveCityFee(shipCity, cityRates, shipFee);
+  const shippingCost = computeShipping(subtotal, shippingBase, shipFreeThreshold);
+  const hasShipping = shipFee > 0 || cityRates.length > 0;
   const total = Math.max(0, subtotal - discount) + shippingCost;
 
   /* ── Guards ── */
@@ -441,7 +446,19 @@ if (items.length === 0) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input value={shipName} onChange={(e) => setShipName(e.target.value)} placeholder="اسم المستلم" className="input-base" />
                 <input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder="جوال المستلم" className="input-base" inputMode="tel" />
-                <input value={shipCity} onChange={(e) => setShipCity(e.target.value)} placeholder="المدينة" className="input-base" />
+                {cityRates.length > 0 ? (
+                  <select value={shipCity} onChange={(e) => setShipCity(e.target.value)} className="input-base">
+                    <option value="">اختر المدينة…</option>
+                    {cityRates.map((r) => (
+                      <option key={r.city} value={r.city}>
+                        {r.city}{r.cost > 0 ? ` (شحن ${r.cost} ر.س)` : " (شحن مجاني)"}
+                      </option>
+                    ))}
+                    {shipFee > 0 && <option value="مدن أخرى">مدينة أخرى (شحن {shipFee} ر.س)</option>}
+                  </select>
+                ) : (
+                  <input value={shipCity} onChange={(e) => setShipCity(e.target.value)} placeholder="المدينة" className="input-base" />
+                )}
                 <input value={shipAddress} onChange={(e) => setShipAddress(e.target.value)} placeholder="العنوان التفصيلي" className="input-base" />
               </div>
             </div>
@@ -484,7 +501,7 @@ if (items.length === 0) {
                     <span>- {formatAmount(discount)}</span>
                   </div>
                 )}
-                {shipFee > 0 && (
+                {hasShipping && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">الشحن</span>
                     {shippingCost > 0

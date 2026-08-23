@@ -18,6 +18,7 @@ import {
   ShoppingBag,
   ShoppingCart,
   Sparkles,
+  Truck,
   Tag,
   TicketPercent,
   TrendingDown,
@@ -97,6 +98,7 @@ export const navGroups: NavGroup[] = [
     label: "الإعدادات",
     items: [
       { href: "/admin/payment-methods", label: "طرق الدفع", icon: Wallet, keywords: "payment methods" },
+      { href: "/admin/shipping-rates", label: "رسوم الشحن", icon: Truck, keywords: "shipping rates cities رسوم شحن مدن" },
       { href: "/admin/integrations", label: "التكاملات", icon: Plug, keywords: "integrations" },
       { href: "/admin/seo", label: "إعدادات SEO", icon: SearchCheck, keywords: "seo" },
       { href: "/admin/admins", label: "المشرفون", icon: Shield, keywords: "admins staff" },

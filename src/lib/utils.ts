@@ -151,6 +151,20 @@ export function computeShipping(subtotal: number, fee: number, freeThreshold: nu
   return fee;
 }
 
+/** Resolve the shipping base fee for a city, falling back to the flat fee for unlisted cities. */
+export function resolveCityFee(
+  city: string | undefined | null,
+  rates: { city: string; cost: number }[],
+  flatFee: number,
+): number {
+  if (city && rates.length) {
+    const c = city.trim().toLowerCase();
+    const match = rates.find((r) => r.city.trim().toLowerCase() === c);
+    if (match) return match.cost;
+  }
+  return flatFee;
+}
+
 /**
  * Serialize a Prisma product (or any object) to a plain JSON-safe object.
  * Converts Decimal fields (price, comparePrice) to plain numbers so they
