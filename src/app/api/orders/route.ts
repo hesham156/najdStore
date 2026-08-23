@@ -7,6 +7,7 @@ import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
 import { notifyOrderCreated } from "@/lib/hayyak";
 import { reserveStock, restoreStock, type StockLine } from "@/lib/stock";
+import { sendEmail, orderConfirmationEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
@@ -351,6 +352,17 @@ export async function POST(req: NextRequest) {
 
     // إشعار حياك: تم إنشاء الطلب → رسالة تأكيد واتساب للعميل (لا يوقف الاستجابة عند الفشل)
     await notifyOrderCreated(order);
+
+    // Order confirmation email (non-blocking — never fails the request)
+    if (order.user?.email) {
+      const mail = orderConfirmationEmail({
+        orderNumber: order.orderNumber,
+        customerName: order.user.name || "عميلنا",
+        total: Number(order.total),
+        items: order.items.map((it) => ({ nameAr: it.product.nameAr, quantity: it.quantity, price: Number(it.price) })),
+      });
+      sendEmail({ to: order.user.email, subject: mail.subject, html: mail.html }).catch(() => {});
+    }
 
     return NextResponse.json({ success: true, data: order, paypalApproveLink, tamaraCheckoutUrl });
   } catch (error) {

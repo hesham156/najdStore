@@ -25,8 +25,23 @@ model User {
   posts          Post[]
   tickets        SupportTicket[]
   advertisements Advertisement[] @relation("UserAdvertisements")
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
+}
+
+// One-time password-reset tokens (the token is stored hashed).
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Category {

@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import {
   Settings, Save, CreditCard, BarChart2, ShoppingBag,
   Globe, AlertCircle, TrendingUp, Bell, Clock, Eye,
-  ShoppingCart, Gift, Shield, Flame, Calculator, Code2, Truck,
+  ShoppingCart, Gift, Shield, Flame, Calculator, Code2, Truck, Mail,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -87,6 +87,12 @@ const GROUP_META: Record<string, {
     icon: <Truck className="h-4 w-4" />,
     description: "ربط شركة الشحن DHL Express (MyDHL API): أدخل مفتاح/سر الـ API ورقم الحساب وبيانات المرسِل. استخدم بيئة test للتجربة قبل التفعيل الفعلي (live).",
     color: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20",
+  },
+  email: {
+    label: "البريد الإلكتروني (SMTP)",
+    icon: <Mail className="h-4 w-4" />,
+    description: "إعداد إرسال رسائل البريد (تأكيد الطلب، استعادة كلمة المرور) عبر SMTP. يعمل مع أي مزوّد: Gmail، بريد النطاق، SendGrid… لجيميل استخدم App Password.",
+    color: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-900/20",
   },
 };
 

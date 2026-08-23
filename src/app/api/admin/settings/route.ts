@@ -54,6 +54,15 @@ const SHIPPING_KEYS: Array<{ key: string; value: string; labelAr: string; type: 
   { key: "dhl_sender_country",  value: "SA",       labelAr: "دولة المرسِل (ISO مثل SA)", type: "text", group: "shipping_dhl" },
   { key: "dhl_sender_address",  value: "",         labelAr: "عنوان استلام الشحنة", type: "text", group: "shipping_dhl" },
   { key: "dhl_default_weight",  value: "1",        labelAr: "الوزن الافتراضي للطرد (كجم)", type: "text", group: "shipping_dhl" },
+  // ── Transactional email / SMTP (group "email") ──
+  { key: "email_enabled",   value: "false", labelAr: "تفعيل إرسال البريد", type: "boolean", group: "email" },
+  { key: "smtp_host",       value: "",      labelAr: "SMTP Host (مثل smtp.gmail.com)", type: "text", group: "email" },
+  { key: "smtp_port",       value: "587",   labelAr: "SMTP Port (587 أو 465)", type: "text", group: "email" },
+  { key: "smtp_secure",     value: "false", labelAr: "اتصال آمن SSL (فعّله للمنفذ 465)", type: "boolean", group: "email" },
+  { key: "smtp_user",       value: "",      labelAr: "اسم مستخدم SMTP (البريد)", type: "text", group: "email" },
+  { key: "smtp_pass",       value: "",      labelAr: "كلمة مرور SMTP (أو App Password)", type: "text", group: "email" },
+  { key: "email_from",      value: "",      labelAr: "بريد المُرسِل (From)", type: "text", group: "email" },
+  { key: "email_from_name", value: "نجد برنت", labelAr: "اسم المُرسِل", type: "text", group: "email" },
 ];
 
 export async function GET(req: NextRequest) {

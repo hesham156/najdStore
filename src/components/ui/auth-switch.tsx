@@ -270,6 +270,12 @@ export function AuthSwitch({ defaultMode = "login" }: AuthSwitchProps) {
                       }
                     />
 
+                    <div className="text-start -mt-1">
+                      <Link href="/forgot-password" className="text-xs text-primary-400 hover:text-primary-300">
+                        نسيت كلمة المرور؟
+                      </Link>
+                    </div>
+
                     <AuthButton loading={loginLoading}>تسجيل الدخول</AuthButton>
                   </form>
                 </motion.div>
