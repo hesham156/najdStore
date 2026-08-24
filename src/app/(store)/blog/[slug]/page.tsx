@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getSeoConfig } from "@/lib/seo";
 import Link from "next/link";
 import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   const title = post.metaTitleAr || post.titleAr;
   const description = post.metaDescriptionAr || post.excerptAr || "";
-  const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
+  const { siteUrl } = await getSeoConfig();
 
   return {
     title,
@@ -101,7 +102,8 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
   const htmlContent = DOMPurify.sanitize(await marked(post.contentAr, { renderer }));
   const headings = extractHeadings(post.contentAr);
-  const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
+  const cfg = await getSeoConfig();
+  const { siteUrl } = cfg;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -110,11 +112,9 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     description: post.metaDescriptionAr || post.excerptAr || "",
     image: post.coverImage || `${siteUrl}/logo.jpg`,
     author: { "@type": "Person", name: post.author.name },
-    publisher: {
-      "@type": "Organization",
-      name: "متجر رقمي",
-      logo: { "@type": "ImageObject", url: `${siteUrl}/logo.jpg` },
-    },
+    // Points at the same Organization node the root layout emits, instead of
+    // naming a second, differently-named publisher.
+    publisher: { "@id": `${siteUrl}/#organization` },
     datePublished: post.publishedAt?.toISOString(),
     dateModified: post.updatedAt.toISOString(),
     mainEntityOfPage: { "@type": "WebPage", "@id": `${siteUrl}/blog/${post.slug}` },

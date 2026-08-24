@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { AlertCircle, CheckCircle2, Clock, GripVertical, Package, Plus, Star, Trash2, Zap } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/Button";
@@ -308,10 +309,14 @@ export function SerpPreview({
 }) {
   const titleLong = title.length > 60;
   const descLong = description.length > 160;
+  // Read after mount: the real host, not a placeholder, without risking an
+  // SSR/client text mismatch on first paint.
+  const [host, setHost] = useState("");
+  useEffect(() => setHost(window.location.host), []);
 
   return (
     <div className="space-y-1 rounded-control border border-line bg-surface p-3" dir="ltr">
-      <p className="truncate text-[11px] text-success">yourstore.com › products › {slug || "..."}</p>
+      <p className="truncate text-[11px] text-success">{host || "…"} › products › {slug || "..."}</p>
       <p className={cn("truncate text-[13px] font-medium", titleLong ? "text-warning" : "text-info")}>
         {title || "عنوان المنتج"}
       </p>

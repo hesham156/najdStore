@@ -2,12 +2,20 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { SiteLogo } from "@/components/ui/site-logo";
 import Link from "next/link";
 import { Home } from "lucide-react";
+import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login?redirect=/dashboard");
+
+  // The header used to hardcode a placeholder name and a stand-in letter
+  // instead of the store's own name and logo.
+  const { site_name } = await getSettings({ site_name: BRANDING_DEFAULTS.site_name }).catch(() => ({
+    site_name: BRANDING_DEFAULTS.site_name,
+  }));
 
   return (
     <div className="min-h-screen bg-surface-sunken">
@@ -23,10 +31,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <span className="text-sm font-medium text-fg">لوحة التحكم</span>
           </div>
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">د</span>
-            </div>
-            <span className="font-bold text-fg text-sm hidden sm:block">متجر رقمي</span>
+            <SiteLogo size="xs" />
+            <span className="hidden text-sm font-bold text-fg sm:block">{site_name}</span>
           </Link>
         </div>
       </header>
