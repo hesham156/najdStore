@@ -54,10 +54,12 @@ async function getConversionSettings(): Promise<Partial<ConversionSettings>> {
 }
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const maintenanceSetting = await prisma.setting.findUnique({
-    where: { key: "maintenance_mode" },
-    select: { value: true },
-  });
+  // A settings read that throws here took the entire storefront down with an
+  // error page. The SEO and branding layers already degrade gracefully; this
+  // one now matches them — a database blip must not black out the shop.
+  const maintenanceSetting = await prisma.setting
+    .findUnique({ where: { key: "maintenance_mode" }, select: { value: true } })
+    .catch(() => null);
 
   if (maintenanceSetting?.value === "true") {
     const session = await getServerSession(authOptions);
@@ -69,7 +71,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
 
   // Branding reaches the header through the root layout's context, so this
   // layout no longer queries the settings table for it a second time.
-  const conversionSettings = await getConversionSettings();
+  const conversionSettings = await getConversionSettings().catch(() => ({}));
 
   return (
     <CurrencyProvider>

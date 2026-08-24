@@ -7,9 +7,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number | string, currency = "SAR", symbol = "ر.س") {
+/**
+ * Money for display: grouped thousands, fixed decimals, never "NaN ر.س".
+ *
+ * `toFixed` alone rendered a 1,234,567.89 ر.س order as "1234567.89 ر.س", which
+ * is a wall of digits to read at a glance. Grouping is done with Latin digits
+ * (`en-US`) because that is what the rest of the storefront shows.
+ */
+export function formatCurrency(amount: number | string, currency = "SAR", symbol = "ر.س", decimals = 2) {
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  return `${num.toFixed(2)} ${symbol}`;
+  const safe = Number.isFinite(num) ? num : 0;
+  const formatted = safe.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+  return `${formatted} ${symbol}`;
 }
 
 export function formatDate(date: Date | string, locale = "ar-SA") {

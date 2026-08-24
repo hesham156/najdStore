@@ -40,8 +40,22 @@ interface SearchParams {
   page?: string;
 }
 
+/** Query string carrying every active filter, so one control never drops another. */
+function filterQuery(params: SearchParams, override: Partial<SearchParams> = {}) {
+  const merged = { ...params, ...override };
+  const qs = new URLSearchParams();
+  if (merged.search) qs.set("search", merged.search);
+  if (merged.category) qs.set("category", merged.category);
+  if (merged.sort) qs.set("sort", merged.sort);
+  if (merged.page) qs.set("page", merged.page);
+  return qs.toString();
+}
+
 async function getProducts(params: SearchParams) {
-  const page = parseInt(params.page || "1");
+  // `page` arrives from the URL, so it can be anything. A NaN or negative value
+  // used to reach Prisma as `skip` and throw instead of showing page one.
+  const parsed = parseInt(params.page || "1", 10);
+  const page = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
   const perPage = 12;
   const skip = (page - 1) * perPage;
 
@@ -94,7 +108,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-fg">جميع المنتجات</h1>
-          <p className="text-fg-subtle mt-1">{total} منتج متاح</p>
+          <p className="text-fg-muted mt-1">{total} منتج متاح</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -105,8 +119,15 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             {products.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-fg mb-2">لم يتم العثور على منتجات</h3>
-                <p className="text-fg-subtle">جرب تغيير معايير البحث أو الفئة</p>
+                <h3 className="text-xl font-bold text-fg mb-2">
+                  {searchParams.search ? `لا نتائج لـ "${searchParams.search}"` : "لم يتم العثور على منتجات"}
+                </h3>
+                <p className="text-fg-muted">جرب تغيير معايير البحث أو الفئة</p>
+                {(searchParams.search || searchParams.category || searchParams.sort) && (
+                  <a href="/products" className="btn-primary mt-5 text-sm px-5 py-2.5">
+                    عرض كل المنتجات
+                  </a>
+                )}
               </div>
             ) : (
               <>
@@ -120,7 +141,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
                     {(() => {
-                      const baseHref = `/products?${searchParams.category ? `category=${searchParams.category}&` : ""}${searchParams.sort ? `sort=${searchParams.sort}&` : ""}`;
                       const pages: (number | "...")[] = [];
                       if (totalPages <= 7) {
                         for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -137,7 +157,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                         ) : (
                           <a
                             key={p}
-                            href={`${baseHref}page=${p}`}
+                            // Carries `search` too — paging used to silently
+                            // drop the search term and show the whole catalogue.
+                            href={`/products?${filterQuery(searchParams, { page: String(p) })}`}
+                            aria-current={p === page ? "page" : undefined}
                             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                               p === page
                                 ? "bg-primary-600 text-white"

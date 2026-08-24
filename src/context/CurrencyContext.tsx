@@ -29,7 +29,10 @@ interface CurrencyContextValue {
 const CurrencyContext = createContext<CurrencyContextValue>({
   currency: CURRENCIES[0],
   setCurrency: () => {},
-  formatAmount: (a) => `${parseFloat(String(a)).toFixed(2)} ر.س`,
+  formatAmount: (a) => {
+    const n = parseFloat(String(a));
+    return `${(Number.isFinite(n) ? n : 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س`;
+  },
 });
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
@@ -52,15 +55,18 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const formatAmount = (amount: number | string): string => {
     const num = typeof amount === "string" ? parseFloat(amount) : amount;
-    const converted = num * currency.rate;
+    // A malformed price must not print "NaN ر.س" next to an Add-to-cart button.
+    const safe = Number.isFinite(num) ? num : 0;
+    const converted = safe * currency.rate;
     const decimals = currency.code === "KWD" || currency.code === "BHD" || currency.code === "OMR" ? 3 : 2;
-    return `${converted.toFixed(decimals)} ${currency.symbol}`;
+    return `${converted.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} ${currency.symbol}`;
   };
 
   if (!mounted) {
     const defaultFormat = (amount: number | string) => {
       const num = typeof amount === "string" ? parseFloat(amount) : amount;
-      return `${num.toFixed(2)} ر.س`;
+      const safe = Number.isFinite(num) ? num : 0;
+      return `${safe.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س`;
     };
     return (
       <CurrencyContext.Provider value={{ currency: CURRENCIES[0], setCurrency, formatAmount: defaultFormat }}>

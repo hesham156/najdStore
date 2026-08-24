@@ -31,6 +31,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
 
+  // `stockCount` only carries meaning when the product opts into tracking.
+  // Without this guard every untracked product (the default, count 0) rendered
+  // the full-card "sold out" overlay and the whole catalogue looked empty.
+  const tracksStock = product.trackStock === true;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     addItem({
@@ -162,7 +167,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </div>
 
         {/* Low stock */}
-        {product.stockCount < 5 && product.stockCount > 0 && (
+        {tracksStock && product.stockCount < 5 && product.stockCount > 0 && (
           <div className="px-4 pb-3 flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 text-warning" />
             <p className="text-xs text-warning font-medium">
@@ -172,7 +177,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         )}
 
         {/* Out of stock overlay */}
-        {product.stockCount === 0 && (
+        {tracksStock && product.stockCount === 0 && (
           <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-fg/60 backdrop-blur-[1px]">
             <span className="rounded-control bg-fg px-4 py-2 text-sm font-bold text-canvas">
               نفذ المخزون

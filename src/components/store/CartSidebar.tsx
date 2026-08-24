@@ -127,7 +127,7 @@ export function CartSidebar() {
           ) : (
             items.map((item) => (
               <div
-                key={item.id}
+                key={`${item.id}-${item.variantLabel || ""}`}
                 className="flex items-center gap-3 p-3 rounded-xl bg-surface-sunken border border-line"
               >
                 {/* Image */}
@@ -151,6 +151,9 @@ export function CartSidebar() {
                   <p className="font-semibold text-fg text-sm truncate">
                     {item.nameAr}
                   </p>
+                  {item.variantLabel && (
+                    <p className="text-xs text-fg-muted truncate">{item.variantLabel}</p>
+                  )}
                   <p className="text-sm text-primary-600 dark:text-primary-400 font-bold mt-0.5">
                     {formatAmount(item.price)}
                   </p>
@@ -158,15 +161,17 @@ export function CartSidebar() {
                   {/* Quantity */}
                   <div className="flex items-center gap-2 mt-1.5">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="w-6 h-6 rounded-full bg-surface-sunken flex items-center justify-center hover:bg-surface-hover transition-colors"
+                      onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantLabel)}
+                      aria-label="إنقاص الكمية"
+                      className="w-6 h-6 rounded-full bg-surface border border-line flex items-center justify-center hover:bg-surface-hover transition-colors"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
                     <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-6 h-6 rounded-full bg-surface-sunken flex items-center justify-center hover:bg-surface-hover transition-colors"
+                      onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantLabel)}
+                      aria-label="زيادة الكمية"
+                      className="w-6 h-6 rounded-full bg-surface border border-line flex items-center justify-center hover:bg-surface-hover transition-colors"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
@@ -175,7 +180,8 @@ export function CartSidebar() {
 
                 {/* Delete */}
                 <button
-                  onClick={() => removeItem(item.id)}
+                  onClick={() => removeItem(item.id, item.variantLabel)}
+                  aria-label={`حذف ${item.nameAr} من السلة`}
                   className="p-1.5 text-fg-subtle hover:text-danger hover:bg-danger/10 rounded-lg transition-colors shrink-0"
                 >
                   <Trash2 className="h-4 w-4" />

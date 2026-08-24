@@ -6,7 +6,7 @@ import { useBranding } from "@/components/providers/BrandingProvider";
 import { useSession, signOut } from "next-auth/react";
 import { useCartStore } from "@/store/cart";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { ShoppingCart, User, LogOut, LayoutDashboard, Shield, Menu, X, ChevronDown, Bell } from "lucide-react";
+import { ShoppingCart, LogOut, LayoutDashboard, Shield, Menu, X, ChevronDown, Bell, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -75,17 +75,37 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-3 py-2 text-sm font-medium text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 rounded-lg hover:bg-surface-sunken transition-colors"
+                className="relative whitespace-nowrap px-2.5 py-2 text-sm font-medium text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 rounded-lg hover:bg-surface-sunken transition-colors"
               >
                 {link.label}
               </Link>
             ))}
           </div>
+
+          {/* Search — the only entry point outside the products page's own
+              filter panel, which shoppers never see until they get there. */}
+          <form
+            action="/products"
+            method="get"
+            role="search"
+            className="hidden xl:flex items-center flex-1 min-w-[170px] max-w-xs mx-3"
+          >
+            <div className="relative w-full">
+              <Search className="pointer-events-none absolute inset-y-0 start-3 my-auto h-4 w-4 text-fg-subtle" />
+              <input
+                type="search"
+                name="search"
+                placeholder="ابحث عن منتج…"
+                aria-label="ابحث عن منتج"
+                className="w-full rounded-xl border border-line bg-surface-sunken py-2 ps-9 pe-3 text-sm text-fg placeholder:text-fg-subtle focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+              />
+            </div>
+          </form>
 
           {/* Actions */}
           <div className="flex items-center gap-2">
@@ -190,7 +210,7 @@ export function Navbar() {
 
             {/* Mobile toggle */}
             <motion.button
-              className="md:hidden p-2.5 rounded-xl text-fg-muted hover:bg-surface-sunken"
+              className="lg:hidden p-2.5 rounded-xl text-fg-muted hover:bg-surface-sunken"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               whileTap={reduced ? {} : { scale: 0.9 }}
               aria-label="القائمة"
@@ -213,9 +233,19 @@ export function Navbar() {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: reduced ? 0.1 : 0.28, ease: EASE }}
-              className="md:hidden overflow-hidden border-t border-line"
+              className="lg:hidden overflow-hidden border-t border-line"
             >
               <div className="py-3 space-y-1">
+                <form action="/products" method="get" role="search" className="relative mb-2">
+                  <Search className="pointer-events-none absolute inset-y-0 start-3 my-auto h-4 w-4 text-fg-subtle" />
+                  <input
+                    type="search"
+                    name="search"
+                    placeholder="ابحث عن منتج…"
+                    aria-label="ابحث عن منتج"
+                    className="w-full rounded-xl border border-line bg-surface-sunken py-2.5 ps-9 pe-3 text-sm text-fg placeholder:text-fg-subtle focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                  />
+                </form>
                 {navLinks.map((link, i) => (
                   <motion.div
                     key={link.href}

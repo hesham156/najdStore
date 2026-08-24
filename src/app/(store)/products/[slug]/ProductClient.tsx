@@ -98,7 +98,10 @@ export default function ProductClient({ product, publicSettings, options = [], o
             others.forEach((x) => { x.variants = parseProductVariants((x as any).tags || []); });
             setRelated(others);
           }
-        });
+        })
+        // Related products are a bonus strip — a failed fetch must stay silent
+        // rather than surfacing as an unhandled rejection in the console.
+        .catch(() => {});
     }
   }, [product.slug, product.category?.slug]);
 

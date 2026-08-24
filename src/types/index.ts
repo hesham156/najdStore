@@ -58,6 +58,15 @@ export interface ProductWithCategory {
   duration?: string | null;
   tags: string[];
   stockCount: number;
+  /**
+   * Whether `stockCount` means anything for this product.
+   *
+   * Prisma returns it with every product query, but it used to be absent from
+   * this type — so the storefront read `stockCount === 0` on its own and
+   * declared every untracked product sold out, which is the default state for
+   * most of the catalogue.
+   */
+  trackStock?: boolean;
   createdAt: Date;
   variants?: ProductVariant[]; // parsed from tags at runtime
   category: {

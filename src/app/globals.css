@@ -22,7 +22,11 @@
 
     /* Text */
     --fg: 17 24 39;
-    --fg-muted: 107 114 128;
+    /* Secondary text. Was 107 114 128, which measured 4.39:1 on `surface-sunken`
+       — just under the 4.5:1 WCAG AA floor, so every muted line on a sunken
+       panel (footer, cards, summaries) failed. Darkened the least amount that
+       clears AA on all three light grounds: 4.87 sunken / 5.04 canvas / 5.36 white. */
+    --fg-muted: 100 107 121;
     --fg-subtle: 156 163 175;
 
     /* Semantic tones — colour carries MEANING, never decoration.

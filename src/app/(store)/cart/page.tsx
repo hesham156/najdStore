@@ -20,7 +20,7 @@ export default function CartPage() {
             <ShoppingBag className="h-12 w-12 text-fg-subtle" />
           </div>
           <h1 className="text-2xl font-bold text-fg">السلة فارغة</h1>
-          <p className="text-fg-subtle">لم تضف أي منتجات بعد</p>
+          <p className="text-fg-muted">لم تضف أي منتجات بعد</p>
           <Link href="/products">
             <Button>
               <ArrowLeft className="h-4 w-4" />
@@ -49,8 +49,11 @@ export default function CartPage() {
           {/* Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
+              // The cart keys a line by product AND variant, so the React key
+              // and every mutation below must carry the variant too — passing
+              // the id alone silently targeted a different line, or none.
               <div
-                key={item.id}
+                key={`${item.id}-${item.variantLabel || ""}`}
                 className="flex items-center gap-4 p-4 bg-surface rounded-2xl border border-line"
               >
                 <div className="w-20 h-20 rounded-xl bg-surface-sunken border border-line overflow-hidden flex items-center justify-center shrink-0">
@@ -67,31 +70,37 @@ export default function CartPage() {
                       {item.nameAr}
                     </h3>
                   </Link>
+                  {item.variantLabel && (
+                    <p className="text-xs text-fg-muted mt-0.5 truncate">{item.variantLabel}</p>
+                  )}
                   <p className="text-primary-600 dark:text-primary-400 font-bold text-lg mt-1">
                     {formatAmount(item.price * item.quantity)}
                   </p>
-                  <p className="text-xs text-fg-subtle">{formatAmount(item.price)} × {item.quantity}</p>
+                  <p className="text-xs text-fg-muted">{formatAmount(item.price)} × {item.quantity}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 bg-surface-sunken rounded-xl p-1">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantLabel)}
                       disabled={item.quantity <= 1}
+                      aria-label="إنقاص الكمية"
                       className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface shadow-sm transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
                     <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantLabel)}
+                      aria-label="زيادة الكمية"
                       className="w-7 h-7 rounded-lg bg-surface flex items-center justify-center hover:bg-surface-sunken transition-colors shadow-sm"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
                   </div>
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(item.id, item.variantLabel)}
+                    aria-label={`حذف ${item.nameAr} من السلة`}
                     className="p-2 text-fg-subtle hover:text-danger hover:bg-danger/10 rounded-xl transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -108,9 +117,9 @@ export default function CartPage() {
 
               <div className="space-y-3 mb-4">
                 {items.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
+                  <div key={`${item.id}-${item.variantLabel || ""}`} className="flex justify-between text-sm">
                     <span className="text-fg-muted truncate pe-2">
-                      {item.nameAr} × {item.quantity}
+                      {item.nameAr}{item.variantLabel ? ` — ${item.variantLabel}` : ""} × {item.quantity}
                     </span>
                     <span className="font-medium text-fg shrink-0">
                       {formatAmount(item.price * item.quantity)}
