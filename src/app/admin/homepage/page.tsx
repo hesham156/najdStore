@@ -8,7 +8,7 @@ import { Input, Textarea, Select, Switch } from "@/components/ui/Input";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Skeleton } from "@/components/ui/States";
 import toast from "react-hot-toast";
-import type { HomeSection, HomeSectionType } from "@/lib/home-layout";
+import type { HomeSection, HomeSectionType, BannerSlide } from "@/lib/home-layout";
 
 const LABELS: Record<HomeSectionType, string> = {
   landing: "تصميم نجد (جاهز)",
@@ -17,11 +17,14 @@ const LABELS: Record<HomeSectionType, string> = {
   featured: "المنتجات المميزة",
   recent: "أحدث المنتجات",
   banner: "بانر صورة",
+  product_slider: "سلايدر منتجات متحرك",
+  banner_slider: "سلايدر بنرات متحرك",
+  marquee: "شريط إعلاني متحرك",
   richtext: "نص/عنوان منسّق",
   custom_html: "HTML مخصّص",
 };
 
-const ADDABLE: HomeSectionType[] = ["hero", "categories", "featured", "recent", "banner", "richtext", "custom_html", "landing"];
+const ADDABLE: HomeSectionType[] = ["hero", "categories", "featured", "recent", "product_slider", "banner", "banner_slider", "marquee", "richtext", "custom_html", "landing"];
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 export default function HomepageBuilderPage() {
@@ -177,6 +180,33 @@ function SectionEditor({ section: s, onChange }: { section: HomeSection; onChang
         </div>
       );
 
+    case "product_slider":
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Select
+            label="مصدر المنتجات"
+            value={s.source || "featured"}
+            onChange={(e) => onChange({ source: e.target.value as "featured" | "recent" })}
+            options={[{ value: "featured", label: "المنتجات المميزة" }, { value: "recent", label: "أحدث المنتجات" }]}
+          />
+          <Input label="العنوان" value={s.title || ""} onChange={(e) => onChange({ title: e.target.value })} placeholder="منتجات مختارة" />
+          <Input label="عدد المنتجات" type="number" min={2} value={String(s.limit ?? 12)} onChange={(e) => onChange({ limit: parseInt(e.target.value) || 12 })} />
+          <Input label="مدة الدورة (ثانية)" type="number" min={10} value={String(s.speed ?? 40)} onChange={(e) => onChange({ speed: parseInt(e.target.value) || 40 })} />
+          <p className="sm:col-span-2 lg:col-span-4 text-xs text-fg-muted">كلما قلّت المدة زادت سرعة التمرير. يتوقف الشريط عند مرور المؤشر فوقه.</p>
+        </div>
+      );
+
+    case "marquee":
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Input wrapperClassName="sm:col-span-2" label="النص المتحرك" value={s.text || ""} onChange={(e) => onChange({ text: e.target.value })} placeholder="🔥 شحن مجاني للطلبات فوق 200 ريال" />
+          <Input label="مدة الدورة (ثانية)" type="number" min={8} value={String(s.speed ?? 20)} onChange={(e) => onChange({ speed: parseInt(e.target.value) || 20 })} />
+        </div>
+      );
+
+    case "banner_slider":
+      return <BannerSliderEditor slides={s.slides || []} autoplay={s.autoplay !== false} interval={s.speed ?? 5} onChange={onChange} />;
+
     case "richtext":
       return (
         <div className="space-y-3">
@@ -203,4 +233,68 @@ function SectionEditor({ section: s, onChange }: { section: HomeSection; onChang
     default:
       return null;
   }
+}
+
+function BannerSliderEditor({
+  slides,
+  autoplay,
+  interval,
+  onChange,
+}: {
+  slides: BannerSlide[];
+  autoplay: boolean;
+  interval: number;
+  onChange: (p: Partial<HomeSection>) => void;
+}) {
+  const setSlide = (i: number, p: Partial<BannerSlide>) =>
+    onChange({ slides: slides.map((s, idx) => (idx === i ? { ...s, ...p } : s)) });
+  const addSlide = () => onChange({ slides: [...slides, { image: "", link: "", alt: "" }] });
+  const removeSlide = (i: number) => onChange({ slides: slides.filter((_, idx) => idx !== i) });
+  const moveSlide = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= slides.length) return;
+    const copy = [...slides];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    onChange({ slides: copy });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-4">
+        <Switch label="تشغيل تلقائي" checked={autoplay} onChange={(v) => onChange({ autoplay: v })} />
+        <Input
+          wrapperClassName="w-40"
+          label="مدة كل شريحة (ثانية)"
+          type="number"
+          min={2}
+          value={String(interval)}
+          onChange={(e) => onChange({ speed: parseInt(e.target.value) || 5 })}
+        />
+      </div>
+
+      {slides.length === 0 ? (
+        <p className="text-[13px] text-fg-muted">لا توجد شرائح بعد. أضِف شريحة لبدء السلايدر.</p>
+      ) : (
+        <div className="space-y-3">
+          {slides.map((sl, i) => (
+            <div key={i} className="rounded-card border border-line/70 p-3 space-y-3 bg-surface-sunken/40">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-fg-muted flex-1">شريحة {i + 1}</span>
+                <button type="button" onClick={() => moveSlide(i, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-fg-subtle hover:text-fg disabled:opacity-30"><ArrowUp className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1} className="p-1.5 rounded-lg text-fg-subtle hover:text-fg disabled:opacity-30"><ArrowDown className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => removeSlide(i)} className="p-1.5 rounded-lg text-danger hover:bg-danger/10"><Trash2 className="h-3.5 w-3.5" /></button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Input label="رابط الصورة" value={sl.image} onChange={(e) => setSlide(i, { image: e.target.value })} placeholder="https://…" />
+                <Input label="الرابط عند الضغط" value={sl.link || ""} onChange={(e) => setSlide(i, { link: e.target.value })} placeholder="/products" />
+                <Input label="النص البديل" value={sl.alt || ""} onChange={(e) => setSlide(i, { alt: e.target.value })} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button type="button" variant="secondary" size="sm" onClick={addSlide}><Plus className="h-3.5 w-3.5" /> إضافة شريحة</Button>
+    </div>
+  );
 }

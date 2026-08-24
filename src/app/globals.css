@@ -309,6 +309,24 @@
   100% { background-position: -200% 0; }
 }
 
+/* ── Continuous horizontal marquee (product slider / announcement ticker) ── */
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@layer components {
+  .marquee-track {
+    animation: marqueeScroll linear infinite;
+    animation-duration: var(--marquee-duration, 40s);
+    will-change: transform;
+  }
+  /* Pause on hover so shoppers can click a card / read the text */
+  .marquee-pausable:hover .marquee-track {
+    animation-play-state: paused;
+  }
+}
+
 /* ── Print: keep only the page content (used by order/invoice printing) ── */
 @media print {
   .admin-scope aside,

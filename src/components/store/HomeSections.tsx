@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/store/ProductCard";
 import { NajdLanding } from "@/components/store/NajdLanding";
 import HeroContent from "@/components/store/HeroContent";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/store/AnimatedSection";
+import { ProductSlider, BannerSlider, Marquee } from "@/components/store/HomeAnimated";
 import type { HomeSection } from "@/lib/home-layout";
 import type { ProductWithCategory } from "@/types";
 
@@ -118,6 +119,19 @@ function renderSection(s: HomeSection, data: HomeData) {
           </div>
         </section>
       );
+
+    case "product_slider": {
+      const src = s.source === "recent" ? data.recent : data.featured;
+      return <ProductSlider title={s.title || "منتجات مختارة"} subtitle={s.subtitle} products={src.slice(0, s.limit || 12)} speed={s.speed} />;
+    }
+
+    case "banner_slider":
+      if (!s.slides?.length) return null;
+      return <BannerSlider slides={s.slides} autoplay={s.autoplay !== false} interval={s.speed} />;
+
+    case "marquee":
+      if (!s.text) return null;
+      return <Marquee text={s.text} speed={s.speed} />;
 
     case "richtext":
       if (!s.html && !s.title) return null;

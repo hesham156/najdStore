@@ -8,14 +8,24 @@ import { prisma } from "@/lib/prisma";
  */
 
 export type HomeSectionType =
-  | "landing"       // the built-in Najd landing preset (featured + recent inside)
-  | "hero"          // headline + subtitle + stats (from branding or overridden)
-  | "categories"    // category grid
-  | "featured"      // featured products grid
-  | "recent"        // recent products grid
-  | "banner"        // single image banner with a link
-  | "richtext"      // heading + rich HTML in a centered container
-  | "custom_html";  // full-width raw HTML (merchant's own design)
+  | "landing"        // the built-in Najd landing preset (featured + recent inside)
+  | "hero"           // headline + subtitle + stats (from branding or overridden)
+  | "categories"     // category grid
+  | "featured"       // featured products grid
+  | "recent"         // recent products grid
+  | "banner"         // single image banner with a link
+  | "product_slider" // auto-scrolling (marquee) product carousel
+  | "banner_slider"  // rotating multi-slide banner carousel
+  | "marquee"        // scrolling announcement text ticker
+  | "richtext"       // heading + rich HTML in a centered container
+  | "custom_html";   // full-width raw HTML (merchant's own design)
+
+/** A single slide inside a `banner_slider` section. */
+export interface BannerSlide {
+  image: string;
+  link?: string;
+  alt?: string;
+}
 
 export interface HomeSection {
   id: string;
@@ -31,6 +41,12 @@ export interface HomeSection {
   link?: string;
   alt?: string;
   html?: string;
+  // animated sections
+  source?: "featured" | "recent"; // product_slider: which product set to pull from
+  speed?: number;                 // product_slider/marquee: seconds per loop (lower = faster)
+  autoplay?: boolean;             // banner_slider: auto-advance slides
+  text?: string;                  // marquee: the scrolling text
+  slides?: BannerSlide[];         // banner_slider: the rotating slides
 }
 
 export const SECTION_LABELS: Record<HomeSectionType, string> = {
@@ -40,6 +56,9 @@ export const SECTION_LABELS: Record<HomeSectionType, string> = {
   featured: "المنتجات المميزة",
   recent: "أحدث المنتجات",
   banner: "بانر صورة",
+  product_slider: "سلايدر منتجات متحرك",
+  banner_slider: "سلايدر بنرات متحرك",
+  marquee: "شريط إعلاني متحرك",
   richtext: "نص/عنوان منسّق",
   custom_html: "HTML مخصّص",
 };
@@ -61,7 +80,24 @@ export function starterSections(): HomeSection[] {
   ];
 }
 
-const VALID_TYPES: HomeSectionType[] = ["landing", "hero", "categories", "featured", "recent", "banner", "richtext", "custom_html"];
+const VALID_TYPES: HomeSectionType[] = ["landing", "hero", "categories", "featured", "recent", "banner", "product_slider", "banner_slider", "marquee", "richtext", "custom_html"];
+
+/** Validate/normalize the slides array of a banner_slider section. */
+function cleanSlides(raw: unknown): BannerSlide[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const slides = raw
+    .filter((x) => x && typeof x === "object" && typeof (x as BannerSlide).image === "string" && (x as BannerSlide).image)
+    .slice(0, 12)
+    .map((x) => {
+      const s = x as BannerSlide;
+      return {
+        image: s.image,
+        link: typeof s.link === "string" ? s.link : undefined,
+        alt: typeof s.alt === "string" ? s.alt : undefined,
+      };
+    });
+  return slides.length ? slides : undefined;
+}
 
 /** Parse a stored layout string into a validated section array. */
 export function parseSections(raw: string | null | undefined): HomeSection[] {
@@ -84,6 +120,11 @@ export function parseSections(raw: string | null | undefined): HomeSection[] {
         link: typeof s.link === "string" ? s.link : undefined,
         alt: typeof s.alt === "string" ? s.alt : undefined,
         html: typeof s.html === "string" ? s.html : undefined,
+        source: (s.source === "recent" ? "recent" : s.source === "featured" ? "featured" : undefined) as HomeSection["source"],
+        speed: typeof s.speed === "number" && s.speed > 0 ? s.speed : undefined,
+        autoplay: typeof s.autoplay === "boolean" ? s.autoplay : undefined,
+        text: typeof s.text === "string" ? s.text : undefined,
+        slides: cleanSlides(s.slides),
       }));
     return cleaned.length ? cleaned : defaultSections();
   } catch {
