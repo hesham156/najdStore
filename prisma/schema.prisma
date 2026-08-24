@@ -17,6 +17,8 @@ model User {
   avatar        String?
   isActive      Boolean         @default(true)
   emailVerified DateTime?
+  /// Private staff-only note shown on the customer screen. Never exposed to the customer.
+  adminNotes    String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   adminLogs      AdminLog[]

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 import { DollarSign, Eye, ShoppingBag, UserCheck, Users, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -13,7 +15,7 @@ import { AdminStats, statColors } from "@/components/admin/AdminStats";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ImportExportBar } from "@/components/admin/ImportExportBar";
 import { SearchInput, Toolbar, ToolbarSpacer } from "@/components/admin/Toolbar";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, relativeDate } from "@/lib/utils";
 
 interface Customer {
   id: string;
@@ -25,16 +27,21 @@ interface Customer {
   createdAt: string;
   _count: { orders: number };
   totalSpent?: number;
+  lastOrderAt?: string | null;
 }
 
 type StatusFilter = "all" | "active" | "inactive" | "buyers";
-type SortKey = "name" | "orders" | "totalSpent" | "createdAt";
+type SortKey = "name" | "orders" | "totalSpent" | "createdAt" | "lastOrderAt";
 
 const EMPTY_COUNTS = { all: 0, active: 0, inactive: 0, buyers: 0 };
 const EMPTY_STATS = { total: 0, active: 0, withOrders: 0, spent: 0 };
 
 export default function AdminCustomersPage() {
   const router = useRouter();
+  // Bulk activation is ADMIN-only on the server; hide the checkboxes for STAFF
+  // rather than offer a selection they cannot act on.
+  const { data: session } = useSession();
+  const canManage = session?.user.role === "ADMIN";
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState(EMPTY_COUNTS);
@@ -47,6 +54,10 @@ export default function AdminCustomersPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   // Filtering, sorting and paging all happen on the server: the list used to
   // fetch a hard-capped 100 rows and slice them here, which silently truncated
@@ -67,6 +78,8 @@ export default function AdminCustomersPage() {
         dir: sortDir,
         page: String(page),
         pageSize: String(pageSize),
+        ...(from ? { from } : {}),
+        ...(to ? { to } : {}),
       });
       const res = await fetch(`/api/admin/customers?${qs}`);
       const data = await res.json();
@@ -82,7 +95,7 @@ export default function AdminCustomersPage() {
     } finally {
       if (id === requestId.current) setLoading(false);
     }
-  }, [search, status, sortKey, sortDir, page, pageSize]);
+  }, [search, status, sortKey, sortDir, page, pageSize, from, to]);
 
   // Only the search box needs debouncing; the rest fire immediately.
   useEffect(() => {
@@ -91,12 +104,37 @@ export default function AdminCustomersPage() {
   }, [fetchCustomers, search]);
 
   // Any change to what is being shown sends you back to the first page.
-  useEffect(() => setPage(1), [search, status, sortKey, sortDir, pageSize]);
+  useEffect(() => setPage(1), [search, status, sortKey, sortDir, pageSize, from, to]);
 
-  const filtersActive = search !== "" || status !== "all";
+  const filtersActive = search !== "" || status !== "all" || from !== "" || to !== "";
   const clearFilters = () => {
     setSearch("");
     setStatus("all");
+    setFrom("");
+    setTo("");
+  };
+
+  const runBulk = async (action: "activate" | "deactivate") => {
+    setBulkBusy(true);
+    try {
+      const res = await fetch("/api/admin/customers/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selected, action }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`تم تحديث ${data.data.updated} عميل`);
+        setSelected([]);
+        fetchCustomers();
+      } else {
+        toast.error(data.error || "تعذّر تنفيذ الإجراء");
+      }
+    } catch {
+      toast.error("تعذّر الاتصال بالخادم، حاول مرة أخرى");
+    } finally {
+      setBulkBusy(false);
+    }
   };
 
   const columns: Column<Customer>[] = [
@@ -146,6 +184,20 @@ export default function AdminCustomersPage() {
           {val != null ? formatCurrency(Number(val)) : "—"}
         </span>
       ),
+    },
+    {
+      key: "lastOrderAt",
+      title: "آخر طلب",
+      sortable: true,
+      hideOnMobile: true,
+      render: (val) =>
+        val ? (
+          <span className="whitespace-nowrap text-xs text-fg-muted" title={formatDate(String(val))}>
+            {relativeDate(String(val))}
+          </span>
+        ) : (
+          <span className="text-xs text-fg-subtle">لم يشترِ بعد</span>
+        ),
     },
     {
       key: "isActive",
@@ -211,6 +263,24 @@ export default function AdminCustomersPage() {
           ]}
         />
         <ToolbarSpacer />
+        <label className="flex items-center gap-1.5 text-xs text-fg-muted">
+          <span className="whitespace-nowrap">سجّل من</span>
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="rounded-lg border border-line bg-surface px-2 py-1.5 text-xs text-fg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            aria-label="تاريخ التسجيل من"
+          />
+          <span>إلى</span>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="rounded-lg border border-line bg-surface px-2 py-1.5 text-xs text-fg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            aria-label="تاريخ التسجيل إلى"
+          />
+        </label>
         {filtersActive && (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
             مسح التصفية
@@ -224,6 +294,19 @@ export default function AdminCustomersPage() {
         loading={loading}
         error={error}
         onRetry={fetchCustomers}
+        selectable={canManage}
+        selectedIds={selected}
+        onSelectionChange={setSelected}
+        bulkActions={
+          <>
+            <Button size="sm" variant="secondary" loading={bulkBusy} onClick={() => runBulk("activate")}>
+              تفعيل المحدد
+            </Button>
+            <Button size="sm" variant="soft-danger" loading={bulkBusy} onClick={() => runBulk("deactivate")}>
+              تعطيل المحدد
+            </Button>
+          </>
+        }
         onRowClick={(row) => router.push(`/admin/customers/${row.id}`)}
         sortKey={sortKey}
         sortDirection={sortDir}

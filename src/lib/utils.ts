@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatDistanceToNow } from "date-fns";
+import { ar } from "date-fns/locale";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -28,6 +30,11 @@ export function formatDateTime(date: Date | string, locale = "ar-SA") {
     minute: "2-digit",
     timeZone: "Asia/Riyadh", // Prevents hydration mismatch between SSR/CSR
   });
+}
+
+/** "منذ 3 أيام" — for recency columns where the exact date is secondary. */
+export function relativeDate(date: Date | string) {
+  return formatDistanceToNow(new Date(date), { addSuffix: true, locale: ar });
 }
 
 export function generateOrderNumber() {
