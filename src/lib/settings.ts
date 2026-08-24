@@ -29,6 +29,8 @@ export async function getSettings<T extends Record<string, string>>(
  */
 export const BRANDING_DEFAULTS = {
   site_name: "متجرك الإلكتروني",
+  /** The line under the store name in the header. */
+  site_tagline: "أفضل الأسعار وأعلى جودة",
   hero_badge: "تسليم سريع وجودة موثوقة",
   hero_title: "كل ما تحتاجه في مكان واحد",
   hero_title_highlight: "بأفضل الأسعار وأعلى جودة",

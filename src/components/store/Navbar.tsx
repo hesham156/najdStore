@@ -21,7 +21,13 @@ const navLinks = [
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as const;
 
-export function Navbar() {
+interface NavbarProps {
+  /** Passed from the server layout — this is a client component and cannot read settings itself. */
+  storeName: string;
+  tagline?: string;
+}
+
+export function Navbar({ storeName, tagline }: NavbarProps) {
   const { data: session } = useSession();
   const { getTotalItems, toggleCart } = useCartStore();
   const [isMenuOpen, setIsMenuOpen]   = useState(false);
@@ -62,8 +68,10 @@ export function Navbar() {
               <SiteLogo size="sm" />
             </motion.div>
             <div className="hidden sm:block">
-              <span className="font-bold text-fg text-base leading-tight block">متجرك الإلكتروني</span>
-              <span className="text-xs text-primary-600 dark:text-primary-400 leading-tight block">أفضل الأسعار وأعلى جودة</span>
+              <span className="block text-base font-bold leading-tight text-fg">{storeName}</span>
+              {tagline && (
+                <span className="block text-xs leading-tight text-primary-600 dark:text-primary-400">{tagline}</span>
+              )}
             </div>
           </Link>
 

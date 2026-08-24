@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Mail, Phone, MapPin, Twitter, Instagram, Youtube } from "lucide-react";
 import { SiteLogo } from "@/components/ui/site-logo";
 import { getActiveCategories } from "@/lib/queries";
-import { getSettings } from "@/lib/settings";
+import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
 
 const quickLinks = [
   { href: "/", label: "الرئيسية" },
@@ -13,20 +13,18 @@ const quickLinks = [
   { href: "/terms", label: "الشروط والأحكام" },
 ];
 
+/** Declared once so the fallback cannot drift from the query that uses it. */
+const FOOTER_DEFAULTS = {
+  site_name: BRANDING_DEFAULTS.site_name,
+  footer_description: BRANDING_DEFAULTS.footer_description,
+  site_email: "support@store.com",
+  site_phone: "+966 50 123 4567",
+};
+
 export async function Footer() {
   const [allCategories, s] = await Promise.all([
     getActiveCategories().catch(() => []),
-    getSettings({
-      site_name: "متجرك الإلكتروني",
-      footer_description: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.",
-      site_email: "support@store.com",
-      site_phone: "+966 50 123 4567",
-    }).catch(() => ({
-      site_name: "متجرك الإلكتروني",
-      footer_description: "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتسليم سريع.",
-      site_email: "support@store.com",
-      site_phone: "+966 50 123 4567",
-    })),
+    getSettings(FOOTER_DEFAULTS).catch(() => FOOTER_DEFAULTS),
   ]);
 
   const categories = (allCategories as Array<{ slug: string; nameAr: string }>)
