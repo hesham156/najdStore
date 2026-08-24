@@ -16,6 +16,16 @@ const nextConfig = {
   logging: {
     fetches: { fullUrl: false },
   },
+  // Files uploaded after the build are not served from `public/` by Next, so
+  // anything `/uploads/*` that the static handler cannot find falls through to
+  // a route handler that reads it from disk. Default rewrites run AFTER the
+  // static check, so build-time files keep being served directly.
+  async rewrites() {
+    return [
+      { source: "/uploads/:path*", destination: "/api/uploads/:path*" },
+    ];
+  },
+
   // HTTP headers for caching static assets
   async headers() {
     return [
