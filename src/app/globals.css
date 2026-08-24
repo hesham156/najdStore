@@ -310,9 +310,18 @@
 }
 
 /* ── Continuous horizontal marquee (product slider / announcement ticker) ── */
+/* The track holds two identical halves; one cycle shifts it by exactly one
+   half, so the second copy lands where the first one started. */
 @keyframes marqueeScroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* RTL mirrors it: the track overflows toward the left, so it has to travel
+   right — scrolling it left only drags it off-screen and leaves a gap. */
+@keyframes marqueeScrollRtl {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(50%); }
 }
 
 @layer components {
@@ -321,9 +330,22 @@
     animation-duration: var(--marquee-duration, 40s);
     will-change: transform;
   }
-  /* Pause on hover so shoppers can click a card / read the text */
-  .marquee-pausable:hover .marquee-track {
+  [dir="rtl"] .marquee-track {
+    animation-name: marqueeScrollRtl;
+  }
+  /* Pause on hover, and on keyboard focus so a card can be tabbed to */
+  .marquee-pausable:hover .marquee-track,
+  .marquee-pausable:focus-within .marquee-track {
     animation-play-state: paused;
+  }
+  /* Reduced motion: hold the row still instead of freezing it half-scrolled
+     (the global reduce rule only clamps duration, which leaves it mid-loop). */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track,
+    [dir="rtl"] .marquee-track {
+      animation: none;
+      transform: none;
+    }
   }
 }
 

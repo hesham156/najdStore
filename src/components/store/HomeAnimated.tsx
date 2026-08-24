@@ -11,9 +11,15 @@ import type { ProductWithCategory } from "@/types";
 /* eslint-disable @next/next/no-img-element */
 
 // ─── Auto-scrolling product carousel (CSS marquee) ─────────────────────────
-// A continuous horizontal loop of product cards. The track holds two copies of
-// the list so the scroll is seamless; it pauses on hover (see globals.css) and
-// the reduced-motion media query neutralizes the animation into a static row.
+// A continuous horizontal loop of product cards. The track is two identical
+// halves and the animation shifts it by exactly one half, so the loop is
+// seamless; it pauses on hover/focus and holds still under reduced motion
+// (see globals.css).
+const CARD_W = 256; // w-64
+const GAP = 20;     // ms-5 between cards — kept as a margin, not flex `gap`, so
+                    // the repeating unit is exactly CARD_W + GAP and half the
+                    // track lines up perfectly with one copy of the list.
+
 export function ProductSlider({
   title,
   subtitle,
@@ -27,7 +33,14 @@ export function ProductSlider({
 }) {
   if (!products.length) return null;
 
-  const loop = [...products, ...products]; // seamless loop needs two copies
+  // A half has to be at least as wide as the widest viewport, otherwise the
+  // shift outruns the content and bare space shows up at the trailing edge.
+  const perHalf = Math.max(1, Math.ceil(1920 / ((CARD_W + GAP) * products.length)));
+  const half = Array.from({ length: perHalf }, () => products).flat();
+  const loop = [...half, ...half]; // seamless loop needs two identical halves
+  // One pass of the product list keeps taking `speed` seconds regardless of
+  // how many times the list had to be repeated to fill the track.
+  const duration = Math.max(10, speed) * perHalf;
 
   return (
     <section className="py-16 bg-surface overflow-hidden">
@@ -45,11 +58,17 @@ export function ProductSlider({
 
       <div className="marquee-pausable overflow-hidden">
         <div
-          className="marquee-track flex gap-5 w-max px-4"
-          style={{ "--marquee-duration": `${Math.max(10, speed)}s` } as React.CSSProperties}
+          className="marquee-track flex w-max"
+          style={{ "--marquee-duration": `${duration}s` } as React.CSSProperties}
         >
           {loop.map((p, i) => (
-            <div key={`${p.id}-${i}`} className="w-64 shrink-0"><ProductCard product={p} /></div>
+            <div
+              key={`${p.id}-${i}`}
+              className="w-64 shrink-0 ms-5"
+              aria-hidden={i >= half.length || undefined}
+            >
+              <ProductCard product={p} />
+            </div>
           ))}
         </div>
       </div>
@@ -121,8 +140,11 @@ export function BannerSlider({
 export function Marquee({ text, speed = 20 }: { text: string; speed?: number }) {
   if (!text.trim()) return null;
 
-  // Two copies of a repeated group for a seamless -50% loop.
-  const group = [text, text, text, text];
+  // Repeat the text enough to span a wide viewport (~8px per character at the
+  // ticker's size, plus the 48px of padding each copy carries), then mirror the
+  // group so the track is two identical halves.
+  const perHalf = Math.max(2, Math.ceil(1920 / (text.trim().length * 8 + 48)));
+  const group = Array.from({ length: perHalf }, () => text);
 
   return (
     <div className="marquee-pausable bg-primary-600 text-white overflow-hidden py-2.5">
@@ -131,7 +153,7 @@ export function Marquee({ text, speed = 20 }: { text: string; speed?: number }) 
         style={{ "--marquee-duration": `${Math.max(8, speed)}s` } as React.CSSProperties}
       >
         {[...group, ...group].map((t, i) => (
-          <span key={i} className="text-sm font-medium px-6">{t}</span>
+          <span key={i} className="text-sm font-medium px-6 whitespace-nowrap" aria-hidden={i >= group.length || undefined}>{t}</span>
         ))}
       </div>
     </div>
