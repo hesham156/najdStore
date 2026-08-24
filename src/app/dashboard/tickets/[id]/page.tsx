@@ -8,6 +8,7 @@ import { formatDateTime } from "@/lib/utils";
 import { Badge, getStatusBadge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { TicketReplyForm } from "./TicketReplyForm";
+import { SAFE_USER_SELECT } from "@/lib/users";
 
 interface Props { params: { id: string } }
 
@@ -19,7 +20,7 @@ export default async function TicketDetailPage({ params }: Props) {
     where: { id: params.id, userId: session.user.id },
     include: {
       messages: { orderBy: { createdAt: "asc" } },
-      user: true,
+      user: { select: SAFE_USER_SELECT },
     },
   });
 

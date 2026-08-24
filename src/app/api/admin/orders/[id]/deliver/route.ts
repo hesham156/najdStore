@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, notFound, badRequest, serverError } from "@/lib/api";
 import { notifyOrderStatusUpdated } from "@/lib/hayyak";
+import { SAFE_USER_SELECT } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       where: { id: params.id },
       data: allDelivered ? { status: "DELIVERED" } : { status: "PROCESSING" },
       include: {
-        user: true,
+        user: { select: SAFE_USER_SELECT },
         payment: true,
         items: { include: { product: { include: { category: true } } } },
       },

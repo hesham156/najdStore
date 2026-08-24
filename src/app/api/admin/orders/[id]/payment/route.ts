@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, notFound, badRequest, serverError } from "@/lib/api";
 import { notifyOrderStatusUpdated } from "@/lib/hayyak";
 import { restoreStock } from "@/lib/stock";
+import { SAFE_USER_SELECT } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const { action, adminNotes } = await req.json();
     const order = await prisma.order.findUnique({
       where: { id: params.id },
-      include: { payment: true, items: { include: { product: true } }, user: true },
+      include: { payment: true, items: { include: { product: true } }, user: { select: SAFE_USER_SELECT } },
     });
 
     if (!order) return notFound("الطلب غير موجود");
@@ -74,7 +75,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const updatedOrder = await prisma.order.update({
         where: { id: params.id },
         data: { status: newStatus },
-        include: { user: true, payment: true, items: { include: { product: true } } },
+        include: { user: { select: SAFE_USER_SELECT }, payment: true, items: { include: { product: true } } },
       });
 
       // Notify customer
@@ -115,7 +116,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const updatedOrder = await prisma.order.update({
         where: { id: params.id },
         data: { status: "CANCELLED" },
-        include: { user: true, payment: true, items: { include: { product: true } } },
+        include: { user: { select: SAFE_USER_SELECT }, payment: true, items: { include: { product: true } } },
       });
 
       // Return reserved stock to the catalog (guard against double-restore)

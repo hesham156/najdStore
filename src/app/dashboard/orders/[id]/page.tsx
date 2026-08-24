@@ -9,6 +9,7 @@ import { formatCurrency, formatDateTime, getPaymentMethodLabel } from "@/lib/uti
 import { Badge, getStatusBadge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { PaymentUploadForm } from "./PaymentUploadForm";
+import { SAFE_USER_SELECT } from "@/lib/users";
 
 interface Props { params: { id: string } }
 
@@ -21,7 +22,7 @@ export default async function OrderDetailPage({ params }: Props) {
     include: {
       items: { include: { product: { include: { category: true } } } },
       payment: true,
-      user: true,
+      user: { select: SAFE_USER_SELECT },
     },
   });
 

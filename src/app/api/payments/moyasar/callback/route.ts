@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getMoyasarConfig, getInvoice } from "@/lib/moyasar";
 import { restoreStock } from "@/lib/stock";
 import { notifyOrderStatusUpdated } from "@/lib/hayyak";
+import { SAFE_USER_SELECT } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
         const o = await tx.order.update({
           where: { id: order.id },
           data: { status: "PAYMENT_APPROVED" },
-          include: { user: true, payment: true },
+          include: { user: { select: SAFE_USER_SELECT }, payment: true },
         });
         await tx.notification.create({
           data: {

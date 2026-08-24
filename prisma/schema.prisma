@@ -28,6 +28,8 @@ model User {
   tickets        SupportTicket[]
   advertisements Advertisement[] @relation("UserAdvertisements")
   passwordResetTokens PasswordResetToken[]
+  // The customers screen: role=CUSTOMER, sorted or filtered by signup date.
+  @@index([role, createdAt])
 
   @@map("users")
 }
@@ -96,6 +98,9 @@ model Product {
   upsells        Upsell[]
   options        ProductOption[]
   variants       ProductVariant[]
+  // Category pages and the storefront listing.
+  @@index([categoryId])
+  @@index([isActive, sortOrder])
 
   @@map("products")
 }
@@ -178,6 +183,12 @@ model Order {
   payment       Payment?
   invoice       Invoice?
   shipment      Shipment?
+  // Customer spend + order history — the customers screen aggregates on this pair.
+  @@index([userId, status])
+  // Accounting summary and dashboard: paid statuses within a date range.
+  @@index([status, createdAt])
+  // Recent-orders lists and date sorting.
+  @@index([createdAt])
 
   @@map("orders")
 }
@@ -232,6 +243,8 @@ model AbandonedCart {
 
   @@index([status])
   @@index([updatedAt])
+  // The customer screen lists a user's open carts.
+  @@index([userId])
   @@map("abandoned_carts")
 }
 
@@ -253,6 +266,10 @@ model OrderItem {
   order                 Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product               Product             @relation(fields: [productId], references: [id])
   stockItems            SubscriptionStock[]
+  // Every order fetch joins its items.
+  @@index([orderId])
+  // Product deletion checks whether a product was ever ordered.
+  @@index([productId])
 
   @@map("order_items")
 }
@@ -272,6 +289,9 @@ model Payment {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   order         Order         @relation(fields: [orderId], references: [id])
+  // Payments screen filters by status; gateway callbacks look up by transaction.
+  @@index([status])
+  @@index([transactionId])
 
   @@map("payments")
 }
@@ -303,6 +323,9 @@ model SupportTicket {
   updatedAt    DateTime        @updatedAt
   user         User            @relation(fields: [userId], references: [id])
   messages     TicketMessage[]
+  // Tickets screen filters by status; the customer screen lists a user's tickets.
+  @@index([userId])
+  @@index([status, createdAt])
 
   @@map("support_tickets")
 }
@@ -350,6 +373,8 @@ model Notification {
   createdAt DateTime @default(now())
   order     Order?   @relation(fields: [orderId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+  // A user's notification feed, newest first.
+  @@index([userId, createdAt])
 
   @@map("notifications")
 }
@@ -364,6 +389,9 @@ model AdminLog {
   ipAddress String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+  // Activity log, newest first, and per-entity history.
+  @@index([createdAt])
+  @@index([entity, entityId])
 
   @@map("admin_logs")
 }
@@ -422,6 +450,8 @@ model Post {
   updatedAt         DateTime      @updatedAt
   author            User          @relation(fields: [authorId], references: [id])
   category          PostCategory? @relation(fields: [categoryId], references: [id])
+  // Blog listing: published posts, newest first.
+  @@index([status, publishedAt])
 
   @@map("posts")
 }

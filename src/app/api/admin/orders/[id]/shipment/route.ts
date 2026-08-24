@@ -4,6 +4,7 @@ import { requireAdmin, unauthorized, notFound, badRequest, serverError } from "@
 import { createShipment, refreshStatus, isCarrierEnabled, type Carrier } from "@/lib/shipping";
 import { RedboxError } from "@/lib/redbox";
 import { DhlError } from "@/lib/dhl";
+import { SAFE_USER_SELECT } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   try {
     const order = await prisma.order.findUnique({
       where: { id: params.id },
-      include: { user: true, shipment: true, payment: true },
+      include: { user: { select: SAFE_USER_SELECT }, shipment: true, payment: true },
     });
     if (!order) return notFound("الطلب غير موجود");
     if (order.shipment) return badRequest("توجد شحنة مسبقاً لهذا الطلب");
