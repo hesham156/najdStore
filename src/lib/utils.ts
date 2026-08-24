@@ -130,6 +130,32 @@ export function truncate(str: string, maxLength: number) {
   return str.slice(0, maxLength) + "...";
 }
 
+/**
+ * Normalise a Saudi mobile number to bare national digits (`5XXXXXXXX`).
+ *
+ * Customers type Arabic-Indic digits, spaces, dashes, a `+966` prefix or a
+ * leading zero — all of which reached the carrier API verbatim. Returns an
+ * empty string when the input cannot be read as a Saudi mobile.
+ */
+export function normalizeSaudiPhone(raw: string): string {
+  if (!raw) return "";
+  // Arabic-Indic (٠-٩) and Eastern Arabic (۰-۹) digits → Latin.
+  const latin = raw.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+                   .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
+  let digits = latin.replace(/[^\d]/g, "");
+
+  if (digits.startsWith("00966")) digits = digits.slice(5);
+  else if (digits.startsWith("966")) digits = digits.slice(3);
+  if (digits.startsWith("0")) digits = digits.slice(1);
+
+  return /^5\d{8}$/.test(digits) ? digits : "";
+}
+
+/** Whether the text is a usable Saudi mobile number. */
+export function isValidSaudiPhone(raw: string): boolean {
+  return normalizeSaudiPhone(raw) !== "";
+}
+
 export function slugify(text: string) {
   return text
     .toLowerCase()

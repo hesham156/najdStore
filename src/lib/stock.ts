@@ -13,6 +13,15 @@ export interface StockLine {
  * back and an error is thrown. Untracked products are ignored (unlimited).
  */
 export async function reserveStock(lines: StockLine[]): Promise<void> {
+  // Defence in depth: a non-positive quantity turns `decrement` into an
+  // increment, so refuse it here too rather than trusting every caller to have
+  // validated its input.
+  for (const line of lines) {
+    if (!Number.isInteger(line.quantity) || line.quantity < 1) {
+      throw new Error("الكمية المطلوبة غير صحيحة");
+    }
+  }
+
   const productIds = Array.from(new Set(lines.map((l) => l.productId)));
   const products = await prisma.product.findMany({
     where: { id: { in: productIds } },

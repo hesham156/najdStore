@@ -28,7 +28,7 @@ export function Navbar() {
   // the logo that could drift apart.
   const { siteName, tagline } = useBranding();
   const { data: session } = useSession();
-  const { getTotalItems, toggleCart } = useCartStore();
+  const { getTotalItems, toggleCart, clearCart } = useCartStore();
   const [isMenuOpen, setIsMenuOpen]   = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -186,7 +186,10 @@ export function Navbar() {
                             </Link>
                           )}
                           <hr className="my-1 border-line" />
-                          <button onClick={() => signOut({ callbackUrl: "/" })} className="flex items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger/10 w-full">
+                          {/* The cart lives in localStorage under one shared
+                              key, so without this the next person to sign in on
+                              this browser inherits the previous user's basket. */}
+                          <button onClick={() => { clearCart(); signOut({ callbackUrl: "/" }); }} className="flex items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger/10 w-full">
                             <LogOut className="h-4 w-4" />تسجيل الخروج
                           </button>
                         </div>

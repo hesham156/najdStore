@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -12,8 +12,8 @@ import toast from "react-hot-toast";
 import {
   CreditCard, Landmark, Wallet, Tag, CheckCircle2, Upload, Copy, AlertCircle,
 } from "lucide-react";
-import { cn, resolveCityFee } from "@/lib/utils";
-import { calculateOrderTotals } from "@/lib/pricing";
+import { cn, resolveCityFee, isValidSaudiPhone, normalizeSaudiPhone } from "@/lib/utils";
+import { calculateOrderTotals, vatIncludedIn } from "@/lib/pricing";
 import AdBanner from "@/components/store/AdBanner";
 
 /* ─── Types ─── */
@@ -36,6 +36,21 @@ function CopyRow({ label, value }: { label: string; value: string }) {
       <button onClick={copy} className="p-1.5 rounded-lg hover:bg-info/10 transition-colors">
         <Copy className="h-4 w-4 text-info" />
       </button>
+    </div>
+  );
+}
+
+/* ─── Field wrapper that shows a validation message under its control ─── */
+function Field({ error, children }: { error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      {children}
+      {error && (
+        <p className="mt-1 flex items-center gap-1 text-xs text-danger">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -85,7 +100,10 @@ export default function CheckoutPage() {
   const [gatewaysLoading, setGatewaysLoading] = useState(true);
   const [paymentMethod, setPaymentMethod]   = useState("");
   const [couponCode, setCouponCode]         = useState("");
-  const [coupon, setCoupon]                 = useState<{ discountType: string; discountValue: number; code: string } | null>(null);
+  // `minOrderAmount` is carried so the discount is re-evaluated whenever the
+  // basket changes — otherwise trimming the cart below the coupon's minimum
+  // kept showing a discount the order API would refuse.
+  const [coupon, setCoupon]                 = useState<{ discountType: string; discountValue: number; code: string; minOrderAmount?: number | null } | null>(null);
   const [couponLoading, setCouponLoading]   = useState(false);
   const [notes, setNotes]                   = useState("");
   const [loading, setLoading]               = useState(false);
@@ -101,6 +119,13 @@ export default function CheckoutPage() {
   const [shipFee, setShipFee]               = useState(0);
   const [shipFreeThreshold, setShipFreeThreshold] = useState(0);
   const [cityRates, setCityRates]           = useState<{ city: string; cost: number }[]>([]);
+  const [taxRate, setTaxRate]               = useState(0);
+  const [fieldErrors, setFieldErrors]       = useState<Record<string, string>>({});
+  // A ref, not state: it flips synchronously inside the click handler, so a
+  // second click that lands before React re-renders the disabled button is
+  // still turned away. Two orders from one impatient double-click is not a
+  // mistake the customer can undo.
+  const submitting = useRef(false);
 
   /* Fetch enabled gateways + public settings */
   useEffect(() => {
@@ -123,8 +148,14 @@ export default function CheckoutPage() {
         setGuestCheckoutEnabled(s.data.guest_checkout === true);
         setShipFee(parseFloat(String(s.data.shipping_fee ?? 0)) || 0);
         setShipFreeThreshold(parseFloat(String(s.data.shipping_free_threshold ?? 0)) || 0);
+        setTaxRate(parseFloat(String(s.data.tax_rate ?? 0)) || 0);
       }
-    }).finally(() => setGatewaysLoading(false));
+    })
+      // Without this a failed settings call rejected unhandled and the screen
+      // silently settled on "no payment methods", which reads like a closed
+      // shop rather than a temporary fault.
+      .catch(() => toast.error("تعذّر تحميل إعدادات الدفع. حدّث الصفحة."))
+      .finally(() => setGatewaysLoading(false));
   }, []);
 
   const shippingBase = resolveCityFee(shipCity, cityRates, shipFee);
@@ -191,15 +222,50 @@ if (items.length === 0) {
     finally { setCouponLoading(false); }
   };
 
-  const handleSubmit = async () => {
-    if (!paymentMethod) { toast.error("اختر طريقة دفع أولاً"); return; }
-    // Validate guest fields if not logged in
+  /**
+   * Everything that must be true before an order may be sent.
+   *
+   * The shipping block used to be collected and posted without a single check,
+   * so a printing order could reach the carrier with no recipient, no phone and
+   * no address. Address fields are required only when the store actually ships
+   * (a rate or a city table exists) — a purely digital catalogue still checks out
+   * in two fields.
+   */
+  const validateCheckout = (): Record<string, string> => {
+    const e: Record<string, string> = {};
+
+    if (!paymentMethod) e.paymentMethod = "اختر طريقة دفع أولاً";
+
     if (!session) {
-      if (!guestName.trim()) { toast.error("أدخل اسمك الكامل"); return; }
-      if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
-        toast.error("أدخل بريد إلكتروني صحيح"); return;
+      if (!guestName.trim()) e.guestName = "أدخل اسمك الكامل";
+      if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+        e.guestEmail = "أدخل بريد إلكتروني صحيح";
       }
     }
+
+    if (hasShipping) {
+      if (!shipName.trim()) e.shipName = "أدخل اسم المستلم";
+      if (!isValidSaudiPhone(shipPhone)) e.shipPhone = "أدخل رقم جوال سعودي صحيح (مثال: 0512345678)";
+      if (!shipCity.trim()) e.shipCity = "اختر المدينة";
+      if (shipAddress.trim().length < 8) e.shipAddress = "أدخل العنوان التفصيلي (الحي والشارع)";
+    }
+
+    // The bank-transfer receipt is deliberately NOT required here: the order
+    // page lets the customer attach it after making the transfer.
+
+    return e;
+  };
+
+  const handleSubmit = async () => {
+    // Synchronous latch — see the `submitting` ref above.
+    if (submitting.current) return;
+
+    const errors = validateCheckout();
+    setFieldErrors(errors);
+    const firstError = Object.values(errors)[0];
+    if (firstError) { toast.error(firstError); return; }
+
+    submitting.current = true;
     setLoading(true);
     try {
       let proofImageUrl: string | undefined;
@@ -207,9 +273,16 @@ if (items.length === 0) {
         const formData = new FormData();
         formData.append("file", proofFile);
         formData.append("purpose", "payment_proof");
-        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
-        const uploadData = await uploadRes.json();
-        if (uploadData.success) proofImageUrl = uploadData.url;
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData }).catch(() => null);
+        const uploadData = uploadRes ? await uploadRes.json().catch(() => null) : null;
+        if (!uploadData?.success) {
+          // The receipt is the whole point of a bank transfer. Creating the
+          // order without it used to happen silently, leaving the customer
+          // certain they had attached proof they had not.
+          toast.error(uploadData?.error || "تعذّر رفع إيصال التحويل. حاول مجدداً.");
+          return;
+        }
+        proofImageUrl = uploadData.url;
       }
 
       const res = await fetch("/api/orders", {
@@ -221,9 +294,12 @@ if (items.length === 0) {
           couponCode: coupon?.code,
           notes,
           proofImageUrl,
+          // Checked for equality against the server's own figure — never used
+          // as a price. A mismatch means the catalogue moved under us.
+          expectedTotal: total,
           // Shipping address (for carrier integrations)
           shipName: shipName.trim(),
-          shipPhone: shipPhone.trim(),
+          shipPhone: normalizeSaudiPhone(shipPhone) || shipPhone.trim(),
           shipCity: shipCity.trim(),
           shipAddress: shipAddress.trim(),
           // Guest fields
@@ -246,11 +322,23 @@ if (items.length === 0) {
             `/thank-you?order=${data.data.id}&num=${encodeURIComponent(data.data.orderNumber)}`
           );
         }
+      } else if (data.code === "TOTAL_CHANGED") {
+        // The server recomputed a different total. Drop the coupon if it no
+        // longer applies and let the customer see the new figure before we
+        // charge anything — silently billing the new amount is not an option.
+        if (data.totals && Math.abs(Number(data.totals.discount) - discount) > 0.01) setCoupon(null);
+        toast.error(data.error, { duration: 7000 });
+        router.refresh();
       } else {
         toast.error(data.error || "حدث خطأ في إرسال الطلب");
       }
-    } catch { toast.error("حدث خطأ. حاول مرة أخرى"); }
-    finally { setLoading(false); }
+    } catch {
+      toast.error("تعذّر الاتصال بالخادم. تحقّق من الإنترنت — لم يُنشأ أي طلب.");
+    }
+    finally {
+      setLoading(false);
+      submitting.current = false;
+    }
   };
 
   /* Collect enabled methods for rendering */
@@ -444,22 +532,30 @@ if (items.length === 0) {
               <h2 className="font-bold text-fg text-lg mb-1">عنوان الشحن</h2>
               <p className="text-sm text-fg-subtle mb-4">لشحن طلبك عبر شركات التوصيل</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input value={shipName} onChange={(e) => setShipName(e.target.value)} placeholder="اسم المستلم" className="input-base" />
-                <input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder="جوال المستلم" className="input-base" inputMode="tel" />
-                {cityRates.length > 0 ? (
-                  <select value={shipCity} onChange={(e) => setShipCity(e.target.value)} className="input-base">
-                    <option value="">اختر المدينة…</option>
-                    {cityRates.map((r) => (
-                      <option key={r.city} value={r.city}>
-                        {r.city}{r.cost > 0 ? ` (شحن ${r.cost} ر.س)` : " (شحن مجاني)"}
-                      </option>
-                    ))}
-                    {shipFee > 0 && <option value="مدن أخرى">مدينة أخرى (شحن {shipFee} ر.س)</option>}
-                  </select>
-                ) : (
-                  <input value={shipCity} onChange={(e) => setShipCity(e.target.value)} placeholder="المدينة" className="input-base" />
-                )}
-                <input value={shipAddress} onChange={(e) => setShipAddress(e.target.value)} placeholder="العنوان التفصيلي" className="input-base" />
+                <Field error={fieldErrors.shipName}>
+                  <input value={shipName} onChange={(e) => setShipName(e.target.value)} placeholder="اسم المستلم" aria-label="اسم المستلم" className="input-base" />
+                </Field>
+                <Field error={fieldErrors.shipPhone}>
+                  <input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder="جوال المستلم (05xxxxxxxx)" aria-label="جوال المستلم" className="input-base" inputMode="tel" dir="ltr" />
+                </Field>
+                <Field error={fieldErrors.shipCity}>
+                  {cityRates.length > 0 ? (
+                    <select value={shipCity} onChange={(e) => setShipCity(e.target.value)} aria-label="المدينة" className="input-base">
+                      <option value="">اختر المدينة…</option>
+                      {cityRates.map((r) => (
+                        <option key={r.city} value={r.city}>
+                          {r.city}{r.cost > 0 ? ` (شحن ${r.cost} ر.س)` : " (شحن مجاني)"}
+                        </option>
+                      ))}
+                      {shipFee > 0 && <option value="مدن أخرى">مدينة أخرى (شحن {shipFee} ر.س)</option>}
+                    </select>
+                  ) : (
+                    <input value={shipCity} onChange={(e) => setShipCity(e.target.value)} placeholder="المدينة" aria-label="المدينة" className="input-base" />
+                  )}
+                </Field>
+                <Field error={fieldErrors.shipAddress}>
+                  <input value={shipAddress} onChange={(e) => setShipAddress(e.target.value)} placeholder="العنوان التفصيلي" aria-label="العنوان التفصيلي" className="input-base" />
+                </Field>
               </div>
             </div>
 
@@ -513,6 +609,13 @@ if (items.length === 0) {
                   <span className="text-fg">الإجمالي</span>
                   <span className="text-primary-600 dark:text-primary-400">{formatAmount(total)}</span>
                 </div>
+                {/* Prices already include VAT, so this line explains the total
+                    rather than adding to it. */}
+                {vatIncludedIn(total, taxRate) > 0 && (
+                  <p className="text-xs text-fg-muted text-start">
+                    شامل ضريبة القيمة المضافة ({taxRate}%): {formatAmount(vatIncludedIn(total, taxRate))}
+                  </p>
+                )}
               </div>
 
               <Button

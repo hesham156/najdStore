@@ -34,6 +34,25 @@ export interface OrderTotals {
 const money = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;
 
 /**
+ * The VAT already contained in a tax-inclusive amount.
+ *
+ * Catalogue prices in this store include VAT — the accounting screens extract
+ * it with `total × rate / (100 + rate)` rather than adding it on top. The
+ * checkout summary shows the same figure so the customer can see the tax they
+ * are paying before they pay it, without the total moving.
+ *
+ * Returns 0 for a non-positive amount or an unusable rate, so a missing
+ * `tax_rate` setting hides the line instead of printing NaN.
+ */
+export function vatIncludedIn(totalInclusive: number, ratePercent: number): number {
+  const amount = Number(totalInclusive);
+  const rate = Number(ratePercent);
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  if (!Number.isFinite(rate) || rate <= 0) return 0;
+  return money((amount * rate) / (100 + rate));
+}
+
+/**
  * Discount a coupon grants on a given subtotal.
  *
  * Returns 0 when the coupon does not apply. The result is clamped to the

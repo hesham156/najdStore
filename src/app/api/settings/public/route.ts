@@ -16,6 +16,9 @@ const PUBLIC_KEYS = [
   "guest_checkout",
   "shipping_fee",
   "shipping_free_threshold",
+  // Display only: catalogue prices already include VAT, so the checkout shows
+  // how much of the total is tax. Publishing the rate reveals nothing private.
+  "tax_rate",
   // Conversion
   "live_activity_enabled",
   "live_activity_interval",

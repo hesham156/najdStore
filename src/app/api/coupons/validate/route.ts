@@ -36,6 +36,10 @@ export async function POST(req: NextRequest) {
         code: coupon.code,
         discountType: coupon.discountType,
         discountValue: parseFloat(String(coupon.discountValue)),
+        // The checkout screen recalculates the discount whenever the basket
+        // changes. Without the minimum it kept showing a discount the order API
+        // would then refuse, so the displayed total undercut the charged one.
+        minOrderAmount: coupon.minOrderAmount == null ? null : parseFloat(String(coupon.minOrderAmount)),
       },
     });
   } catch (error) {

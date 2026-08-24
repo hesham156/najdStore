@@ -42,6 +42,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "بيانات ناقصة" }, { status: 400 });
     }
 
+    /*
+     * Shape checks before anything is priced or reserved.
+     *
+     * `quantity` used to travel from the request body into the pricing sum, the
+     * order row and `reserveStock` without ever being looked at. A crafted
+     * request carrying a negative quantity produced `decrement: -n`, which
+     * Postgres applies as an INCREMENT — inflating stock while booking an order
+     * whose goods subtotal clamped to zero. Quantities are counts: whole,
+     * positive and bounded.
+     */
+    const VALID_METHODS = ["BANK_TRANSFER", "CREDIT_CARD", "CRYPTO", "PAYPAL", "TABBY", "TAMARA"];
+    if (!VALID_METHODS.includes(paymentMethod)) {
+      return NextResponse.json({ success: false, error: "طريقة دفع غير معروفة" }, { status: 400 });
+    }
+    if (!Array.isArray(items) || items.length > 100) {
+      return NextResponse.json({ success: false, error: "عدد المنتجات في الطلب غير مقبول" }, { status: 400 });
+    }
+    for (const item of items) {
+      if (!item || typeof item.productId !== "string" || !item.productId.trim()) {
+        return NextResponse.json({ success: false, error: "بيانات المنتجات غير صحيحة" }, { status: 400 });
+      }
+      if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
+        return NextResponse.json({ success: false, error: "الكمية المطلوبة غير صحيحة" }, { status: 400 });
+      }
+    }
+
     // Validate PayPal credentials BEFORE touching the DB — avoids orphaned orders
     if (paymentMethod === "PAYPAL") {
       const paypalConfig = await getPayPalConfig();
@@ -103,14 +129,26 @@ export async function POST(req: NextRequest) {
       userId = guestUser.id;
     }
 
-    // Validate products and get prices
-    const productIds = items.map((i: { productId: string }) => i.productId);
+    // Validate products and get prices.
+    //
+    // The ids must be de-duplicated before the count check: a cart holding the
+    // same product under two variants ("100 حبة" and "500 حبة") sends that id
+    // twice, while `IN (...)` returns the row once — so the lengths never
+    // matched and every multi-variant order was rejected as "unavailable".
+    const productIds: string[] = Array.from(
+      new Set(items.map((i: { productId: string }) => i.productId)),
+    );
     const products = await prisma.product.findMany({
       where: { id: { in: productIds }, isActive: true },
     });
 
     if (products.length !== productIds.length) {
-      return NextResponse.json({ success: false, error: "بعض المنتجات غير متاحة" }, { status: 400 });
+      const found = new Set(products.map((p) => p.id));
+      const missing = productIds.filter((id) => !found.has(id));
+      return NextResponse.json(
+        { success: false, error: "بعض المنتجات لم تعد متاحة. حدّث سلتك وحاول مجدداً.", unavailableProductIds: missing },
+        { status: 400 },
+      );
     }
 
     // Pre-fetch matrix variants referenced by the cart (server-side price source of truth)
@@ -227,6 +265,27 @@ export async function POST(req: NextRequest) {
     discount = totals.discount;
     const shippingCost = totals.shippingCost;
     const total = totals.total;
+
+    // Price tripwire.
+    //
+    // Every figure above is computed here from the database — the client's
+    // prices are never read. `expectedTotal` is used ONLY as an equality check:
+    // if the catalogue price, a coupon or a shipping rate changed while the
+    // customer sat on the checkout screen, the total they were shown no longer
+    // matches what we would charge, so we refuse and send the new total back
+    // instead of quietly billing a different amount.
+    const expected = Number(body.expectedTotal);
+    if (Number.isFinite(expected) && Math.abs(expected - total) > 0.01) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "تغيّرت أسعار طلبك أثناء إتمام الشراء. راجع الملخّص المحدَّث ثم أكّد مجدداً.",
+          code: "TOTAL_CHANGED",
+          totals: { subtotal: totals.subtotal, discount, shippingCost, total },
+        },
+        { status: 409 },
+      );
+    }
 
     // Reserve stock for tracked products before creating the order (prevents overselling)
     const stockLines: StockLine[] = orderItems.map((i: { productId: string; quantity: number; variantId?: string }) => ({
