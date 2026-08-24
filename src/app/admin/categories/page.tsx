@@ -23,6 +23,8 @@ interface Category {
   isActive: boolean;
   sortOrder: number;
   _count?: { products: number };
+  /** Deleted products kept for order history — they block removing the category. */
+  archivedProducts?: number;
 }
 
 type CategoryForm = typeof emptyForm;
@@ -286,19 +288,23 @@ export default function AdminCategoriesPage() {
       render: (_, row) => {
         // A category still holding products cannot be deleted (Product.categoryId
         // is required), so say why up front instead of failing on click.
+        // `archivedProducts` are soft-deleted ones: invisible on the products
+        // screen, but the database still refuses to break their category link.
         const productCount = row._count?.products ?? 0;
+        const archived = row.archivedProducts ?? 0;
+        const blocked = productCount > 0 || archived > 0;
+        const blockedReason =
+          productCount > 0
+            ? `لا يمكن حذف "${row.nameAr}" لأنها تحتوي على ${productCount} منتج. انقل المنتجات إلى فئة أخرى أولاً.`
+            : `"${row.nameAr}" مرتبطة بـ${archived} منتج محذوف محفوظ لسجل الطلبات — عطّلها بدل حذفها.`;
         return (
           <div className="flex items-center justify-end gap-1">
             <IconButton label={`تعديل ${row.nameAr}`} onClick={() => openEdit(row)} icon={<Pencil className="h-3.5 w-3.5" />} />
             <IconButton
               label={`حذف ${row.nameAr}`}
-              title={
-                productCount > 0
-                  ? `لا يمكن حذف "${row.nameAr}" لأنها تحتوي على ${productCount} منتج. انقل المنتجات إلى فئة أخرى أولاً.`
-                  : `حذف ${row.nameAr}`
-              }
+              title={blocked ? blockedReason : `حذف ${row.nameAr}`}
               variant="soft-danger"
-              disabled={productCount > 0}
+              disabled={blocked}
               onClick={() => setDeleteId(row.id)}
               icon={<Trash2 className="h-3.5 w-3.5" />}
             />

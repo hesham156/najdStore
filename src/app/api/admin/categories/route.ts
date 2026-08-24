@@ -7,12 +7,29 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   if (!await requireAdmin()) return unauthorized();
 
-  const categories = await prisma.category.findMany({
-    include: { _count: { select: { products: true } } },
-    orderBy: { sortOrder: "asc" },
-  });
+  const [categories, archived] = await Promise.all([
+    prisma.category.findMany({
+      // Only products the merchant can actually see. Counting soft-deleted ones
+      // too made a category report "1 منتج" for a product absent from the
+      // products screen — and then refuse to be deleted because of it.
+      include: { _count: { select: { products: { where: { isDeleted: false } } } } },
+      orderBy: { sortOrder: "asc" },
+    }),
+    // Soft-deleted products still hold their category, and the database will
+    // not let that link break. One grouped query rather than a count per row.
+    prisma.product.groupBy({
+      by: ["categoryId"],
+      where: { isDeleted: true },
+      _count: { _all: true },
+    }),
+  ]);
 
-  return NextResponse.json({ success: true, data: categories });
+  const archivedByCategory = new Map(archived.map((a) => [a.categoryId, a._count._all]));
+
+  return NextResponse.json({
+    success: true,
+    data: categories.map((c) => ({ ...c, archivedProducts: archivedByCategory.get(c.id) ?? 0 })),
+  });
 }
 
 export async function POST(req: NextRequest) {
