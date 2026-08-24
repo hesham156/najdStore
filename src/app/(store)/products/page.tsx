@@ -1,15 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { getSeoConfig } from "@/lib/seo";
 import { ProductCard } from "@/components/store/ProductCard";
 import { FilterSidebar } from "@/components/store/FilterSidebar";
 import type { ProductWithCategory } from "@/types";
 import type { Metadata } from "next";
 
-const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
 
 // Rendered on demand — the database is not available at build time
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
+  const cfg = await getSeoConfig();
+  const { siteUrl } = cfg;
   const title = searchParams.search
     ? `نتائج البحث عن "${searchParams.search}" | جميع المنتجات`
     : searchParams.category
@@ -24,7 +26,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
       description,
       url: `${siteUrl}/products`,
       locale: "ar_SA",
-      images: [{ url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: title }],
+      images: [{ url: cfg.ogImage, width: 1200, height: 630, alt: title }],
     },
     alternates: { canonical: `${siteUrl}/products` },
     robots: { index: true, follow: true },

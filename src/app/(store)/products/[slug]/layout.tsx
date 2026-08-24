@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import { parseProductVariants, slugCandidates } from "@/lib/utils";
+import { getSeoConfig } from "@/lib/seo";
 
 // Server-rendered on demand — Neon DB not available at build time
 export const dynamic = "force-dynamic";
 
-const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
-const siteName = "متجرك الإلكتروني";
+
 
 /** Strip HTML tags & collapse whitespace — for meta descriptions built from rich HTML */
 function stripHtml(html: string, max = 160): string {
@@ -20,12 +20,17 @@ interface Props { params: { slug: string } }
    generateMetadata
 ───────────────────────────────────────── */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await prisma.product.findFirst({
-    where: { slug: { in: slugCandidates(params.slug) }, isActive: true },
-    include: { category: true },
-  });
+  const [product, cfg] = await Promise.all([
+    prisma.product.findFirst({
+      where: { slug: { in: slugCandidates(params.slug) }, isActive: true },
+      include: { category: true },
+    }),
+    getSeoConfig(),
+  ]);
 
   if (!product) return { title: "المنتج غير موجود" };
+
+  const { siteUrl, siteName } = cfg;
 
   const price = parseFloat(String(product.price));
   const variants = parseProductVariants(product.tags);
@@ -55,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ...variants.map((v) => `${product.nameAr} ${v.label}`),
   ].filter(Boolean);
 
-  const productImage = product.image || `${siteUrl}/og-image.png`;
+  const productImage = product.image || cfg.ogImage;
   const canonicalUrl = `${siteUrl}/products/${product.slug}`;
 
   return {
@@ -65,11 +70,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     authors: [{ name: siteName, url: siteUrl }],
     creator: siteName,
     publisher: siteName,
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
-    },
+    robots: cfg.indexable
+      ? {
+          index: true,
+          follow: true,
+          googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+        }
+      : { index: false, follow: false },
     openGraph: {
       title,
       description,
@@ -96,16 +103,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
    Build JSON-LD schemas
 ───────────────────────────────────────── */
 async function getSchemas(slug: string) {
-  const product = await prisma.product.findFirst({
-    where: { slug: { in: slugCandidates(slug) }, isActive: true },
-    include: { category: true },
-  });
+  const [product, cfg] = await Promise.all([
+    prisma.product.findFirst({
+      where: { slug: { in: slugCandidates(slug) }, isActive: true },
+      include: { category: true },
+    }),
+    getSeoConfig(),
+  ]);
   if (!product) return null;
+
+  const { siteUrl, siteName } = cfg;
+
+  // Availability must tell the truth. It used to be hardcoded to InStock, which
+  // advertises sold-out items and is exactly the mismatch Google penalises.
+  const inStock = !product.trackStock || product.stockCount > 0;
+  const availability = inStock
+    ? "https://schema.org/InStock"
+    : "https://schema.org/OutOfStock";
+
+  // Return window, when the merchant has published one.
+  const returnPolicy = cfg.returnDays
+    ? {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: cfg.address.country,
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: cfg.returnDays,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn",
+      }
+    : null;
 
   const price     = parseFloat(String(product.price));
   const variants  = parseProductVariants(product.tags);
   const minPrice  = variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : price;
-  const imgUrl    = product.image || `${siteUrl}/og-image.png`;
+  const imgUrl    = product.image || cfg.ogImage;
   const canonical = `${siteUrl}/products/${product.slug}`;
   const desc      = (product.descriptionAr ? stripHtml(product.descriptionAr, 300) : "") || `اشتر ${product.nameAr} بسعر يبدأ من ${minPrice} ر.س.`;
   const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -129,18 +160,22 @@ async function getSchemas(slug: string) {
           price: v.price.toFixed(2),
           priceCurrency: "SAR",
           priceValidUntil: expiryDate,
-          availability: "https://schema.org/InStock",
+          url: canonical,
+          availability,
           itemCondition: "https://schema.org/NewCondition",
           seller: { "@type": "Organization", name: siteName, url: siteUrl },
+          ...(returnPolicy ? { hasMerchantReturnPolicy: returnPolicy } : {}),
         }))
       : {
           "@type": "Offer",
           price: minPrice.toFixed(2),
           priceCurrency: "SAR",
           priceValidUntil: expiryDate,
-          availability: "https://schema.org/InStock",
+          url: canonical,
+          availability,
           itemCondition: "https://schema.org/NewCondition",
           seller: { "@type": "Organization", name: siteName, url: siteUrl },
+          ...(returnPolicy ? { hasMerchantReturnPolicy: returnPolicy } : {}),
         },
     // Note: no aggregateRating until real customer reviews exist — fabricated
     // ratings violate Google's structured-data policy and risk a manual penalty.

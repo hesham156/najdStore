@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getSeoConfig } from "@/lib/seo";
 import { ProductCard } from "@/components/store/ProductCard";
 import type { ProductWithCategory } from "@/types";
 import { getCategoryWithProducts } from "@/lib/queries";
@@ -9,11 +10,12 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-const siteUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
 
 interface Props { params: { slug: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const cfg = await getSeoConfig();
+  const { siteUrl } = cfg;
   const cat = await prisma.category.findUnique({ where: { slug: params.slug } });
   if (!cat) return { title: "الفئة غير موجودة" };
 
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `${siteUrl}/categories/${cat.slug}`,
       locale: "ar_SA",
-      images: [{ url: cat.image || `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: title }],
+      images: [{ url: cat.image || cfg.ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: { card: "summary_large_image", title, description },
     alternates: { canonical: `${siteUrl}/categories/${cat.slug}` },

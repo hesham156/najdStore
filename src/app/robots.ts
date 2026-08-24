@@ -1,31 +1,45 @@
 import { MetadataRoute } from "next";
+import { getSeoConfig } from "@/lib/seo";
+import { aiRobotRules } from "@/lib/ai-crawlers";
 
-const rawUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
-const siteUrl = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+// Reads the AI policy from settings, so it cannot be statically cached.
+export const dynamic = "force-dynamic";
 
-export default function robots(): MetadataRoute.Robots {
+/** Never crawlable by anyone: private, transactional or API surface. */
+const PRIVATE_PATHS = [
+  "/admin/",
+  "/api/",
+  "/checkout",
+  "/cart",
+  "/dashboard/",
+  "/login",
+  "/register",
+  "/reset-password",
+  "/forgot-password",
+];
+
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const cfg = await getSeoConfig();
+
+  // The merchant switched indexing off — say so plainly to everyone.
+  if (!cfg.indexable) {
+    return {
+      rules: [{ userAgent: "*", disallow: "/" }],
+      sitemap: `${cfg.siteUrl}/sitemap.xml`,
+      host: cfg.siteUrl,
+    };
+  }
+
   return {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/products", "/categories", "/contact", "/faq", "/blog"],
-        disallow: [
-          "/admin/",
-          "/api/",
-          "/checkout",
-          "/cart",
-          "/orders",
-          "/profile",
-          "/(auth)/",
-        ],
+        allow: "/",
+        disallow: PRIVATE_PATHS,
       },
-      {
-        // Block AI bots from scraping product data
-        userAgent: ["GPTBot", "ChatGPT-User", "CCBot", "anthropic-ai", "Claude-Web"],
-        disallow: ["/"],
-      },
+      ...aiRobotRules(cfg.aiPolicy, PRIVATE_PATHS),
     ],
-    sitemap: `${siteUrl}/sitemap.xml`,
-    host: siteUrl,
+    sitemap: `${cfg.siteUrl}/sitemap.xml`,
+    host: cfg.siteUrl,
   };
 }

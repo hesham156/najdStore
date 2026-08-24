@@ -10,6 +10,7 @@ import { DbKeepAlive } from "@/components/providers/DbKeepAlive";
 import { PixelInjector } from "@/components/providers/PixelInjector";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
+import { getSeoConfig, organizationJsonLd, webSiteJsonLd } from "@/lib/seo";
 
 // Load font via Next.js optimizer — bundled locally, zero external round-trip
 const cairo = Cairo({
@@ -20,66 +21,72 @@ const cairo = Cairo({
   preload: true,
 });
 
-const rawUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
-const siteUrl = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
-const siteName = "متجرك الإلكتروني";
-const siteDesc = "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة، تسليم سريع، وتجربة شراء سلسة وآمنة في السعودية والخليج";
+/**
+ * Metadata is generated per request so the SEO settings screen actually
+ * drives it. It used to be a hardcoded constant, which meant every share
+ * card and search snippet advertised a placeholder store name.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const cfg = await getSeoConfig();
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: siteName,
-    template: `%s | ${siteName}`,
-  },
-  description: siteDesc,
-  keywords: [
-    "متجر إلكتروني", "تسوق أونلاين", "منتجات",
-    "خدمات", "أفضل الأسعار", "تسليم سريع",
-    "متجر السعودية", "تسوق الخليج",
-  ],
-  authors: [{ name: siteName, url: siteUrl }],
-  creator: siteName,
-  publisher: siteName,
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
-  },
-  openGraph: {
-    type: "website",
-    locale: "ar_SA",
-    url: siteUrl,
-    siteName,
-    title: siteName,
-    description: siteDesc,
-    images: [{ url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: siteName }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteName,
-    description: siteDesc,
-    images: [`${siteUrl}/og-image.png`],
-  },
-  alternates: { canonical: siteUrl },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
-};
+  const verification: Record<string, string> = {};
+  if (cfg.googleVerification) verification.google = cfg.googleVerification;
+  if (cfg.bingVerification) verification.other = cfg.bingVerification;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return {
+    metadataBase: new URL(cfg.siteUrl),
+    title: { default: cfg.title, template: `%s | ${cfg.siteName}` },
+    description: cfg.description,
+    ...(cfg.keywords.length ? { keywords: cfg.keywords } : {}),
+    authors: [{ name: cfg.siteName, url: cfg.siteUrl }],
+    creator: cfg.siteName,
+    publisher: cfg.siteName,
+    robots: cfg.indexable
+      ? {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        }
+      : { index: false, follow: false },
+    openGraph: {
+      type: "website",
+      locale: "ar_SA",
+      url: cfg.siteUrl,
+      siteName: cfg.siteName,
+      title: cfg.ogTitle,
+      description: cfg.ogDescription,
+      ...(cfg.ogImage
+        ? { images: [{ url: cfg.ogImage, width: 1200, height: 630, alt: cfg.siteName }] }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: cfg.ogTitle,
+      description: cfg.ogDescription,
+      ...(cfg.twitterHandle ? { site: cfg.twitterHandle, creator: cfg.twitterHandle } : {}),
+      ...(cfg.ogImage ? { images: [cfg.ogImage] } : {}),
+    },
+    alternates: { canonical: cfg.siteUrl },
+    ...(Object.keys(verification).length ? { verification } : {}),
+    icons: { icon: "/favicon.ico", apple: "/apple-touch-icon.png" },
+  };
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cfg = await getSeoConfig();
+
+  // One @graph rather than two loose blocks: it lets the WebSite reference the
+  // Organization by @id, so a crawler reads one connected entity instead of
+  // two strangers that happen to share a name.
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: siteName,
-    url: siteUrl,
-    description: siteDesc,
-    inLanguage: "ar",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: { "@type": "EntryPoint", urlTemplate: `${siteUrl}/products?search={search_term_string}` },
-      "query-input": "required name=search_term_string",
-    },
+    "@graph": [organizationJsonLd(cfg), webSiteJsonLd(cfg)],
   };
 
   return (
@@ -104,7 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     storeId: "pexelco",
     apiUrl: "https://7ayak.app",
     primaryColor: "#7c3aed",
-    storeName: "${siteName}"
+    storeName: "${cfg.siteName}"
   };`}
             </Script>
             <Script src="https://7ayak.app/widget.js" strategy="afterInteractive" />

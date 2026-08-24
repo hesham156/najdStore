@@ -1,13 +1,15 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-
-const rawUrl = process.env.NEXTAUTH_URL || "https://yourstore.com";
-const siteUrl = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+import { getSeoConfig } from "@/lib/seo";
 
 // Generated on demand — the database is not available at build time
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Same resolved origin the rest of the SEO layer uses, so a merchant who sets
+  // a custom domain in settings does not end up with a sitemap full of the old one.
+  const { siteUrl } = await getSeoConfig();
+
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
