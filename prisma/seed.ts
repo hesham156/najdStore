@@ -553,15 +553,19 @@ async function main() {
     { key: "company_address",   value: "المملكة العربية السعودية", type: "text", label: "Company Address", labelAr: "عنوان الشركة",                group: "accounting" },
   ];
 
+  // Seed values must never clobber a live store's configuration. Re-running
+  // the seed used to reset every setting the merchant had edited — a store
+  // name, bank details and payment keys all silently reverted. Now it only
+  // fills in keys that do not exist yet, so it is safe on an existing database.
   for (const setting of settings) {
     await prisma.setting.upsert({
       where: { key: setting.key },
-      update: { value: setting.value },
+      update: {}, // deliberately empty — an existing setting is left alone
       create: setting,
     });
   }
 
-  console.log("✅ Settings created");
+  console.log(`✅ Settings ready (${settings.length} checked, existing values preserved)`);
 
   // Admin Log
   await prisma.adminLog.create({

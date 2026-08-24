@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateOrderNumber, computeShipping, resolveCityFee } from "@/lib/utils";
+import { generateOrderNumber, resolveCityFee } from "@/lib/utils";
+import { calculateOrderTotals } from "@/lib/pricing";
 import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
 import { getMoyasarConfig, createInvoice } from "@/lib/moyasar";
@@ -188,11 +189,6 @@ export async function POST(req: NextRequest) {
         if (!coupon.minOrderAmount || subtotal >= parseFloat(String(coupon.minOrderAmount))) {
           couponId = coupon.id;
           validatedCoupon = coupon;
-          if (coupon.discountType === "PERCENTAGE") {
-            discount = subtotal * (parseFloat(String(coupon.discountValue)) / 100);
-          } else {
-            discount = parseFloat(String(coupon.discountValue));
-          }
         }
       }
     }
@@ -214,9 +210,23 @@ export async function POST(req: NextRequest) {
       cityRateRows.map((r) => ({ city: r.city, cost: Number(r.cost) })),
       flatFee,
     );
-    const shippingCost = computeShipping(subtotal, shippingBase, freeThreshold);
-
-    const total = Math.max(0, subtotal - discount) + shippingCost;
+    // Same function the checkout screen uses, so the customer is charged the
+    // price they were shown — the two used to be separate copies of this maths.
+    const totals = calculateOrderTotals({
+      subtotal,
+      coupon: validatedCoupon
+        ? {
+            discountType: validatedCoupon.discountType,
+            discountValue: Number(validatedCoupon.discountValue),
+            minOrderAmount: validatedCoupon.minOrderAmount == null ? null : Number(validatedCoupon.minOrderAmount),
+          }
+        : null,
+      shippingBase,
+      freeShippingThreshold: freeThreshold,
+    });
+    discount = totals.discount;
+    const shippingCost = totals.shippingCost;
+    const total = totals.total;
 
     // Reserve stock for tracked products before creating the order (prevents overselling)
     const stockLines: StockLine[] = orderItems.map((i: { productId: string; quantity: number; variantId?: string }) => ({

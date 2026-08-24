@@ -12,7 +12,8 @@ import toast from "react-hot-toast";
 import {
   CreditCard, Landmark, Wallet, Tag, CheckCircle2, Upload, Copy, AlertCircle,
 } from "lucide-react";
-import { cn, computeShipping, resolveCityFee } from "@/lib/utils";
+import { cn, resolveCityFee } from "@/lib/utils";
+import { calculateOrderTotals } from "@/lib/pricing";
 import AdBanner from "@/components/store/AdBanner";
 
 /* ─── Types ─── */
@@ -126,16 +127,15 @@ export default function CheckoutPage() {
     }).finally(() => setGatewaysLoading(false));
   }, []);
 
-  const subtotal = getTotalPrice();
-  const discount = coupon
-    ? coupon.discountType === "PERCENTAGE"
-      ? subtotal * (coupon.discountValue / 100)
-      : coupon.discountValue
-    : 0;
   const shippingBase = resolveCityFee(shipCity, cityRates, shipFee);
-  const shippingCost = computeShipping(subtotal, shippingBase, shipFreeThreshold);
   const hasShipping = shipFee > 0 || cityRates.length > 0;
-  const total = Math.max(0, subtotal - discount) + shippingCost;
+  // Same function the order API uses, so the price shown here is the price charged.
+  const { subtotal, discount, shippingCost, total } = calculateOrderTotals({
+    subtotal: getTotalPrice(),
+    coupon,
+    shippingBase,
+    freeShippingThreshold: shipFreeThreshold,
+  });
 
   /* ── Guards ── */
   // Still loading session — wait
