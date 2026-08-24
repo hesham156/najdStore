@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { CheckCircle2, FolderTree, Package, Pencil, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button, IconButton } from "@/components/ui/Button";
-import { Checkbox, Input } from "@/components/ui/Input";
+import { Checkbox, Input, Select } from "@/components/ui/Input";
 import { ConfirmModal, Modal } from "@/components/ui/Modal";
 import { Column, DataTable } from "@/components/ui/DataTable";
 import { EmptyState, NoResultsState } from "@/components/ui/States";
@@ -109,6 +109,8 @@ export default function AdminCategoriesPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  // Set when the server reports the category still holds archived products.
+  const [reassign, setReassign] = useState<{ archived: number; target: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -188,23 +190,43 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (reassignTo?: string) => {
     if (!deleteId) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/categories/${deleteId}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/categories/${deleteId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reassignTo ? { reassignTo } : {}),
+      });
       const data = await res.json();
+
       if (data.success) {
-        toast.success("تم حذف الفئة");
+        toast.success(
+          data.data?.reassigned
+            ? `تم حذف الفئة ونقل ${data.data.reassigned} منتج محذوف`
+            : "تم حذف الفئة"
+        );
+        setDeleteId(null);
+        setReassign(null);
         loadCategories();
-      } else {
-        toast.error(data.error || "تعذّر حذف الفئة");
+        return;
       }
+
+      // The category holds archived products; ask where they should go rather
+      // than dead-ending the merchant.
+      if (data.requiresReassign) {
+        setReassign({ archived: data.archivedProducts ?? 0, target: "" });
+        return;
+      }
+
+      toast.error(data.error || "تعذّر حذف الفئة");
+      setDeleteId(null);
     } catch {
       toast.error("تعذّر الاتصال بالخادم، حاول مرة أخرى");
+      setDeleteId(null);
     } finally {
       setDeleting(false);
-      setDeleteId(null);
     }
   };
 
@@ -292,17 +314,21 @@ export default function AdminCategoriesPage() {
         // screen, but the database still refuses to break their category link.
         const productCount = row._count?.products ?? 0;
         const archived = row.archivedProducts ?? 0;
-        const blocked = productCount > 0 || archived > 0;
+        // Only products still on sale block the delete outright. Archived ones
+        // just need somewhere to go, which the delete flow asks for.
+        const blocked = productCount > 0;
         const blockedReason =
           productCount > 0
             ? `لا يمكن حذف "${row.nameAr}" لأنها تحتوي على ${productCount} منتج. انقل المنتجات إلى فئة أخرى أولاً.`
-            : `"${row.nameAr}" مرتبطة بـ${archived} منتج محذوف محفوظ لسجل الطلبات — عطّلها بدل حذفها.`;
+            : archived > 0
+              ? `حذف ${row.nameAr} — سيُطلب منك نقل ${archived} منتج محذوف`
+              : `حذف ${row.nameAr}`;
         return (
           <div className="flex items-center justify-end gap-1">
             <IconButton label={`تعديل ${row.nameAr}`} onClick={() => openEdit(row)} icon={<Pencil className="h-3.5 w-3.5" />} />
             <IconButton
               label={`حذف ${row.nameAr}`}
-              title={blocked ? blockedReason : `حذف ${row.nameAr}`}
+              title={blockedReason}
               variant="soft-danger"
               disabled={blocked}
               onClick={() => setDeleteId(row.id)}
@@ -392,14 +418,65 @@ export default function AdminCategoriesPage() {
       </Modal>
 
       <ConfirmModal
-        isOpen={!!deleteId}
+        isOpen={!!deleteId && !reassign}
         onClose={() => setDeleteId(null)}
-        onConfirm={handleDelete}
+        onConfirm={() => handleDelete()}
         title="حذف الفئة"
-        message="سيتم حذف الفئة نهائياً ولا يمكن التراجع. الفئات التي تحتوي على منتجات لا يمكن حذفها — عطّلها بدلاً من ذلك."
+        message="سيتم حذف الفئة نهائياً ولا يمكن التراجع. الفئات التي تحتوي على منتجات معروضة لا يمكن حذفها — انقل منتجاتها أولاً."
         confirmLabel="نعم، احذف"
         loading={deleting}
       />
+
+      {/* The category is empty on screen but still anchors deleted products kept
+          for order history. They have to land somewhere before it can go. */}
+      <Modal
+        isOpen={!!reassign}
+        onClose={() => {
+          setReassign(null);
+          setDeleteId(null);
+        }}
+        title="نقل المنتجات المحذوفة"
+        description={`هذه الفئة مرتبطة بـ${reassign?.archived ?? 0} منتج محذوف محفوظ لسجل الطلبات السابقة.`}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setReassign(null);
+                setDeleteId(null);
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="danger"
+              loading={deleting}
+              disabled={!reassign?.target}
+              onClick={() => handleDelete(reassign?.target)}
+            >
+              انقل واحذف الفئة
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <Select
+            label="انقل المنتجات المحذوفة إلى"
+            value={reassign?.target || ""}
+            onChange={(e) => setReassign((r) => (r ? { ...r, target: e.target.value } : r))}
+            options={[
+              { value: "", label: "اختر فئة…" },
+              ...categories
+                .filter((c) => c.id !== deleteId)
+                .map((c) => ({ value: c.id, label: c.nameAr })),
+            ]}
+          />
+          <p className="text-xs leading-relaxed text-fg-muted">
+            المنتجات المحذوفة لا تظهر في المتجر ولا في شاشة المنتجات. نقلها لا يغيّر أسعار
+            الطلبات السابقة ولا أسماء منتجاتها — الأيقونة المعروضة بجانب المنتج في الطلب فقط.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
