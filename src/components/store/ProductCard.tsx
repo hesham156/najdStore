@@ -173,8 +173,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
         {/* Out of stock overlay */}
         {product.stockCount === 0 && (
-          <div className="absolute inset-0 bg-surface-sunken flex items-center justify-center rounded-2xl">
-            <span className="bg-surface-sunken text-white px-4 py-2 rounded-xl font-bold text-sm">
+          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-fg/60 backdrop-blur-[1px]">
+            <span className="rounded-control bg-fg px-4 py-2 text-sm font-bold text-canvas">
               نفذ المخزون
             </span>
           </div>

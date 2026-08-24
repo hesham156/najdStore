@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea, Select } from "@/components/ui/Input";
+import { Input, Textarea, Select, Switch } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/admin/PageHeader";
 
@@ -397,21 +397,13 @@ export default function AdminUpsellsPage() {
 
                     {/* Active toggle */}
                     <td className="px-5 py-4">
-                      <button
-                        onClick={() => toggleActive(upsell)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                          upsell.isActive
-                            ? "bg-primary-600"
-                            : "bg-line-strong"
-                        }`}
+                      <Switch
+                        size="md"
+                        checked={upsell.isActive}
+                        onChange={() => toggleActive(upsell)}
                         title={upsell.isActive ? "إيقاف" : "تفعيل"}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                            upsell.isActive ? "translate-x-6" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
+                        aria-label={`${upsell.isActive ? "إيقاف" : "تفعيل"} ${upsell.headlineAr}`}
+                      />
                     </td>
 
                     {/* Actions */}

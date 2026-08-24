@@ -283,17 +283,28 @@ export default function AdminCategoriesPage() {
       title: "",
       align: "end",
       cardHidden: true,
-      render: (_, row) => (
-        <div className="flex items-center justify-end gap-1">
-          <IconButton label={`تعديل ${row.nameAr}`} onClick={() => openEdit(row)} icon={<Pencil className="h-3.5 w-3.5" />} />
-          <IconButton
-            label={`حذف ${row.nameAr}`}
-            variant="soft-danger"
-            onClick={() => setDeleteId(row.id)}
-            icon={<Trash2 className="h-3.5 w-3.5" />}
-          />
-        </div>
-      ),
+      render: (_, row) => {
+        // A category still holding products cannot be deleted (Product.categoryId
+        // is required), so say why up front instead of failing on click.
+        const productCount = row._count?.products ?? 0;
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <IconButton label={`تعديل ${row.nameAr}`} onClick={() => openEdit(row)} icon={<Pencil className="h-3.5 w-3.5" />} />
+            <IconButton
+              label={`حذف ${row.nameAr}`}
+              title={
+                productCount > 0
+                  ? `لا يمكن حذف "${row.nameAr}" لأنها تحتوي على ${productCount} منتج. انقل المنتجات إلى فئة أخرى أولاً.`
+                  : `حذف ${row.nameAr}`
+              }
+              variant="soft-danger"
+              disabled={productCount > 0}
+              onClick={() => setDeleteId(row.id)}
+              icon={<Trash2 className="h-3.5 w-3.5" />}
+            />
+          </div>
+        );
+      },
     },
   ];
 
@@ -379,7 +390,7 @@ export default function AdminCategoriesPage() {
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
         title="حذف الفئة"
-        message="سيتم حذف الفئة نهائياً. تأكد من نقل منتجاتها إلى فئة أخرى أولاً."
+        message="سيتم حذف الفئة نهائياً ولا يمكن التراجع. الفئات التي تحتوي على منتجات لا يمكن حذفها — عطّلها بدلاً من ذلك."
         confirmLabel="نعم، احذف"
         loading={deleting}
       />

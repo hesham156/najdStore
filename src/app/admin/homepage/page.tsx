@@ -127,8 +127,8 @@ export default function HomepageBuilderPage() {
       )}
 
       {dirty && (
-        <div className="sticky bottom-4 flex items-center justify-between gap-3 bg-surface-sunken text-white rounded-card px-5 py-3 shadow-overlay">
-          <span className="text-sm text-white/70">لديك تغييرات غير محفوظة</span>
+        <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-card border border-warning/30 bg-surface px-5 py-3 shadow-overlay">
+          <span className="text-sm text-fg">لديك تغييرات غير محفوظة</span>
           <Button size="sm" onClick={save} loading={saving}><Save className="h-3.5 w-3.5" /> حفظ الآن</Button>
         </div>
       )}

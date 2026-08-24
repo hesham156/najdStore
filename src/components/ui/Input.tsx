@@ -235,40 +235,81 @@ interface SwitchProps {
   disabled?: boolean;
   id?: string;
   className?: string;
+  /** `md` matches the toggles used in tables and settings rows. */
+  size?: "sm" | "md";
+  /** Accessible name when the switch stands alone with no visible label. */
+  "aria-label"?: string;
+  title?: string;
 }
 
-export function Switch({ checked, onChange, label, description, disabled, id, className }: SwitchProps) {
+/**
+ * The one switch in the app.
+ *
+ * The knob is positioned with the LOGICAL `start-*` property, never
+ * `translate-x-*`: translate is physical, so under `dir="rtl"` it drove the
+ * knob off the end of the track instead of along it.
+ */
+const SWITCH_SIZES = {
+  sm: { track: "h-5 w-9", knob: "h-4 w-4", on: "start-[1.125rem]", off: "start-0.5" },
+  md: { track: "h-6 w-11", knob: "h-5 w-5", on: "start-[1.375rem]", off: "start-0.5" },
+} as const;
+
+export function Switch({
+  checked,
+  onChange,
+  label,
+  description,
+  disabled,
+  id,
+  className,
+  size = "sm",
+  title,
+  "aria-label": ariaLabel,
+}: SwitchProps) {
   const auto = useId();
   const switchId = id || `switch-${auto}`;
+  const s = SWITCH_SIZES[size];
+  const hasLabel = Boolean(label || description);
+
+  const control = (
+    <button
+      type="button"
+      id={switchId}
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      title={title}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "relative inline-flex shrink-0 items-center rounded-full transition-colors duration-200",
+        s.track,
+        hasLabel && "mt-0.5",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        checked ? "bg-primary-600" : "bg-line-strong",
+        !hasLabel && className
+      )}
+    >
+      <span
+        className={cn(
+          "absolute rounded-full bg-white shadow-sm transition-all duration-200",
+          s.knob,
+          checked ? s.on : s.off
+        )}
+      />
+    </button>
+  );
+
+  if (!hasLabel) return control;
+
   return (
     <div className={cn("flex items-start gap-3", className)}>
-      <button
-        type="button"
-        id={switchId}
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200",
-          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          checked ? "bg-primary-600" : "bg-line-strong"
-        )}
-      >
-        <span
-          className={cn(
-            "absolute h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200",
-            checked ? "start-[1.125rem]" : "start-0.5"
-          )}
-        />
-      </button>
-      {(label || description) && (
-        <label htmlFor={switchId} className="cursor-pointer select-none">
-          {label && <span className="block text-[13px] font-medium text-fg">{label}</span>}
-          {description && <span className="block text-xs text-fg-muted">{description}</span>}
-        </label>
-      )}
+      {control}
+      <label htmlFor={switchId} className="cursor-pointer select-none">
+        {label && <span className="block text-[13px] font-medium text-fg">{label}</span>}
+        {description && <span className="block text-xs text-fg-muted">{description}</span>}
+      </label>
     </div>
   );
 }

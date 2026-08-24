@@ -107,7 +107,7 @@ export function MonthlySummaryCard() {
             <div className="relative h-40">
               {/* Tooltip */}
               {hover !== null && data?.series[hover] && (
-                <div className="absolute -top-2 z-10 pointer-events-none -translate-x-1/2 rounded-xl bg-surface-sunken text-white text-xs px-3 py-2 shadow-xl whitespace-nowrap"
+                <div className="pointer-events-none absolute -top-2 z-10 -translate-x-1/2 whitespace-nowrap rounded-control bg-fg px-3 py-2 text-xs text-canvas shadow-xl"
                   style={{ insetInlineStart: `${((hover + 0.5) / data.series.length) * 100}%` }}>
                   <p className="font-bold mb-0.5">
                     {data.range === "daily" ? `الساعة ${data.series[hover].date}` : `${data.series[hover].date} ${AR_MONTHS[data.month - 1]}`}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Input, Switch } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
@@ -161,25 +161,9 @@ const CONVERSION_FEATURES = [
   },
 ];
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-        checked ? "bg-primary-600" : "bg-line-strong"
-      }`}
-    >
-      {/* logical `start-*` keeps the knob correct in RTL (moves from start→end) */}
-      <span
-        className={`absolute h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-200 ${
-          checked ? "start-6" : "start-1"
-        }`}
-      />
-    </button>
-  );
+/** Thin wrapper so this file's call sites keep their shape. */
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
+  return <Switch size="md" checked={checked} onChange={onChange} aria-label={label} />;
 }
 
 function SettingRow({

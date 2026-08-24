@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea, Select } from "@/components/ui/Input";
+import { Input, Textarea, Select, Switch } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/admin/PageHeader";
 
@@ -475,21 +475,13 @@ export default function AdminPopupsPage() {
 
                     {/* Active toggle */}
                     <td className="px-5 py-4">
-                      <button
-                        onClick={() => toggleActive(popup)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                          popup.isActive
-                            ? "bg-primary-600"
-                            : "bg-line-strong"
-                        }`}
+                      <Switch
+                        size="md"
+                        checked={popup.isActive}
+                        onChange={() => toggleActive(popup)}
                         title={popup.isActive ? "إيقاف" : "تفعيل"}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                            popup.isActive ? "translate-x-6" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
+                        aria-label={`${popup.isActive ? "إيقاف" : "تفعيل"} ${popup.titleAr}`}
+                      />
                     </td>
 
                     {/* Sort order */}

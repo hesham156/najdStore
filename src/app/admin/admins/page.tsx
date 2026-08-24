@@ -91,7 +91,7 @@ export default function AdminAdminsPage() {
       const res = await fetch(`/api/admin/admins/${deleteId}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        toast.success("تم حذف المشرف");
+        toast.success("تم إلغاء صلاحية المشرف");
         fetchAdmins();
       } else {
         toast.error(data.error || "تعذّر حذف المشرف");

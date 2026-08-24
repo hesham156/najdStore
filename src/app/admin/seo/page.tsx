@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Save, Globe, Search, Share2, Bot } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea } from "@/components/ui/Input";
+import { Input, Textarea, Switch } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -192,19 +192,12 @@ export default function AdminSeoPage() {
                       <p className="font-medium text-sm text-fg">{conf.labelAr}</p>
                       <p className="text-xs text-fg-muted mt-0.5">إيقاف الفهرسة يمنع ظهور موقعك في محركات البحث</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => set(key, bool(key) ? "false" : "true")}
-                      className={cn(
-                        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                        bool(key) ? "bg-primary-600" : "bg-line-strong"
-                      )}
-                    >
-                      <span className={cn(
-                        "inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform",
-                        bool(key) ? "-translate-x-1 rtl:translate-x-6" : "translate-x-1"
-                      )} />
-                    </button>
+                    <Switch
+                      size="md"
+                      checked={bool(key)}
+                      onChange={(v) => set(key, String(v))}
+                      aria-label={conf.labelAr}
+                    />
                   </label>
                 );
               }

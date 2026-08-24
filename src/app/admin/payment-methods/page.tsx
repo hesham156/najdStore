@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Save, Eye, EyeOff, CheckCircle2, XCircle, Building2, ShieldCheck, Zap, Globe, Lock, Lightbulb, AlertTriangle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Input, Switch as Toggle } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { Alert } from "@/components/ui/States";
 import { cn } from "@/lib/utils";
@@ -11,25 +11,6 @@ import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Setting { key: string; value: string }
-
-/* ─── Toggle ─── */
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={cn(
-        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none",
-        checked ? "bg-primary-600" : "bg-line-strong"
-      )}
-    >
-      <span className={cn(
-        "inline-block h-4 w-4 rounded-full bg-white shadow-md transform transition-transform duration-200",
-        checked ? "-translate-x-1 rtl:translate-x-6" : "translate-x-1 rtl:translate-x-1"
-      )} />
-    </button>
-  );
-}
 
 /* ─── Password Input ─── */
 function PasswordInput({ label, value, onChange, placeholder }: {
@@ -89,7 +70,7 @@ function PaymentCard({ title, subtitle, logo, enabled, onToggle, children }: {
             ? <span className="flex items-center gap-1 text-xs font-semibold text-success"><CheckCircle2 className="h-4 w-4" />مفعّل</span>
             : <span className="flex items-center gap-1 text-xs font-semibold text-fg-subtle"><XCircle className="h-4 w-4" />معطّل</span>
           }
-          <Toggle checked={enabled} onChange={onToggle} />
+          <Toggle size="md" checked={enabled} onChange={onToggle} aria-label={`${enabled ? "تعطيل" : "تفعيل"} ${title}`} />
         </div>
       </div>
       {enabled && children && (
@@ -290,7 +271,7 @@ export default function PaymentMethodsPage() {
                 <span className="text-sm font-medium text-fg">
                   إظهار شعار تمارا في صفحة المنتج
                 </span>
-                <Toggle checked={bool("tamara_enabled")} onChange={v => set("tamara_enabled", String(v))} />
+                <Toggle size="md" checked={bool("tamara_enabled")} onChange={v => set("tamara_enabled", String(v))} aria-label="إظهار شعار تمارا في صفحة المنتج" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

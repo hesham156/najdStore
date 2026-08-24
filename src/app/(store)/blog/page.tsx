@@ -80,7 +80,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
             <Link
               href="/blog"
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                !searchParams.category ? "bg-surface-sunken dark:bg-white text-white" : "bg-surface-sunken text-fg-muted hover:bg-surface-hover"
+                !searchParams.category ? "bg-primary-600 text-white" : "bg-surface-sunken text-fg-muted hover:bg-surface-hover"
               }`}
             >
               الكل

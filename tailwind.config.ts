@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 /** Reads a CSS custom property holding `R G B` channels so /opacity modifiers work. */
 const token = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
@@ -130,7 +131,20 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [
+    require("@tailwindcss/typography"),
+    /**
+     * Tailwind v3 ships no `rtl:` / `ltr:` variants, so every `rtl:*` class in
+     * this codebase silently compiled to nothing — which is how a toggle knob
+     * ended up sliding out of its own track. Register them for real.
+     * Prefer logical properties (`start-*`, `ms-*`) where they exist; reach for
+     * these only for things with no logical equivalent, like `rotate`.
+     */
+    plugin(({ addVariant }) => {
+      addVariant("rtl", '&:where([dir="rtl"], [dir="rtl"] *)');
+      addVariant("ltr", '&:where([dir="ltr"], [dir="ltr"] *)');
+    }),
+  ],
 };
 
 export default config;
