@@ -55,25 +55,25 @@ const SECTIONS: Section[] = [
   {
     title: "المعلومات الأساسية",
     icon: <Globe className="h-4 w-4" />,
-    color: "bg-blue-50 dark:bg-blue-900/10",
+    color: "bg-info/10",
     keys: ["seo_site_name", "seo_site_url"],
   },
   {
     title: "Meta Tags – محركات البحث",
     icon: <Search className="h-4 w-4" />,
-    color: "bg-purple-50 dark:bg-purple-900/10",
+    color: "bg-brand/10",
     keys: ["seo_meta_title", "seo_meta_description", "seo_meta_keywords", "seo_robots_index"],
   },
   {
     title: "Open Graph & Social Sharing",
     icon: <Share2 className="h-4 w-4" />,
-    color: "bg-indigo-50 dark:bg-indigo-900/10",
+    color: "bg-brand/10",
     keys: ["seo_og_title", "seo_og_description", "seo_og_image", "seo_twitter_handle"],
   },
   {
     title: "أدوات التحليل والتحقق",
     icon: <Bot className="h-4 w-4" />,
-    color: "bg-green-50 dark:bg-green-900/10",
+    color: "bg-success/10",
     keys: ["seo_google_verification", "seo_bing_verification", "seo_google_analytics", "seo_google_tag_manager"],
   },
 ];
@@ -147,27 +147,27 @@ export default function AdminSeoPage() {
       <Card className="p-5">
         <p className="text-xs font-bold text-fg-muted uppercase tracking-wide mb-3">معاينة نتيجة Google</p>
         <div className="border border-line rounded-xl p-4 space-y-1 bg-surface">
-          <p className="text-xs text-green-600 dark:text-green-400 truncate">
+          <p className="text-xs text-success truncate">
             {values["seo_site_url"] || "https://yourstore.com"} ›
           </p>
           <p className={cn(
             "text-base font-medium truncate",
-            titleLen > 60 ? "text-orange-500" : "text-blue-600 dark:text-blue-400"
+            titleLen > 60 ? "text-warning" : "text-info"
           )}>
             {values["seo_meta_title"] || "عنوان الصفحة يظهر هنا"}
           </p>
           <p className={cn(
             "text-sm leading-relaxed line-clamp-2",
-            descLen > 160 ? "text-orange-500" : "text-fg-muted"
+            descLen > 160 ? "text-warning" : "text-fg-muted"
           )}>
             {values["seo_meta_description"] || "وصف الصفحة يظهر هنا في نتائج Google..."}
           </p>
         </div>
         <div className="flex gap-4 mt-2 text-xs text-fg-subtle">
-          <span className={titleLen > 60 ? "text-orange-500 font-bold" : ""}>
+          <span className={titleLen > 60 ? "text-warning font-bold" : ""}>
             العنوان: {titleLen}/60 حرف {titleLen > 60 ? "⚠️ طويل" : titleLen > 50 ? "✅" : ""}
           </span>
-          <span className={descLen > 160 ? "text-orange-500 font-bold" : ""}>
+          <span className={descLen > 160 ? "text-warning font-bold" : ""}>
             الوصف: {descLen}/160 حرف {descLen > 160 ? "⚠️ طويل" : descLen > 120 ? "✅" : ""}
           </span>
         </div>
@@ -176,7 +176,7 @@ export default function AdminSeoPage() {
       {/* Sections */}
       {SECTIONS.map((section) => (
         <Card key={section.title} className="overflow-hidden p-0">
-          <div className={cn("flex items-center gap-2 px-6 py-4 border-b dark:border-line font-bold text-fg", section.color)}>
+          <div className={cn("flex items-center gap-2 px-6 py-4 border-b font-bold text-fg", section.color)}>
             {section.icon}
             {section.title}
           </div>
@@ -247,9 +247,9 @@ export default function AdminSeoPage() {
       ))}
 
       {/* SEO tips */}
-      <Card className="p-5 bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
-        <p className="font-bold text-amber-800 dark:text-amber-300 mb-3 text-sm">💡 نصائح SEO مهمة</p>
-        <ul className="space-y-1.5 text-xs text-amber-700 dark:text-amber-400">
+      <Card className="p-5 bg-warning/10 border-warning/25">
+        <p className="font-bold text-warning mb-3 text-sm">💡 نصائح SEO مهمة</p>
+        <ul className="space-y-1.5 text-xs text-warning">
           <li>• عنوان الصفحة بين 50-60 حرف للحصول على أفضل ظهور في Google</li>
           <li>• وصف الصفحة بين 120-160 حرف – يجذب المستخدمين للنقر</li>
           <li>• صورة OG بحجم 1200×630 بكسل للمشاركة المثلى على السوشيال ميديا</li>

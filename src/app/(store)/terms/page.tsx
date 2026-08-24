@@ -2,8 +2,8 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen py-12">
       <div className="container-custom max-w-3xl">
-        <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">الشروط والأحكام</h1>
-        <p className="text-gray-500 dark:text-gray-400 mb-10">آخر تحديث: يناير 2025</p>
+        <h1 className="text-4xl font-black text-fg mb-2">الشروط والأحكام</h1>
+        <p className="text-fg-subtle mb-10">آخر تحديث: يناير 2025</p>
 
         <div className="prose prose-gray dark:prose-invert max-w-none space-y-8">
           {[
@@ -40,16 +40,16 @@ export default function TermsPage() {
               content: "نحتفظ بحق تعديل هذه الشروط في أي وقت. سيتم إخطار المستخدمين بأي تعديلات جوهرية عبر البريد الإلكتروني أو الإشعارات.",
             },
           ].map((section) => (
-            <div key={section.title} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{section.title}</h2>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">{section.content}</p>
+            <div key={section.title} className="bg-surface rounded-2xl border border-line p-6">
+              <h2 className="text-lg font-bold text-fg mb-3">{section.title}</h2>
+              <p className="text-fg-muted leading-relaxed whitespace-pre-line">{section.content}</p>
             </div>
           ))}
         </div>
 
         <div id="refund" className="mt-10 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">سياسة الاسترداد المفصلة</h2>
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+          <h2 className="text-xl font-bold text-fg mb-3">سياسة الاسترداد المفصلة</h2>
+          <p className="text-fg-muted leading-relaxed mb-4">
             نضمن رضاك التام. إذا واجهت أي مشكلة مع طلبك، تواصل معنا خلال 24 ساعة من التسليم وسنعمل على حلها أو استرداد مبلغك كاملاً.
           </p>
           <a href="/contact" className="btn-primary inline-flex text-sm">

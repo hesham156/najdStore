@@ -29,18 +29,18 @@ export default async function TicketDetailPage({ params }: Props) {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
-      <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+      <nav className="flex items-center gap-2 text-sm text-fg-subtle">
         <Link href="/dashboard" className="hover:text-primary-600 dark:hover:text-primary-400">لوحة التحكم</Link>
         <ArrowRight className="h-4 w-4" />
         <Link href="/dashboard/tickets" className="hover:text-primary-600 dark:hover:text-primary-400">التذاكر</Link>
         <ArrowRight className="h-4 w-4" />
-        <span className="text-gray-900 dark:text-white">{ticket.ticketNumber}</span>
+        <span className="text-fg">{ticket.ticketNumber}</span>
       </nav>
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{ticket.subject}</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{ticket.ticketNumber}</p>
+          <h1 className="text-xl font-bold text-fg">{ticket.subject}</h1>
+          <p className="text-fg-subtle text-sm mt-1">{ticket.ticketNumber}</p>
         </div>
         <Badge variant={variant}>{label}</Badge>
       </div>
@@ -56,7 +56,7 @@ export default async function TicketDetailPage({ params }: Props) {
               <div
                 className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                   msg.isStaff
-                    ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-ss-none"
+                    ? "bg-surface-sunken text-fg rounded-ss-none"
                     : "bg-primary-600 text-white rounded-se-none"
                 }`}
               >
@@ -79,7 +79,7 @@ export default async function TicketDetailPage({ params }: Props) {
       )}
 
       {ticket.status === "CLOSED" && (
-        <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-sm">
+        <div className="text-center py-6 text-fg-subtle text-sm">
           هذه التذكرة مغلقة
         </div>
       )}

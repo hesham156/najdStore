@@ -185,7 +185,7 @@ export function AdminSidebar({
             type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
             className={cn(
-              "sidebar-link w-full text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10",
+              "sidebar-link w-full text-danger hover:bg-danger/10 hover:text-danger",
               collapsed && "justify-center px-0"
             )}
             aria-label={collapsed ? "تسجيل الخروج" : undefined}
@@ -199,7 +199,7 @@ export function AdminSidebar({
         <div className={cn("mt-2 flex items-center gap-2.5 rounded-xl bg-surface-sunken p-2", collapsed && "justify-center bg-transparent p-0 pt-1")}>
           <Tooltip content={`${session?.user.name ?? ""} — ${roleLabel}`} side="inline-end" disabled={!collapsed}>
             <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-[13px] font-bold text-white"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-[13px] font-bold text-white"
               aria-hidden
             >
               {initial}

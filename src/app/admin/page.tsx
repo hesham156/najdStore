@@ -244,28 +244,28 @@ export default async function AdminDashboardPage({
             icon={Clock}
             value={newOrders}
             label="طلبات جديدة"
-            tone={newOrders > 0 ? "amber" : "muted"}
+            tone={newOrders > 0 ? "attention" : "clear"}
           />
           <ActionTile
             href="/admin/payments"
             icon={CreditCard}
             value={awaitingPayment}
             label="بانتظار مراجعة الدفع"
-            tone={awaitingPayment > 0 ? "blue" : "muted"}
+            tone={awaitingPayment > 0 ? "attention" : "clear"}
           />
           <ActionTile
             href="/admin/stock"
             icon={Boxes}
             value={safeLowStock.length}
             label="منتجات مخزونها منخفض"
-            tone={safeLowStock.length > 0 ? "red" : "muted"}
+            tone={safeLowStock.length > 0 ? "critical" : "clear"}
           />
           <ActionTile
             href="/admin/tickets"
             icon={MessageSquare}
             value={openTickets}
             label="تذاكر دعم مفتوحة"
-            tone={openTickets > 0 ? "purple" : "muted"}
+            tone={openTickets > 0 ? "attention" : "clear"}
           />
         </div>
       </section>
@@ -308,11 +308,11 @@ export default async function AdminDashboardPage({
                     <span
                       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                         i === 0
-                          ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
+                          ? "bg-warning/10 text-warning"
                           : i === 1
                             ? "bg-surface-sunken text-fg-muted"
                             : i === 2
-                              ? "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400"
+                              ? "bg-warning/10 text-warning"
                               : "bg-surface-sunken text-fg-subtle"
                       }`}
                     >
@@ -434,15 +434,15 @@ export default async function AdminDashboardPage({
                       href="/admin/stock"
                       className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
                         product.available === 0
-                          ? "border-red-200 bg-red-50 hover:bg-red-100/70 dark:border-red-500/25 dark:bg-red-500/10 dark:hover:bg-red-500/15"
-                          : "border-amber-200 bg-amber-50 hover:bg-amber-100/70 dark:border-amber-500/25 dark:bg-amber-500/10 dark:hover:bg-amber-500/15"
+                          ? "border-danger/25 bg-danger/10 hover:bg-danger/[0.16]"
+                          : "border-warning/25 bg-warning/10 hover:bg-warning/[0.16]"
                       }`}
                     >
                       <AlertTriangle
                         className={`h-4 w-4 shrink-0 ${
                           product.available === 0
-                            ? "text-red-600 dark:text-red-400"
-                            : "text-amber-600 dark:text-amber-400"
+                            ? "text-danger"
+                            : "text-warning"
                         }`}
                         aria-hidden
                       />
@@ -452,7 +452,7 @@ export default async function AdminDashboardPage({
                       </span>
                       <span
                         className={`shrink-0 text-sm font-bold tnum ${
-                          product.available === 0 ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400"
+                          product.available === 0 ? "text-danger" : "text-warning"
                         }`}
                       >
                         {product.available}
@@ -491,12 +491,15 @@ export default async function AdminDashboardPage({
 
 /* ── Small building blocks ─────────────────────────────────── */
 
+/**
+ * An action tile has three states, not four decorative colours:
+ * something is waiting on you, something is wrong, or you're clear.
+ * Four different hues for four queues made none of them stand out.
+ */
 const TILE_TONES = {
-  amber: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-400",
-  blue: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-400",
-  red: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-400",
-  purple: "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/25 dark:bg-violet-500/10 dark:text-violet-400",
-  muted: "border-line bg-surface text-fg-subtle",
+  attention: "border-warning/25 bg-warning/10 text-warning",
+  critical: "border-danger/25 bg-danger/10 text-danger",
+  clear: "border-line bg-surface text-fg-subtle",
 } as const;
 
 function ActionTile({

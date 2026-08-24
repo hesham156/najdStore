@@ -18,12 +18,15 @@ interface Announcement {
   expiresAt?: string | null;
 }
 
-const TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string; gradient: string; border: string }> = {
-  COUPON:  { icon: Tag,      label: "كوبون خصم",  gradient: "from-violet-500 to-purple-600",  border: "border-violet-200 dark:border-violet-800" },
-  SALE:    { icon: Percent,  label: "عرض خاص",    gradient: "from-rose-500 to-pink-600",     border: "border-rose-200 dark:border-rose-800" },
-  INFO:    { icon: Megaphone,label: "إعلان",       gradient: "from-blue-500 to-indigo-600",   border: "border-blue-200 dark:border-blue-800" },
-  SUCCESS: { icon: Zap,      label: "خبر سار",    gradient: "from-emerald-500 to-teal-600",  border: "border-emerald-200 dark:border-emerald-800" },
-  WARNING: { icon: Clock,    label: "عرض محدود",  gradient: "from-amber-500 to-orange-600",  border: "border-amber-200 dark:border-amber-800" },
+// Same five types as the admin announcements screen, and the same five tones,
+// so what the merchant picks there is what the customer sees here.
+// `fill` carries a white icon, hence the fixed `-solid` step.
+const TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string; fill: string; border: string }> = {
+  COUPON:  { icon: Tag,      label: "كوبون خصم",  fill: "bg-brand-solid",   border: "border-brand/25" },
+  SALE:    { icon: Percent,  label: "عرض خاص",    fill: "bg-danger-solid",  border: "border-danger/25" },
+  INFO:    { icon: Megaphone,label: "إعلان",       fill: "bg-info-solid",    border: "border-info/25" },
+  SUCCESS: { icon: Zap,      label: "خبر سار",    fill: "bg-success-solid", border: "border-success/25" },
+  WARNING: { icon: Clock,    label: "عرض محدود",  fill: "bg-warning-solid", border: "border-warning/25" },
 };
 
 function CountdownBadge({ expiresAt }: { expiresAt: string }) {
@@ -76,15 +79,15 @@ export function PromoSection() {
   };
 
   return (
-    <section className="py-14 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+    <section className="bg-canvas py-14">
       <div className="container-custom">
         <AnimatedSection className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-bold mb-3">
             <Zap className="h-4 w-4" />
             عروض حصرية
           </div>
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white">الإعلانات والعروض</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">استفد من أفضل العروض والكوبونات المتاحة</p>
+          <h2 className="text-2xl font-black text-fg">الإعلانات والعروض</h2>
+          <p className="text-fg-subtle mt-2 text-sm">استفد من أفضل العروض والكوبونات المتاحة</p>
         </AnimatedSection>
 
         <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -97,24 +100,24 @@ export function PromoSection() {
                 <motion.div
                   whileHover={{ y: -4, boxShadow: "0 16px 40px rgba(0,0,0,0.10)" }}
                   transition={{ duration: 0.22 }}
-                  className={`relative overflow-hidden rounded-2xl border ${cfg.border} bg-white dark:bg-gray-800`}
+                  className={`relative overflow-hidden rounded-2xl border ${cfg.border} bg-surface`}
                 >
                   {/* Top gradient band */}
-                  <div className={`h-1.5 w-full bg-gradient-to-r ${cfg.gradient}`} />
+                  <div className={`h-1.5 w-full ${cfg.fill}`} />
 
                   <div className="p-5">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cfg.gradient} flex items-center justify-center shrink-0 shadow-sm`}>
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-control shadow-sm ${cfg.fill}`}>
                         <Icon className="h-5 w-5 text-white" />
                       </div>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r ${cfg.gradient} text-white`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold text-white ${cfg.fill}`}>
                         {cfg.label}
                       </span>
                     </div>
 
                     {/* Title */}
-                    <p className="font-bold text-gray-900 dark:text-white text-base leading-snug mb-3">
+                    <p className="font-bold text-fg text-base leading-snug mb-3">
                       {item.titleAr}
                     </p>
 
@@ -122,15 +125,15 @@ export function PromoSection() {
                     {item.couponCode && (
                       <button
                         onClick={() => copyCoupon(item.couponCode!)}
-                        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 bg-gray-50 dark:bg-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all group mb-3"
+                        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-line hover:border-primary-400 dark:hover:border-primary-500 bg-surface-sunken hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all group mb-3"
                       >
                         <span className="font-mono font-black text-lg tracking-widest text-primary-700 dark:text-primary-300 group-hover:scale-105 transition-transform">
                           {item.couponCode}
                         </span>
                         <span className={`shrink-0 flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors ${
                           copied === item.couponCode
-                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                            : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/40 group-hover:text-primary-700"
+                            ? "bg-success/10 text-success"
+                            : "bg-surface-sunken text-fg-muted group-hover:bg-primary-100 dark:group-hover:bg-primary-900/40 group-hover:text-primary-700"
                         }`}>
                           {copied === item.couponCode
                             ? <><Check className="h-3 w-3" />تم النسخ</>
@@ -146,7 +149,7 @@ export function PromoSection() {
                       {item.link && (
                         <Link
                           href={item.link}
-                          className={`ms-auto inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg bg-gradient-to-r ${cfg.gradient} text-white hover:opacity-90 transition-opacity`}
+                          className={`ms-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 ${cfg.fill}`}
                         >
                           اكتشف الآن <ExternalLink className="h-3.5 w-3.5" />
                         </Link>

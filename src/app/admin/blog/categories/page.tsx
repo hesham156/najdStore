@@ -172,7 +172,7 @@ export default function BlogCategoriesPage() {
                       <button onClick={() => setEditId(cat.id)} className="p-1.5 text-fg-subtle hover:text-primary-500 transition-colors">
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button onClick={() => setDeleteId(cat.id)} className="p-1.5 text-fg-subtle hover:text-red-500 transition-colors">
+                      <button onClick={() => setDeleteId(cat.id)} className="p-1.5 text-fg-subtle hover:text-danger transition-colors">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>

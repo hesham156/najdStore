@@ -251,14 +251,14 @@ export default function AdminOrderDetailPage() {
 
       {/* Payment review — the one action that blocks everything else */}
       {order.payment?.status === "UPLOADED" && (
-        <Card className="border-blue-200 bg-blue-50/60 dark:border-blue-500/25 dark:bg-blue-500/[0.07]">
+        <Card className="border-info/25 bg-info/10">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 flex-1 space-y-3">
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" aria-hidden />
-                <h2 className="text-sm font-bold text-blue-900 dark:text-blue-200">بانتظار مراجعة إثبات الدفع</h2>
+                <CreditCard className="h-4 w-4 text-info" aria-hidden />
+                <h2 className="text-sm font-bold text-info">بانتظار مراجعة إثبات الدفع</h2>
               </div>
-              <p className="text-[13px] text-blue-800/80 dark:text-blue-200/70">
+              <p className="text-[13px] text-info">
                 راجع إثبات الدفع المرفوع من العميل ثم اقبله لتتمكّن من تسليم الاشتراك، أو ارفضه مع توضيح السبب.
               </p>
               {order.payment.proofImage && (
@@ -266,7 +266,7 @@ export default function AdminOrderDetailPage() {
                   href={order.payment.proofImage}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-700 hover:underline dark:text-blue-300"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-info hover:underline"
                 >
                   <Eye className="h-3.5 w-3.5" aria-hidden />
                   عرض إثبات الدفع
@@ -324,7 +324,7 @@ export default function AdminOrderDetailPage() {
                   className={cn(
                     "rounded-control border p-4",
                     isDelivered
-                      ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-500/25 dark:bg-emerald-500/[0.06]"
+                      ? "border-success/25 bg-success/10"
                       : "border-line"
                   )}
                 >
@@ -357,7 +357,7 @@ export default function AdminOrderDetailPage() {
                     <span className="flex shrink-0 items-center gap-1 text-[11px] text-fg-muted">
                       {item.product.deliveryMethod === "AUTOMATIC" ? (
                         <>
-                          <Zap className="h-3.5 w-3.5 text-amber-500" aria-hidden /> تلقائي
+                          <Zap className="h-3.5 w-3.5 text-warning" aria-hidden /> تلقائي
                         </>
                       ) : (
                         <>
@@ -370,7 +370,7 @@ export default function AdminOrderDetailPage() {
                   {isDelivered ? (
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-emerald-700 dark:text-emerald-300">
+                        <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-success">
                           <Check className="h-4 w-4" aria-hidden /> تم التسليم في {formatDate(item.deliveredAt!)}
                         </span>
                         {daysLeft !== null && (
@@ -483,9 +483,9 @@ export default function AdminOrderDetailPage() {
                         className={cn(
                           "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border",
                           step.failed
-                            ? "border-red-200 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400"
+                            ? "border-danger/25 bg-danger/10 text-danger"
                             : step.done
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400"
+                              ? "border-success/25 bg-success/10 text-success"
                               : "border-line bg-surface-sunken text-fg-subtle"
                         )}
                       >
@@ -493,7 +493,7 @@ export default function AdminOrderDetailPage() {
                       </span>
                       {!last && (
                         <span
-                          className={cn("w-px flex-1", step.done ? "bg-emerald-200 dark:bg-emerald-500/30" : "bg-line")}
+                          className={cn("w-px flex-1", step.done ? "bg-success/40" : "bg-line")}
                         />
                       )}
                     </div>
@@ -516,7 +516,7 @@ export default function AdminOrderDetailPage() {
                 <dd className="tnum text-fg">{formatCurrency(order.subtotal)}</dd>
               </div>
               {parseFloat(String(order.discount)) > 0 && (
-                <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                <div className="flex justify-between text-success">
                   <dt>الخصم</dt>
                   <dd className="tnum">−{formatCurrency(order.discount)}</dd>
                 </div>

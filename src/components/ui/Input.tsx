@@ -27,7 +27,7 @@ function Field({ id, label, error, hint, required, className, children }: FieldP
         <label htmlFor={id} className="flex items-center gap-1 text-[13px] font-medium text-fg">
           {label}
           {required && (
-            <span className="text-red-500" aria-hidden>
+            <span className="text-danger" aria-hidden>
               *
             </span>
           )}
@@ -38,7 +38,7 @@ function Field({ id, label, error, hint, required, className, children }: FieldP
         <p
           id={`${id}-error`}
           role="alert"
-          className="flex items-start gap-1 text-xs font-medium text-red-600 dark:text-red-400"
+          className="flex items-start gap-1 text-xs font-medium text-danger"
         >
           <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden />
           {error}
@@ -63,7 +63,7 @@ const CONTROL_BASE = cn(
 
 const controlState = (error?: boolean) =>
   error
-    ? "border-red-400 focus:border-red-500 focus:ring-red-500/30 dark:border-red-500/60"
+    ? "border-danger/60 focus:border-danger focus:ring-danger/25"
     : "border-line hover:border-line-strong";
 
 /* ── Input ─────────────────────────────────────────────────── */

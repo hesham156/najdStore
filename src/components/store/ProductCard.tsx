@@ -49,7 +49,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     <Link href={`/products/${product.slug}`}>
       <motion.div
         className={cn(
-          "group relative rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+          "group relative rounded-2xl bg-surface border border-line",
           "overflow-hidden cursor-pointer",
           className
         )}
@@ -123,7 +123,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <p className="text-xs font-medium text-primary-600 dark:text-primary-400 mb-1">
             {product.category.nameAr}
           </p>
-          <h3 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
+          <h3 className="font-bold text-fg mb-2 line-clamp-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
             {product.nameAr}
           </h3>
 
@@ -132,7 +132,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
               {product.features.slice(0, 3).map((feature) => (
                 <span
                   key={feature}
-                  className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  className="text-xs px-2 py-0.5 rounded-full bg-surface-sunken text-fg-muted"
                 >
                   {feature}
                 </span>
@@ -143,11 +143,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
           {/* Price + CTA */}
           <div className="flex items-end justify-between mt-3">
             <div>
-              <div className="text-xl font-bold text-gray-900 dark:text-white">
+              <div className="text-xl font-bold text-fg">
                 {formatAmount(price)}
               </div>
               {comparePrice && (
-                <div className="text-sm text-gray-400 line-through">
+                <div className="text-sm text-fg-subtle line-through">
                   {formatAmount(comparePrice)}
                 </div>
               )}
@@ -164,8 +164,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
         {/* Low stock */}
         {product.stockCount < 5 && product.stockCount > 0 && (
           <div className="px-4 pb-3 flex items-center gap-1.5">
-            <AlertTriangle className="h-3.5 w-3.5 text-orange-500" />
-            <p className="text-xs text-orange-500 font-medium">
+            <AlertTriangle className="h-3.5 w-3.5 text-warning" />
+            <p className="text-xs text-warning font-medium">
               متبقي {product.stockCount} فقط!
             </p>
           </div>
@@ -173,8 +173,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
         {/* Out of stock overlay */}
         {product.stockCount === 0 && (
-          <div className="absolute inset-0 bg-gray-900/60 flex items-center justify-center rounded-2xl">
-            <span className="bg-gray-800 text-white px-4 py-2 rounded-xl font-bold text-sm">
+          <div className="absolute inset-0 bg-surface-sunken flex items-center justify-center rounded-2xl">
+            <span className="bg-surface-sunken text-white px-4 py-2 rounded-xl font-bold text-sm">
               نفذ المخزون
             </span>
           </div>

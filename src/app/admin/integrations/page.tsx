@@ -19,7 +19,7 @@ export default function IntegrationsPage() {
       <Card className="p-6 space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white">
               <Zap className="h-5 w-5" />
             </div>
             <div>
@@ -29,7 +29,7 @@ export default function IntegrationsPage() {
           </div>
 
           {hayyak.enabled ? (
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600 dark:text-green-400 shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success shrink-0">
               <CheckCircle2 className="h-4 w-4" /> مفعّل
             </span>
           ) : (
@@ -40,9 +40,9 @@ export default function IntegrationsPage() {
         </div>
 
         {!hayyak.enabled && (
-          <div className="rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/40 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+          <div className="rounded-control border border-warning/25 bg-warning/10 px-4 py-3 text-sm text-fg">
             التكامل غير مفعّل. اضبط متغيّر البيئة{" "}
-            <code className="font-mono bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">HAYYAK_SIGNING_SECRET</code>{" "}
+            <code className="rounded bg-warning/20 px-1.5 py-0.5 font-mono">HAYYAK_SIGNING_SECRET</code>{" "}
             بمفتاح التوقيع من لوحة حياك، ثم أعد تشغيل الخادم.
           </div>
         )}
@@ -70,7 +70,7 @@ export default function IntegrationsPage() {
               "رفع إثبات الدفع → تحديث الحالة",
             ].map((t) => (
               <li key={t} className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
                 {t}
               </li>
             ))}

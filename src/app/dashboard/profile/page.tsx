@@ -80,17 +80,17 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الملف الشخصي</h1>
+      <h1 className="text-2xl font-bold text-fg">الملف الشخصي</h1>
 
       {/* Profile Info */}
       <Card>
-        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-black text-2xl shadow-lg">
+        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-line">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-black text-2xl shadow-lg">
             {session?.user.name?.charAt(0) || "م"}
           </div>
           <div>
-            <p className="font-bold text-gray-900 dark:text-white text-xl">{session?.user.name}</p>
-            <p className="text-gray-500 dark:text-gray-400">{session?.user.email}</p>
+            <p className="font-bold text-fg text-xl">{session?.user.name}</p>
+            <p className="text-fg-subtle">{session?.user.email}</p>
             <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium">
               {session?.user.role === "CUSTOMER" ? "عميل" : session?.user.role === "ADMIN" ? "مدير" : "موظف"}
             </span>
@@ -98,7 +98,7 @@ export default function ProfilePage() {
         </div>
 
         <form onSubmit={handleProfileSave} className="space-y-4">
-          <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h3 className="font-bold text-fg flex items-center gap-2">
             <User className="h-4 w-4 text-primary-600" />
             المعلومات الشخصية
           </h3>
@@ -129,7 +129,7 @@ export default function ProfilePage() {
       {/* Change Password */}
       <Card>
         <form onSubmit={handlePasswordChange} className="space-y-4">
-          <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h3 className="font-bold text-fg flex items-center gap-2">
             <Lock className="h-4 w-4 text-primary-600" />
             تغيير كلمة المرور
           </h3>

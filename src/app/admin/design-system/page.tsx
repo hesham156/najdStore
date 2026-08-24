@@ -188,12 +188,58 @@ export default function DesignSystemPage() {
           contentClassName="space-y-4 pt-0"
         >
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <Swatch className="bg-primary-600" name="primary" variable="العلامة والإجراء الرئيسي" />
-            <Swatch className="bg-emerald-600" name="success" variable="نجاح / مكتمل / متاح" />
-            <Swatch className="bg-amber-500" name="warning" variable="تحذير / قيد الانتظار" />
-            <Swatch className="bg-red-600" name="danger" variable="خطأ / حذف / مرفوض" />
-            <Swatch className="bg-blue-600" name="info" variable="معلومة / قيد المراجعة" />
+            <Swatch className="bg-brand" name="brand" variable="العلامة والإجراء الرئيسي" />
+            <Swatch className="bg-success" name="success" variable="نجاح / مكتمل / متاح" />
+            <Swatch className="bg-warning" name="warning" variable="تحذير / قيد الانتظار" />
+            <Swatch className="bg-danger" name="danger" variable="خطأ / حذف / مرفوض" />
+            <Swatch className="bg-info" name="info" variable="معلومة / قيد المراجعة" />
           </div>
+
+          <Spec
+            title="الاستخدامات الثلاثة لكل لون"
+            usage="text-danger · bg-danger/10 · border-danger/25"
+            description="النص، والخلفية الخفيفة خلفه، والإطار. الثلاثة مشتقة من متغيّر واحد، ويتبدّلان تلقائياً بين الوضع الفاتح والداكن — لا تضِف لها dark: أبداً."
+          >
+            <Row className="gap-3">
+              <span className="rounded-control border border-danger/25 bg-danger/10 px-3 py-1.5 text-[13px] text-danger">خطأ</span>
+              <span className="rounded-control border border-success/25 bg-success/10 px-3 py-1.5 text-[13px] text-success">مكتمل</span>
+              <span className="rounded-control border border-warning/25 bg-warning/10 px-3 py-1.5 text-[13px] text-warning">بانتظار</span>
+              <span className="rounded-control border border-info/25 bg-info/10 px-3 py-1.5 text-[13px] text-info">معلومة</span>
+            </Row>
+          </Spec>
+
+          <Spec
+            title="التعبئة الصلبة مع نص أبيض"
+            usage="bg-danger-solid text-white"
+            description="النسخة ‏-solid لا تتبدّل بين الوضعين. الألوان أعلاه تصبح فاتحة في الوضع الداكن، والأبيض فوقها غير مقروء (‏1.9:1)."
+          >
+            <Row className="gap-3">
+              <span className="rounded-lg bg-brand-solid px-3 py-1.5 text-xs font-bold text-white">brand</span>
+              <span className="rounded-lg bg-success-solid px-3 py-1.5 text-xs font-bold text-white">success</span>
+              <span className="rounded-lg bg-warning-solid px-3 py-1.5 text-xs font-bold text-white">warning</span>
+              <span className="rounded-lg bg-danger-solid px-3 py-1.5 text-xs font-bold text-white">danger</span>
+              <span className="rounded-lg bg-info-solid px-3 py-1.5 text-xs font-bold text-white">info</span>
+            </Row>
+          </Spec>
+
+          <Spec
+            title="المجموعات المتسلسلة"
+            usage="primary-300 → primary-800"
+            description="القمع والترتيب والتدرّج: درجة واحدة من لون العلامة تزداد عمقاً، لا ألوان غير مترابطة."
+          >
+            <Row className="gap-1.5">
+              <span className="h-8 w-16 rounded-lg bg-primary-300" />
+              <span className="h-8 w-16 rounded-lg bg-primary-400" />
+              <span className="h-8 w-16 rounded-lg bg-primary-600" />
+              <span className="h-8 w-16 rounded-lg bg-primary-800" />
+            </Row>
+          </Spec>
+
+          <Alert tone="warning" title="ما لا يُلوَّن">
+            البطاقات المتجاورة، وأيقونات الأقسام، وتصنيفات المصاريف، وبطاقات المؤشرات — كلها محايدة أو بلون العلامة.
+            لا تستخدم لوناً للتفريق بين عنصرين متشابهين؛ استخدم العنوان والترتيب والمسافات.
+          </Alert>
+
           <Alert tone="info">
             حالات الطلبات والمدفوعات والتذاكر تُترجم كلها عبر <code className="font-mono">getStatusBadge()</code> — أضف
             أي حالة جديدة هناك بدل تلوينها يدوياً.

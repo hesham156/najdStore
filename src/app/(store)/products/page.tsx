@@ -91,8 +91,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
       <div className="container-custom">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">جميع المنتجات</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{total} منتج متاح</p>
+          <h1 className="text-3xl font-bold text-fg">جميع المنتجات</h1>
+          <p className="text-fg-subtle mt-1">{total} منتج متاح</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -103,8 +103,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             {products.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">لم يتم العثور على منتجات</h3>
-                <p className="text-gray-500 dark:text-gray-400">جرب تغيير معايير البحث أو الفئة</p>
+                <h3 className="text-xl font-bold text-fg mb-2">لم يتم العثور على منتجات</h3>
+                <p className="text-fg-subtle">جرب تغيير معايير البحث أو الفئة</p>
               </div>
             ) : (
               <>
@@ -131,7 +131,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                       }
                       return pages.map((p, i) =>
                         p === "..." ? (
-                          <span key={`ellipsis-${i}`} className="px-2 text-gray-400">…</span>
+                          <span key={`ellipsis-${i}`} className="px-2 text-fg-subtle">…</span>
                         ) : (
                           <a
                             key={p}
@@ -139,7 +139,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
                             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                               p === page
                                 ? "bg-primary-600 text-white"
-                                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-primary-300"
+                                : "bg-surface text-fg-muted border border-line hover:border-primary-300"
                             }`}
                           >
                             {p}

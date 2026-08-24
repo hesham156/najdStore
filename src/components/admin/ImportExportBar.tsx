@@ -112,19 +112,19 @@ export function ImportExportBar({ entity, exportQuery, onImported }: Props) {
         {menuOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-            <div className="absolute z-20 mt-1 end-0 w-44 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
+            <div className="absolute z-20 mt-1 end-0 w-44 rounded-xl border border-line bg-surface shadow-xl overflow-hidden">
               <button
                 onClick={() => download("xlsx")}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-start"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-surface-sunken text-start"
               >
-                <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                <FileSpreadsheet className="h-4 w-4 text-success" />
                 ملف Excel
               </button>
               <button
                 onClick={() => download("csv")}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-start"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm hover:bg-surface-sunken text-start"
               >
-                <FileText className="h-4 w-4 text-blue-600" />
+                <FileText className="h-4 w-4 text-info" />
                 ملف CSV
               </button>
             </div>
@@ -140,7 +140,7 @@ export function ImportExportBar({ entity, exportQuery, onImported }: Props) {
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={`استيراد ${label}`} size="md">
         <div className="space-y-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+          <p className="text-sm text-fg-subtle leading-relaxed">
             ارفع ملف Excel أو CSV. يدعم النظام الملفات المُصدَّرة من <span className="font-semibold text-primary-600">سلة</span> تلقائياً،
             بالإضافة إلى الملفات المُصدَّرة من هذه اللوحة.
           </p>
@@ -160,7 +160,7 @@ export function ImportExportBar({ entity, exportQuery, onImported }: Props) {
               "cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
               file
                 ? "border-primary-400 bg-primary-50 dark:bg-primary-950/30"
-                : "border-gray-300 dark:border-gray-600 hover:border-primary-400"
+                : "border-line hover:border-primary-400"
             )}
           >
             <input
@@ -176,45 +176,45 @@ export function ImportExportBar({ entity, exportQuery, onImported }: Props) {
                 <span className="font-medium">{file.name}</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); onPickFile(null); if (inputRef.current) inputRef.current.value = ""; }}
-                  className="text-gray-400 hover:text-red-500"
+                  className="text-fg-subtle hover:text-danger"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-2 text-gray-500">
+              <div className="flex flex-col items-center gap-2 text-fg-subtle">
                 <Upload className="h-8 w-8" />
-                <span className="text-sm">اضغط لاختيار ملف <span className="text-gray-400">(.xlsx, .xls, .csv)</span></span>
+                <span className="text-sm">اضغط لاختيار ملف <span className="text-fg-subtle">(.xlsx, .xls, .csv)</span></span>
               </div>
             )}
           </div>
 
           {/* Result summary */}
           {result && (
-            <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+            <div className="rounded-xl border border-line p-4 space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <CheckCircle2 className="h-5 w-5 text-success" />
                 اكتمل الاستيراد
               </div>
               <div className="grid grid-cols-4 gap-2 text-center">
                 <Stat label="الإجمالي" value={result.total} />
-                <Stat label="جديد" value={result.created} color="text-green-600" />
-                <Stat label="محدّث" value={result.updated} color="text-blue-600" />
-                <Stat label="متجاهَل" value={result.skipped} color="text-amber-600" />
+                <Stat label="جديد" value={result.created} color="text-success" />
+                <Stat label="محدّث" value={result.updated} color="text-info" />
+                <Stat label="متجاهَل" value={result.skipped} color="text-warning" />
               </div>
               {result.errors.length > 0 && (
-                <div className="mt-2 max-h-40 overflow-auto rounded-lg bg-amber-50 dark:bg-amber-950/30 p-3 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                <div className="mt-2 max-h-40 overflow-auto rounded-lg bg-warning/10 p-3 space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     صفوف متجاهَلة ({result.errors.length})
                   </div>
                   {result.errors.slice(0, 20).map((er, idx) => (
-                    <p key={idx} className="text-xs text-amber-700 dark:text-amber-300">
+                    <p key={idx} className="text-xs text-warning">
                       صف {er.row}: {er.message}
                     </p>
                   ))}
                   {result.errors.length > 20 && (
-                    <p className="text-xs text-amber-600">…و {result.errors.length - 20} أخرى</p>
+                    <p className="text-xs text-warning">…و {result.errors.length - 20} أخرى</p>
                   )}
                 </div>
               )}
@@ -241,9 +241,9 @@ export function ImportExportBar({ entity, exportQuery, onImported }: Props) {
 
 function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div className="rounded-lg bg-gray-50 dark:bg-gray-800 py-2">
-      <p className={cn("text-lg font-bold", color || "text-gray-900 dark:text-white")}>{value}</p>
-      <p className="text-[11px] text-gray-500">{label}</p>
+    <div className="rounded-lg bg-surface-sunken py-2">
+      <p className={cn("text-lg font-bold", color || "text-fg")}>{value}</p>
+      <p className="text-[11px] text-fg-subtle">{label}</p>
     </div>
   );
 }

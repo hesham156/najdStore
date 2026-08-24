@@ -108,7 +108,7 @@ export interface Check {
 
 export function CompletenessCard({ checks }: { checks: Check[] }) {
   const completeness = Math.round((checks.filter((c) => c.done).length / checks.length) * 100);
-  const tone = completeness === 100 ? "emerald" : completeness >= 60 ? "amber" : "red";
+  const tone = completeness === 100 ? "success" : completeness >= 60 ? "warning" : "danger";
 
   return (
     <Card className="space-y-3">
@@ -117,7 +117,7 @@ export function CompletenessCard({ checks }: { checks: Check[] }) {
         <span
           className={cn(
             "text-[13px] font-bold tnum",
-            tone === "emerald" ? "text-emerald-600" : tone === "amber" ? "text-amber-600" : "text-red-600"
+            tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-danger"
           )}
         >
           {completeness}%
@@ -134,7 +134,7 @@ export function CompletenessCard({ checks }: { checks: Check[] }) {
         <div
           className={cn(
             "h-full rounded-full transition-[width] duration-500",
-            tone === "emerald" ? "bg-emerald-500" : tone === "amber" ? "bg-amber-500" : "bg-red-500"
+            tone === "success" ? "bg-success" : tone === "warning" ? "bg-warning" : "bg-danger"
           )}
           style={{ width: `${completeness}%` }}
         />
@@ -143,7 +143,7 @@ export function CompletenessCard({ checks }: { checks: Check[] }) {
         {checks.map((c) => (
           <li
             key={c.label}
-            className={cn("flex items-center gap-1.5 text-[11px]", c.done ? "text-emerald-600 dark:text-emerald-400" : "text-fg-subtle")}
+            className={cn("flex items-center gap-1.5 text-[11px]", c.done ? "text-success" : "text-fg-subtle")}
           >
             {c.done ? (
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -190,9 +190,9 @@ export function ProductPreviewCard({
   return (
     <Card padding="none" className="overflow-hidden">
       <div className="flex items-center gap-1.5 border-b border-line bg-surface-muted px-4 py-2.5">
-        <span className="h-2 w-2 rounded-full bg-red-400" aria-hidden />
-        <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden />
-        <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+        <span className="h-2 w-2 rounded-full bg-danger" aria-hidden />
+        <span className="h-2 w-2 rounded-full bg-warning" aria-hidden />
+        <span className="h-2 w-2 rounded-full bg-success" aria-hidden />
         <span className="ms-2 text-[11px] text-fg-subtle">معاينة بطاقة المنتج</span>
       </div>
 
@@ -207,7 +207,7 @@ export function ProductPreviewCard({
               </span>
             )}
             {discount > 0 && (
-              <span className="absolute start-2 top-2 rounded-lg bg-red-500 px-2 py-0.5 text-[11px] font-bold text-white">
+              <span className="absolute start-2 top-2 rounded-lg bg-danger-solid px-2 py-0.5 text-[11px] font-bold text-white">
                 −{discount}%
               </span>
             )}
@@ -215,8 +215,8 @@ export function ProductPreviewCard({
               className={cn(
                 "absolute end-2 top-2 flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-medium",
                 deliveryMethod === "AUTOMATIC"
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
-                  : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                  ? "bg-success/10 text-success"
+                  : "bg-warning/10 text-warning"
               )}
             >
               {deliveryMethod === "AUTOMATIC" ? (
@@ -232,7 +232,7 @@ export function ProductPreviewCard({
               )}
             </span>
             {isFeatured && (
-              <span className="absolute end-2 top-9 flex items-center gap-1 rounded-lg bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+              <span className="absolute end-2 top-9 flex items-center gap-1 rounded-lg bg-warning/10 px-2 py-0.5 text-[11px] font-medium text-warning">
                 <Star className="h-2.5 w-2.5" aria-hidden />
                 مميز
               </span>
@@ -311,17 +311,17 @@ export function SerpPreview({
 
   return (
     <div className="space-y-1 rounded-control border border-line bg-surface p-3" dir="ltr">
-      <p className="truncate text-[11px] text-emerald-600">yourstore.com › products › {slug || "..."}</p>
-      <p className={cn("truncate text-[13px] font-medium", titleLong ? "text-amber-600" : "text-blue-600 dark:text-blue-400")}>
+      <p className="truncate text-[11px] text-success">yourstore.com › products › {slug || "..."}</p>
+      <p className={cn("truncate text-[13px] font-medium", titleLong ? "text-warning" : "text-info")}>
         {title || "عنوان المنتج"}
       </p>
-      <p className={cn("line-clamp-2 text-[11px]", descLong ? "text-amber-600" : "text-fg-muted")}>
+      <p className={cn("line-clamp-2 text-[11px]", descLong ? "text-warning" : "text-fg-muted")}>
         {description || "وصف المنتج يظهر هنا..."}
       </p>
       {showCounters && (
         <div className="flex gap-3 pt-1 text-[11px] text-fg-subtle" dir="rtl">
-          <span className={titleLong ? "font-bold text-amber-600" : undefined}>العنوان: {title.length}/60</span>
-          <span className={descLong ? "font-bold text-amber-600" : undefined}>الوصف: {description.length}/160</span>
+          <span className={titleLong ? "font-bold text-warning" : undefined}>العنوان: {title.length}/60</span>
+          <span className={descLong ? "font-bold text-warning" : undefined}>الوصف: {description.length}/160</span>
         </div>
       )}
     </div>

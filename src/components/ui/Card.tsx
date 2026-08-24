@@ -105,11 +105,11 @@ interface StatsCardProps {
 
 const STAT_COLORS = {
   primary: "bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400",
-  green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
-  blue: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
-  orange: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",
-  red: "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400",
-  purple: "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
+  green: "bg-success/10 text-success",
+  blue: "bg-info/10 text-info",
+  orange: "bg-warning/10 text-warning",
+  red: "bg-danger/10 text-danger",
+  purple: "bg-brand/10 text-brand",
 } as const;
 
 export function StatsCard({ title, value, icon, change, color = "primary" }: StatsCardProps) {
@@ -120,7 +120,7 @@ export function StatsCard({ title, value, icon, change, color = "primary" }: Sta
           <p className="mb-1 text-xs font-medium text-fg-muted">{title}</p>
           <p className="truncate text-2xl font-bold tnum text-fg">{value}</p>
           {change && (
-            <p className={cn("mt-1 text-xs", change.value >= 0 ? "text-emerald-600" : "text-red-600")}>
+            <p className={cn("mt-1 text-xs", change.value >= 0 ? "text-success" : "text-danger")}>
               {change.value >= 0 ? "+" : ""}
               {change.value}% {change.label}
             </p>

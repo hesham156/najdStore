@@ -85,8 +85,8 @@ export default function InvoicesPage() {
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-            <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center shrink-0">
+            <Receipt className="h-5 w-5 text-info" />
           </div>
           <div>
             <p className="text-xl font-black text-fg">{invoices.length}</p>
@@ -103,8 +103,8 @@ export default function InvoicesPage() {
           </div>
         </Card>
         <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+            <AlertCircle className="h-5 w-5 text-warning" />
           </div>
           <div>
             <p className="text-xl font-black text-fg">{totalTax.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</p>
@@ -141,7 +141,7 @@ export default function InvoicesPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="بحث برقم الفاتورة أو الطلب أو العميل..."
-          className="w-full ps-4 pe-10 py-2.5 rounded-xl border border-line bg-surface text-sm text-fg placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+          className="w-full ps-4 pe-10 py-2.5 rounded-xl border border-line bg-surface text-sm text-fg placeholder:text-fg-subtle focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
         />
       </div>
 
@@ -177,7 +177,7 @@ export default function InvoicesPage() {
                   <p className="text-xs text-fg-subtle truncate">{inv.order?.user?.email}</p>
                 </div>
                 <div className="col-span-2 text-sm text-fg-muted">{new Date(inv.issuedAt).toLocaleDateString("ar-SA")}</div>
-                <div className="col-span-1 text-end text-sm font-semibold text-amber-600 dark:text-amber-400">
+                <div className="col-span-1 text-end text-sm font-semibold text-warning">
                   {Number(inv.taxAmount).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
                 </div>
                 <div className="col-span-1 text-end text-sm font-black text-fg">

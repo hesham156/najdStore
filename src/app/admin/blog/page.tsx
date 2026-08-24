@@ -170,9 +170,9 @@ export default function AdminBlogPage() {
                     <td className="px-4 py-4">
                       <span className={cn(
                         "inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium",
-                        post.status === "PUBLISHED" && "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+                        post.status === "PUBLISHED" && "bg-success/10 text-success",
                         post.status === "DRAFT" && "bg-surface-sunken text-fg-muted",
-                        post.status === "ARCHIVED" && "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+                        post.status === "ARCHIVED" && "bg-warning/10 text-warning",
                       )}>
                         <StatusIcon className="h-3 w-3" />
                         {sc.label}
@@ -196,7 +196,7 @@ export default function AdminBlogPage() {
                             href={`/blog/${post.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1.5 text-fg-subtle hover:text-blue-500 transition-colors"
+                            className="p-1.5 text-fg-subtle hover:text-info transition-colors"
                           >
                             <Eye className="h-4 w-4" />
                           </a>
@@ -209,7 +209,7 @@ export default function AdminBlogPage() {
                         </button>
                         <button
                           onClick={() => setDeleteId(post.id)}
-                          className="p-1.5 text-fg-subtle hover:text-red-500 transition-colors"
+                          className="p-1.5 text-fg-subtle hover:text-danger transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

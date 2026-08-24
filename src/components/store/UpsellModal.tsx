@@ -147,7 +147,7 @@ export function UpsellModal({
 
         {/* Sheet / modal */}
         <motion.div
-          className="relative z-10 w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
+          className="relative z-10 w-full sm:max-w-md bg-surface rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
           initial={{ y: "100%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
@@ -155,29 +155,29 @@ export function UpsellModal({
         >
           {/* Drag handle (mobile) */}
           <div className="flex justify-center pt-3 sm:hidden">
-            <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
+            <div className="w-10 h-1 rounded-full bg-surface-sunken" />
           </div>
 
           {/* Close button */}
           <button
             onClick={onDismiss}
-            className="absolute top-3 end-3 z-10 p-1.5 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="absolute top-3 end-3 z-10 p-1.5 rounded-full bg-surface-sunken hover:bg-surface-hover transition-colors"
             aria-label="إغلاق"
           >
-            <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <X className="h-4 w-4 text-fg-subtle" />
           </button>
 
           {/* Header */}
-          <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-gray-100 dark:border-gray-800">
-            <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-              <Zap className="h-4 w-4 text-amber-500" />
+          <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b border-line">
+            <div className="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+              <Zap className="h-4 w-4 text-warning" />
             </div>
             <div>
-              <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">
+              <p className="font-bold text-fg text-sm leading-tight">
                 {upsell.headlineAr || "💡 قد يعجبك أيضاً"}
               </p>
               {upsell.descriptionAr && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                <p className="text-xs text-fg-subtle mt-0.5 line-clamp-1">
                   {upsell.descriptionAr}
                 </p>
               )}
@@ -188,7 +188,7 @@ export function UpsellModal({
           <div className="p-5 space-y-4">
             <div className="flex gap-4">
               {/* Image */}
-              <div className="w-24 h-24 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden shrink-0 relative">
+              <div className="w-24 h-24 rounded-xl bg-surface-sunken border border-line overflow-hidden shrink-0 relative">
                 {product.image ? (
                   <Image
                     src={product.image}
@@ -206,7 +206,7 @@ export function UpsellModal({
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-gray-900 dark:text-white leading-snug line-clamp-2">
+                <h3 className="font-bold text-fg leading-snug line-clamp-2">
                   {product.nameAr}
                 </h3>
 
@@ -216,7 +216,7 @@ export function UpsellModal({
                     {formatAmount(effectivePrice)}
                   </span>
                   {hasDiscount && (
-                    <span className="text-sm text-gray-400 line-through">
+                    <span className="text-sm text-fg-subtle line-through">
                       {formatAmount(originalPrice)}
                     </span>
                   )}
@@ -224,7 +224,7 @@ export function UpsellModal({
 
                 {/* Discount badge */}
                 {hasDiscount && upsell.discountType && upsell.discountValue && (
-                  <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold">
+                  <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-danger/10 text-danger text-xs font-bold">
                     {upsell.discountType === "PERCENTAGE"
                       ? `وفّر ${upsell.discountValue}%`
                       : `خصم ${formatAmount(upsell.discountValue)}`}
@@ -236,7 +236,7 @@ export function UpsellModal({
             {/* Variant selector */}
             {variants.length > 1 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">اختر الخيار:</p>
+                <p className="text-xs font-semibold text-fg-muted">اختر الخيار:</p>
                 <div className="flex flex-wrap gap-2">
                   {variants.map((v, i) => (
                     <button
@@ -246,7 +246,7 @@ export function UpsellModal({
                         "px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-colors",
                         selectedVariant === i
                           ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300"
-                          : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-primary-300",
+                          : "border-line text-fg-muted hover:border-primary-300",
                       ].join(" ")}
                     >
                       {v.label}
@@ -273,7 +273,7 @@ export function UpsellModal({
               </Button>
               <button
                 onClick={onDismiss}
-                className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-1 font-medium"
+                className="text-sm text-fg-subtle hover:text-fg-muted transition-colors py-1 font-medium"
               >
                 لا شكراً، تخطّ هذا العرض
               </button>

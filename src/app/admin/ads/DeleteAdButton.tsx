@@ -36,7 +36,7 @@ export function DeleteAdButton({ id }: { id: string }) {
         <button
           onClick={handleDelete}
           disabled={loading}
-          className="text-xs text-white bg-red-500 hover:bg-red-600 px-2 py-1 rounded-lg disabled:opacity-60"
+          className="rounded-lg bg-danger-solid px-2 py-1 text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {loading ? "..." : "تأكيد"}
         </button>
@@ -53,7 +53,7 @@ export function DeleteAdButton({ id }: { id: string }) {
   return (
     <button
       onClick={() => setConfirm(true)}
-      className="text-sm font-medium text-red-600 hover:text-red-700 flex items-center gap-1"
+      className="text-sm font-medium text-danger hover:text-danger flex items-center gap-1"
     >
       <Trash2 className="w-4 h-4" />
       حذف

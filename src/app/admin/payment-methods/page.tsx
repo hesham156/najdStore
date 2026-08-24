@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Eye, EyeOff, CheckCircle2, XCircle, Building2, ShieldCheck, Zap, Globe, Lock } from "lucide-react";
+import { Save, Eye, EyeOff, CheckCircle2, XCircle, Building2, ShieldCheck, Zap, Globe, Lock, Lightbulb, AlertTriangle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import { Alert } from "@/components/ui/States";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -62,17 +63,22 @@ function PasswordInput({ label, value, onChange, placeholder }: {
   );
 }
 
-/* ─── Payment Card ─── */
-function PaymentCard({ title, subtitle, logo, color, enabled, onToggle, children }: {
+/* ─── Payment Card ───
+   Every gateway gets the same shell. The only colour that varies is the
+   vendor's own logo mark — the card itself is neutral until it's enabled,
+   and then it carries the brand tint. Gateways are not colour-coded. */
+function PaymentCard({ title, subtitle, logo, enabled, onToggle, children }: {
   title: string; subtitle: string; logo: React.ReactNode;
-  color: string; enabled: boolean; onToggle: (v: boolean) => void;
+  enabled: boolean; onToggle: (v: boolean) => void;
   children?: React.ReactNode;
 }) {
   return (
-    <Card className="overflow-hidden p-0">
-      <div className={cn("flex items-center justify-between px-5 py-4 border-b dark:border-line", color)}>
+    <Card className={cn("overflow-hidden p-0 transition-colors", enabled && "border-brand/30")}>
+      <div className={cn("flex items-center justify-between border-b border-line px-5 py-4 transition-colors", enabled ? "bg-brand/[0.06]" : "bg-surface-muted")}>
         <div className="flex items-center gap-3">
-          <div className="text-2xl">{logo}</div>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-control bg-surface text-xl ring-1 ring-line">
+            {logo}
+          </div>
           <div>
             <h3 className="font-bold text-fg">{title}</h3>
             <p className="text-xs text-fg-muted">{subtitle}</p>
@@ -80,7 +86,7 @@ function PaymentCard({ title, subtitle, logo, color, enabled, onToggle, children
         </div>
         <div className="flex items-center gap-3" dir="ltr">
           {enabled
-            ? <span className="flex items-center gap-1 text-xs font-semibold text-green-600"><CheckCircle2 className="h-4 w-4" />مفعّل</span>
+            ? <span className="flex items-center gap-1 text-xs font-semibold text-success"><CheckCircle2 className="h-4 w-4" />مفعّل</span>
             : <span className="flex items-center gap-1 text-xs font-semibold text-fg-subtle"><XCircle className="h-4 w-4" />معطّل</span>
           }
           <Toggle checked={enabled} onChange={onToggle} />
@@ -168,8 +174,7 @@ export default function PaymentMethodsPage() {
           {/* Bank Transfer */}
           <PaymentCard
             title="التحويل البنكي" subtitle="يدوي – العميل يرفع إثبات التحويل"
-            logo={<Building2 className="h-7 w-7 text-blue-600" />}
-            color="bg-blue-50 dark:bg-blue-900/10"
+            logo={<Building2 className="h-5 w-5 text-fg-muted" />}
             enabled={bool("pm_bank_transfer_enabled")}
             onToggle={() => toggle("pm_bank_transfer_enabled")}
           >
@@ -184,7 +189,7 @@ export default function PaymentMethodsPage() {
           {/* PayPal */}
           <PaymentCard
             title="PayPal" subtitle="بطاقات ائتمانية ودفع دولي"
-            logo="🅿️" color="bg-indigo-50 dark:bg-indigo-900/10"
+            logo="🅿️"
             enabled={bool("pm_paypal_enabled")} onToggle={() => toggle("pm_paypal_enabled")}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -206,20 +211,20 @@ export default function PaymentMethodsPage() {
                 placeholder="0.27"
               />
             </div>
-            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-400">
-              ⚠️ PayPal لا يدعم SAR أو EGP. استخدم USD مع سعر تحويل مناسب. مثال: 1 USD = 3.75 SAR → اكتب <strong>0.267</strong>
-            </div>
+            <Alert tone="warning" icon={AlertTriangle} className="text-xs">
+              PayPal لا يدعم SAR أو EGP. استخدم USD مع سعر تحويل مناسب. مثال: 1 USD = 3.75 SAR → اكتب <strong>0.267</strong>
+            </Alert>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-muted">
               <span className="text-sm font-medium text-fg">بيئة التشغيل</span>
               <div className="flex gap-2 ms-auto">
                 {["sandbox", "live"].map(mode => (
                   <button key={mode} type="button" onClick={() => set("pm_paypal_mode", mode)}
-                    className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
+                    className={cn("rounded-lg px-4 py-1.5 text-xs font-bold transition-colors",
                       values["pm_paypal_mode"] === mode
-                        ? mode === "live" ? "bg-green-600 text-white" : "bg-amber-500 text-white"
-                        : "bg-surface-sunken text-fg-muted"
+                        ? mode === "live" ? "bg-success-solid text-white" : "bg-warning-solid text-white"
+                        : "bg-surface-sunken text-fg-muted hover:text-fg"
                     )}>
-                    {mode === "live" ? "🟢 Live" : "🟡 Sandbox"}
+                    {mode === "live" ? "Live" : "Sandbox"}
                   </button>
                 ))}
               </div>
@@ -229,14 +234,13 @@ export default function PaymentMethodsPage() {
           {/* Tabby */}
           <PaymentCard
             title="Tabby" subtitle="اشتري الآن وادفع لاحقاً – تقسيط بدون فوائد"
-            logo={<div className="w-8 h-8 rounded-lg bg-[#3DBEA3] flex items-center justify-center text-white text-xs font-black">T</div>}
-            color="bg-teal-50 dark:bg-teal-900/10"
+            logo={<div className="flex h-full w-full items-center justify-center bg-[#3DBEA3] text-xs font-black text-white">T</div>}
             enabled={bool("pm_tabby_enabled")} onToggle={() => toggle("pm_tabby_enabled")}
           >
-            <div className="p-3 rounded-xl bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 text-xs text-teal-800 dark:text-teal-300">
-              💡 للحصول على مفاتيح Tabby، سجّل في{" "}
-              <a href="https://tabby.ai/en-SA/merchant" target="_blank" rel="noreferrer" className="underline font-semibold">tabby.ai/merchant</a>
-            </div>
+            <Alert tone="info" icon={Lightbulb} className="text-xs">
+              للحصول على مفاتيح Tabby، سجّل في{" "}
+              <a href="https://tabby.ai/en-SA/merchant" target="_blank" rel="noreferrer" className="font-semibold underline">tabby.ai/merchant</a>
+            </Alert>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="Public Key" value={values["pm_tabby_public_key"] || ""} onChange={e => set("pm_tabby_public_key", e.target.value)} placeholder="pk_live_..." />
               <PasswordInput label="Secret Key" value={values["pm_tabby_secret_key"] || ""} onChange={v => set("pm_tabby_secret_key", v)} />
@@ -247,8 +251,7 @@ export default function PaymentMethodsPage() {
           {/* Tamara */}
           <PaymentCard
             title="تمارا — Tamara" subtitle="قسّم مشترياتك – اشتري الآن وادفع لاحقاً"
-            logo={<div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3AC7B3] to-[#7B5CD6] flex items-center justify-center text-white text-xs font-black">تم</div>}
-            color="bg-cyan-50 dark:bg-cyan-900/10"
+            logo={<div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#3AC7B3] to-[#7B5CD6] text-xs font-black text-white">تم</div>}
             enabled={bool("pm_tamara_enabled")} onToggle={() => toggle("pm_tamara_enabled")}
           >
             {/* ── بيانات الربط ── */}
@@ -297,12 +300,12 @@ export default function PaymentMethodsPage() {
                   <div className="flex gap-2 ms-auto">
                     {["sandbox", "live"].map(mode => (
                       <button key={mode} type="button" onClick={() => set("pm_tamara_mode", mode)}
-                        className={cn("px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                        className={cn("rounded-lg px-3 py-1.5 text-xs font-bold transition-colors",
                           (values["pm_tamara_mode"] || "sandbox") === mode
-                            ? mode === "live" ? "bg-green-600 text-white" : "bg-amber-500 text-white"
-                            : "bg-surface-sunken text-fg-muted"
+                            ? mode === "live" ? "bg-success-solid text-white" : "bg-warning-solid text-white"
+                            : "bg-surface-sunken text-fg-muted hover:text-fg"
                         )}>
-                        {mode === "live" ? "🟢 Live" : "🟡 Sandbox"}
+                        {mode === "live" ? "Live" : "Sandbox"}
                       </button>
                     ))}
                   </div>
@@ -324,12 +327,12 @@ export default function PaymentMethodsPage() {
             </div>
 
             {/* Notification URL hint */}
-            <div className="p-3 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 text-xs text-cyan-800 dark:text-cyan-300 leading-relaxed">
-              💡 في لوحة تمارا، اضبط رابط الإشعارات (Notification URL) على:{" "}
-              <code className="font-mono bg-cyan-100 dark:bg-cyan-900/40 px-1.5 py-0.5 rounded break-all">
+            <Alert tone="info" icon={Lightbulb} className="text-xs">
+              في لوحة تمارا، اضبط رابط الإشعارات (Notification URL) على:{" "}
+              <code className="break-all rounded bg-info/10 px-1.5 py-0.5 font-mono">
                 {values["pm_tamara_merchant_url"] || "https://yourdomain.com"}/api/payments/tamara/webhook
               </code>
-            </div>
+            </Alert>
 
             {/* ── الموافقة ── */}
             <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
@@ -351,14 +354,13 @@ export default function PaymentMethodsPage() {
           {/* Moyasar — بطاقة مدى / فيزا */}
           <PaymentCard
             title="بطاقة (Moyasar)" subtitle="مدى، فيزا، ماستركارد — دفع فوري وآمن"
-            logo={<div className="w-8 h-8 rounded-lg bg-[#1f6feb] flex items-center justify-center text-white text-xs font-black">M</div>}
-            color="bg-blue-50 dark:bg-blue-900/10"
+            logo={<div className="flex h-full w-full items-center justify-center bg-[#1f6feb] text-xs font-black text-white">M</div>}
             enabled={bool("pm_moyasar_enabled")} onToggle={() => toggle("pm_moyasar_enabled")}
           >
-            <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
-              💡 احصل على مفاتيحك من لوحة{" "}
-              <a href="https://dashboard.moyasar.com" target="_blank" rel="noreferrer" className="underline font-semibold">Moyasar</a>. استخدم مفاتيح <b>test</b> للتجربة ثم <b>live</b> للتفعيل.
-            </div>
+            <Alert tone="info" icon={Lightbulb} className="text-xs">
+              احصل على مفاتيحك من لوحة{" "}
+              <a href="https://dashboard.moyasar.com" target="_blank" rel="noreferrer" className="font-semibold underline">Moyasar</a>. استخدم مفاتيح <b>test</b> للتجربة ثم <b>live</b> للتفعيل.
+            </Alert>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <PasswordInput label="Secret Key (المفتاح السري)" value={values["pm_moyasar_secret_key"] || ""} onChange={v => set("pm_moyasar_secret_key", v)} />
               <Input label="Publishable Key (المفتاح العام)" value={values["pm_moyasar_publishable_key"] || ""} onChange={e => set("pm_moyasar_publishable_key", e.target.value)} placeholder="pk_live_..." />
@@ -380,15 +382,15 @@ export default function PaymentMethodsPage() {
           {/* Status overview */}
           <Card className="p-5 space-y-4">
             <h2 className="font-bold text-sm text-fg flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary-600" />حالة البوابات
+              <Zap className="h-4 w-4 text-brand" />حالة البوابات
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 rounded-xl bg-green-50 dark:bg-green-900/10">
-                <p className="text-3xl font-black text-green-600 dark:text-green-400">{enabledCount}</p>
-                <p className="text-xs text-green-700 dark:text-green-500 mt-0.5">مفعّلة</p>
+              <div className="rounded-control bg-success/10 p-3 text-center">
+                <p className="text-3xl font-black text-success tnum">{enabledCount}</p>
+                <p className="mt-0.5 text-xs text-success">مفعّلة</p>
               </div>
-              <div className="text-center p-3 rounded-xl bg-surface-sunken">
-                <p className="text-3xl font-black text-fg-muted">{methods.length - enabledCount}</p>
+              <div className="rounded-control bg-surface-sunken p-3 text-center">
+                <p className="text-3xl font-black text-fg-muted tnum">{methods.length - enabledCount}</p>
                 <p className="text-xs text-fg-muted mt-0.5">معطّلة</p>
               </div>
             </div>
@@ -399,19 +401,19 @@ export default function PaymentMethodsPage() {
                   key={key}
                   onClick={() => toggle(key)}
                   className={cn(
-                    "flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all",
+                    "flex cursor-pointer items-center gap-3 rounded-control border p-2.5 transition-colors",
                     bool(key)
-                      ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
-                      : "border-line bg-surface-muted opacity-60"
+                      ? "border-success/30 bg-success/10"
+                      : "border-line bg-surface-muted hover:bg-surface-hover"
                   )}
                 >
                   <span className="text-lg">{icon}</span>
-                  <span className={cn("text-sm font-medium flex-1", bool(key) ? "text-green-700 dark:text-green-400" : "text-fg-muted")}>
+                  <span className={cn("flex-1 text-sm font-medium", bool(key) ? "text-success" : "text-fg-muted")}>
                     {label}
                   </span>
                   {bool(key)
-                    ? <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-                    : <XCircle className="h-4 w-4 text-fg-subtle shrink-0" />
+                    ? <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+                    : <XCircle className="h-4 w-4 shrink-0 text-fg-subtle" />
                   }
                 </div>
               ))}
@@ -421,14 +423,14 @@ export default function PaymentMethodsPage() {
           {/* Security tips */}
           <Card className="p-5 space-y-3">
             <h2 className="font-bold text-sm text-fg flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-amber-500" />نصائح الأمان
+              <ShieldCheck className="h-4 w-4 text-brand" />نصائح الأمان
             </h2>
             <div className="space-y-2.5 text-xs text-fg-muted">
               {[
-                { icon: <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />, text: "لا تشارك مفاتيح API مع أي شخص" },
-                { icon: <Globe className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />, text: "استخدم بيئة Sandbox للاختبار قبل الإطلاق" },
-                { icon: <ShieldCheck className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />, text: "فعّل فقط بوابات الدفع التي تحتاجها" },
-                { icon: <Zap className="h-3.5 w-3.5 text-purple-500 shrink-0 mt-0.5" />, text: "تأكد من إعداد Webhook URLs في كل بوابة" },
+                { icon: <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fg-subtle" />, text: "لا تشارك مفاتيح API مع أي شخص" },
+                { icon: <Globe className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fg-subtle" />, text: "استخدم بيئة Sandbox للاختبار قبل الإطلاق" },
+                { icon: <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fg-subtle" />, text: "فعّل فقط بوابات الدفع التي تحتاجها" },
+                { icon: <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fg-subtle" />, text: "تأكد من إعداد Webhook URLs في كل بوابة" },
               ].map((tip, i) => (
                 <div key={i} className="flex items-start gap-2">{tip.icon}<p>{tip.text}</p></div>
               ))}
@@ -438,26 +440,23 @@ export default function PaymentMethodsPage() {
           {/* Quick links */}
           <Card className="p-5 space-y-3">
             <h2 className="font-bold text-sm text-fg flex items-center gap-2">
-              <Globe className="h-4 w-4 text-blue-500" />روابط سريعة
+              <Globe className="h-4 w-4 text-brand" />روابط سريعة
             </h2>
             <div className="space-y-2">
               {[
-                { label: "Tabby للتجار", href: "https://tabby.ai/en-SA/merchant", color: "teal" },
-                { label: "Tamara للتجار", href: "https://merchants.tamara.co",    color: "cyan" },
-                { label: "PayPal Developer", href: "https://developer.paypal.com", color: "indigo" },
-              ].map(({ label, href, color }) => (
+                { label: "Tabby للتجار", href: "https://tabby.ai/en-SA/merchant" },
+                { label: "Tamara للتجار", href: "https://merchants.tamara.co" },
+                { label: "PayPal Developer", href: "https://developer.paypal.com" },
+              ].map(({ label, href }) => (
                 <a
                   key={href}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all",
-                    `bg-${color}-50 dark:bg-${color}-900/10 text-${color}-700 dark:text-${color}-400`,
-                    `hover:bg-${color}-100 dark:hover:bg-${color}-900/20 border border-${color}-200 dark:border-${color}-800`
-                  )}
+                  className="flex items-center gap-2 rounded-control border border-line bg-surface-muted px-3 py-2 text-xs font-medium text-fg-muted transition-colors hover:border-brand/30 hover:bg-brand/[0.06] hover:text-brand"
                 >
-                  <Globe className="h-3.5 w-3.5" />{label}
+                  <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                  <span className="flex-1">{label}</span>
                 </a>
               ))}
             </div>

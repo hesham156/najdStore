@@ -194,7 +194,7 @@ export default function AdForm({ initialData }: { initialData?: any }) {
                         e.stopPropagation();
                         setFormData({ ...formData, image: "" });
                       }}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                      className="absolute top-2 right-2 rounded-full bg-danger-solid p-1 text-white transition-opacity hover:opacity-90"
                     >
                       <X className="w-4 h-4" />
                     </button>

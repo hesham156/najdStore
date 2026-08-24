@@ -60,21 +60,21 @@ function Particle({ delay, x, size }: { delay: number; x: number; size: number }
 const STEPS = [
   {
     icon: Mail,
-    color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+    color: "bg-info/10 text-info",
     label: "تأكيد عبر الإيميل",
     desc: "تم إرسال تفاصيل طلبك إلى بريدك الإلكتروني",
     done: true,
   },
   {
     icon: Package,
-    color: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
+    color: "bg-warning/10 text-warning",
     label: "مراجعة الطلب",
     desc: "يتم مراجعة طلبك والتحقق من الدفع",
     done: false,
   },
   {
     icon: CheckCircle2,
-    color: "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",
+    color: "bg-success/10 text-success",
     label: "التسليم",
     desc: "ستحصل على بياناتك فوراً عند اكتمال المراجعة",
     done: false,
@@ -160,9 +160,9 @@ export default function ThankYouPage() {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="absolute inset-0 rounded-full bg-green-400/20 dark:bg-green-400/10 scale-150 animate-pulse"
+              className="absolute inset-0 scale-150 animate-pulse rounded-full bg-success/20"
             />
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-500/30">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-success-solid shadow-2xl shadow-success/30">
               <motion.div
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
@@ -175,10 +175,10 @@ export default function ThankYouPage() {
         </div>
 
         {/* Card body */}
-        <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl shadow-gray-200/60 dark:shadow-gray-900/60 overflow-hidden border border-gray-100 dark:border-gray-800">
+        <div className="bg-surface rounded-3xl shadow-2xl shadow-gray-200/60 dark:shadow-gray-900/60 overflow-hidden border border-line">
 
           {/* Header */}
-          <div className="px-8 pt-8 pb-6 text-center border-b border-gray-100 dark:border-gray-800">
+          <div className="px-8 pt-8 pb-6 text-center border-b border-line">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -192,14 +192,14 @@ export default function ThankYouPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.5 + i * 0.08 }}
                   >
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star className="h-4 w-4 fill-warning text-warning" />
                   </motion.div>
                 ))}
               </div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-1">
+              <h1 className="text-2xl font-black text-fg mb-1">
                 شكراً لك! 🎉
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+              <p className="text-fg-subtle text-sm leading-relaxed">
                 تم استلام طلبك بنجاح وسيتم معالجته في أقرب وقت
               </p>
             </motion.div>
@@ -230,7 +230,7 @@ export default function ThankYouPage() {
             transition={{ delay: 0.7 }}
             className="px-6 pb-6 space-y-3"
           >
-            <p className="text-xs font-bold text-gray-400 dark:text-gray-600 uppercase tracking-wider mb-4">
+            <p className="text-xs font-bold text-fg-subtle uppercase tracking-wider mb-4">
               ما يحدث الآن
             </p>
             {STEPS.map((step, i) => {
@@ -248,18 +248,18 @@ export default function ThankYouPage() {
                   </div>
                   <div className="flex-1 pt-0.5">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{step.label}</p>
+                      <p className="text-sm font-semibold text-fg">{step.label}</p>
                       {step.done && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success/10 text-success">
                           تم ✓
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{step.desc}</p>
+                    <p className="text-xs text-fg-subtle mt-0.5">{step.desc}</p>
                   </div>
                   {/* Connector */}
                   {i < STEPS.length - 1 && (
-                    <div className="absolute translate-x-[17px] translate-y-9 w-px h-6 bg-gray-200 dark:bg-gray-700" />
+                    <div className="absolute translate-x-[17px] translate-y-9 w-px h-6 bg-surface-sunken" />
                   )}
                 </motion.div>
               );
@@ -267,9 +267,9 @@ export default function ThankYouPage() {
           </motion.div>
 
           {/* Info row */}
-          <div className="mx-6 mb-6 flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/15 border border-amber-100 dark:border-amber-800/40">
-            <Clock className="h-4 w-4 text-amber-500 shrink-0" />
-            <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+          <div className="mx-6 mb-6 flex items-center gap-2 rounded-control border border-warning/25 bg-warning/10 p-3">
+            <Clock className="h-4 w-4 text-warning shrink-0" />
+            <p className="text-xs text-warning leading-relaxed">
               التسليم التلقائي فوري — أو يدوياً خلال <span className="font-bold">1-24 ساعة</span> حسب نوع المنتج
             </p>
           </div>
@@ -320,7 +320,7 @@ export default function ThankYouPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
-          className="text-center text-xs text-gray-400 dark:text-gray-600 mt-5"
+          className="text-center text-xs text-fg-subtle mt-5"
         >
           هل واجهت مشكلة؟{" "}
           <Link href="/contact" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">

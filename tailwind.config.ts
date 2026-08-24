@@ -30,6 +30,21 @@ const config: Config = {
           900: "#4c1d95",
           950: "#2e1065",
         },
+        /* ── Semantic tones: colour that means something ──
+           brand = identity, the rest = state. Nothing else is coloured. */
+        brand: token("brand"),
+        success: token("success"),
+        warning: token("warning"),
+        danger: token("danger"),
+        info: token("info"),
+
+        /* Fixed-dark counterparts, for fills that carry white text */
+        "brand-solid": token("brand-solid"),
+        "success-solid": token("success-solid"),
+        "warning-solid": token("warning-solid"),
+        "danger-solid": token("danger-solid"),
+        "info-solid": token("info-solid"),
+
         /* ── Semantic surface + text tokens (light/dark aware) ── */
         canvas: token("canvas"),
         surface: {
@@ -110,7 +125,8 @@ const config: Config = {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-hero": "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
+        "gradient-hero": "linear-gradient(135deg, #2e1065 0%, #4c1d95 50%, #6d28d9 100%)",
+        "gradient-brand": "linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)",
       },
     },
   },

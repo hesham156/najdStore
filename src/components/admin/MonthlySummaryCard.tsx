@@ -80,22 +80,22 @@ export function MonthlySummaryCard() {
       <div className="p-5">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 mb-5">
-          <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h2 className="font-bold text-fg flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary-500" />
             {title}
           </h2>
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 text-xs font-medium">
+            <div className="flex items-center bg-surface-sunken rounded-lg p-0.5 text-xs font-medium">
               <button
                 onClick={() => setRange("daily")}
-                className={cn("px-3 py-1 rounded-md transition-all", range === "daily" ? "bg-white dark:bg-gray-700 text-primary-600 shadow-sm" : "text-gray-500")}
+                className={cn("px-3 py-1 rounded-md transition-all", range === "daily" ? "bg-surface text-primary-600 shadow-sm" : "text-fg-subtle")}
               >يومي</button>
               <button
                 onClick={() => setRange("monthly")}
-                className={cn("px-3 py-1 rounded-md transition-all", range === "monthly" ? "bg-white dark:bg-gray-700 text-primary-600 shadow-sm" : "text-gray-500")}
+                className={cn("px-3 py-1 rounded-md transition-all", range === "monthly" ? "bg-surface text-primary-600 shadow-sm" : "text-fg-subtle")}
               >شهري</button>
             </div>
-            <button onClick={fetchData} className="p-1.5 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <button onClick={fetchData} className="p-1.5 rounded-lg text-fg-subtle hover:text-primary-600 hover:bg-surface-sunken">
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
             </button>
           </div>
@@ -107,7 +107,7 @@ export function MonthlySummaryCard() {
             <div className="relative h-40">
               {/* Tooltip */}
               {hover !== null && data?.series[hover] && (
-                <div className="absolute -top-2 z-10 pointer-events-none -translate-x-1/2 rounded-xl bg-gray-900 text-white text-xs px-3 py-2 shadow-xl whitespace-nowrap"
+                <div className="absolute -top-2 z-10 pointer-events-none -translate-x-1/2 rounded-xl bg-surface-sunken text-white text-xs px-3 py-2 shadow-xl whitespace-nowrap"
                   style={{ insetInlineStart: `${((hover + 0.5) / data.series.length) * 100}%` }}>
                   <p className="font-bold mb-0.5">
                     {data.range === "daily" ? `الساعة ${data.series[hover].date}` : `${data.series[hover].date} ${AR_MONTHS[data.month - 1]}`}
@@ -130,7 +130,7 @@ export function MonthlySummaryCard() {
                       <div
                         className={cn(
                           "w-full rounded-t transition-colors",
-                          isToday ? "bg-primary-600" : p.sales > 0 ? "bg-primary-300 group-hover:bg-primary-500" : "bg-gray-200 dark:bg-gray-700 group-hover:bg-primary-300",
+                          isToday ? "bg-primary-600" : p.sales > 0 ? "bg-primary-300 group-hover:bg-primary-500" : "bg-surface-sunken group-hover:bg-primary-300",
                           hover === i && "bg-primary-600",
                         )}
                         style={{ height: `${p.sales > 0 || isToday ? h : 8}%` }}
@@ -144,9 +144,9 @@ export function MonthlySummaryCard() {
 
           {/* Stats */}
           <div className="order-1 lg:order-2 grid grid-cols-2 lg:grid-cols-1 gap-3">
-            <Stat icon={<Users className="h-4 w-4" />} label="الزيارات" value={String(data?.totals.visits ?? 0)} color="text-amber-600 bg-amber-50 dark:bg-amber-900/20" />
-            <Stat icon={<ShoppingBag className="h-4 w-4" />} label="الطلبات" value={String(data?.totals.orders ?? 0)} color="text-blue-600 bg-blue-50 dark:bg-blue-900/20" />
-            <Stat icon={<Wallet className="h-4 w-4" />} label="صافي المبيعات" value={formatCurrency(data?.totals.netSales ?? 0)} color="text-red-600 bg-red-50 dark:bg-red-900/20" />
+            <Stat icon={<Users className="h-4 w-4" />} label="الزيارات" value={String(data?.totals.visits ?? 0)} color="text-warning bg-warning/10" />
+            <Stat icon={<ShoppingBag className="h-4 w-4" />} label="الطلبات" value={String(data?.totals.orders ?? 0)} color="text-info bg-info/10" />
+            <Stat icon={<Wallet className="h-4 w-4" />} label="صافي المبيعات" value={formatCurrency(data?.totals.netSales ?? 0)} color="text-danger bg-danger/10" />
             <Link href="/admin/accounting" className="lg:mt-1">
               <Button variant="outline" size="sm" fullWidth>استعرض كل التقارير</Button>
             </Link>
@@ -155,28 +155,28 @@ export function MonthlySummaryCard() {
       </div>
 
       {/* Goal footer */}
-      <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 px-5 py-4">
+      <div className="border-t border-line bg-surface-sunken/60 px-5 py-4">
         {data?.goal ? (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <p className="text-sm font-semibold text-fg flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary-500" />
                 هدف الشهر: {formatCurrency(data.goal.target)}
               </p>
               <button onClick={() => { setGoalValue(String(data.goal!.target)); setGoalOpen(true); }} className="text-xs text-primary-600 hover:underline">تعديل</button>
             </div>
-            <div className="h-2.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-primary-500 to-purple-600 transition-all" style={{ width: `${data.goal.progress * 100}%` }} />
+            <div className="h-2.5 rounded-full bg-surface-sunken overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-700 transition-all" style={{ width: `${data.goal.progress * 100}%` }} />
             </div>
-            <p className="text-xs text-gray-500 mt-1.5">
+            <p className="text-xs text-fg-subtle mt-1.5">
               {Math.round(data.goal.progress * 100)}% مكتمل — {formatCurrency(data.totals.netSales)} من {formatCurrency(data.goal.target)}
             </p>
           </div>
         ) : (
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">أضف هدفًا يحفّز شغفك</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">الأهداف الواضحة تساعدك على تركيز جهدك ومتابعة نمو متجرك بسهولة.</p>
+              <p className="text-sm font-semibold text-fg">أضف هدفًا يحفّز شغفك</p>
+              <p className="text-xs text-fg-subtle">الأهداف الواضحة تساعدك على تركيز جهدك ومتابعة نمو متجرك بسهولة.</p>
             </div>
             <Button variant="outline" size="sm" onClick={() => { setGoalValue(""); setGoalOpen(true); }}>
               <Target className="h-4 w-4" />أضف هدف الشهر
@@ -188,7 +188,7 @@ export function MonthlySummaryCard() {
       {/* Goal modal */}
       <Modal isOpen={goalOpen} onClose={() => setGoalOpen(false)} title="هدف مبيعات الشهر" size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">حدّد قيمة صافي المبيعات التي تطمح لتحقيقها هذا الشهر (بالريال). اترك القيمة 0 لإلغاء الهدف.</p>
+          <p className="text-sm text-fg-subtle">حدّد قيمة صافي المبيعات التي تطمح لتحقيقها هذا الشهر (بالريال). اترك القيمة 0 لإلغاء الهدف.</p>
           <Input
             type="number"
             min={0}
@@ -209,10 +209,10 @@ export function MonthlySummaryCard() {
 
 function Stat({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 dark:border-gray-800 px-3 py-2.5">
+    <div className="flex items-center justify-between gap-2 rounded-xl border border-line px-3 py-2.5">
       <div className="min-w-0">
-        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-        <p className="font-bold text-gray-900 dark:text-white text-sm truncate">{value}</p>
+        <p className="text-xs text-fg-subtle">{label}</p>
+        <p className="font-bold text-fg text-sm truncate">{value}</p>
       </div>
       <span className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0", color)}>{icon}</span>
     </div>

@@ -101,7 +101,7 @@ export function Modal({
   return createPortal(
     <div className="fixed inset-0 z-modal flex items-end justify-center sm:items-center sm:p-4">
       <div
-        className="absolute inset-0 bg-gray-900/50 backdrop-blur-[2px] animate-fade-in"
+        className="absolute inset-0 bg-surface-sunken backdrop-blur-[2px] animate-fade-in"
         onClick={closeOnBackdrop ? onClose : undefined}
         aria-hidden
       />
@@ -186,7 +186,7 @@ export function ConfirmModal({
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
             variant === "danger"
-              ? "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
+              ? "bg-danger/10 text-danger"
               : "bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400"
           )}
         >

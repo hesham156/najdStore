@@ -32,9 +32,9 @@ interface Ticket {
 
 const PRIORITY_COLOR: Record<string, string> = {
   LOW: "text-fg-subtle",
-  MEDIUM: "text-blue-600 dark:text-blue-400",
-  HIGH: "text-orange-600 dark:text-orange-400",
-  URGENT: "text-red-600 dark:text-red-400",
+  MEDIUM: "text-info",
+  HIGH: "text-warning",
+  URGENT: "text-danger",
 };
 
 const STATUS_VARIANT: Record<string, "warning" | "default" | "success" | "gray"> = {
@@ -232,7 +232,7 @@ export default function AdminTicketsPage() {
                 >
                   <div className="flex items-start gap-3">
                     <span
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-[13px] font-bold text-white"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-[13px] font-bold text-white"
                       aria-hidden
                     >
                       {ticket.user.name.charAt(0)}
@@ -279,7 +279,7 @@ export default function AdminTicketsPage() {
               icon={<ChevronLeft className="h-5 w-5 rtl:rotate-180 ltr:rotate-0" />}
             />
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-sm font-bold text-white"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-bold text-white"
               aria-hidden
             >
               {selected.user.name.charAt(0)}

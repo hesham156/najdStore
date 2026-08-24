@@ -33,8 +33,8 @@ export function DashboardSidebar({ mobile, onClose }: SidebarProps) {
     <aside className={cn("flex flex-col h-full", mobile ? "w-full" : "w-64")}>
       {/* User Info */}
       <div className="p-4 mb-2">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 border border-primary-100 dark:border-primary-800">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 border border-primary-100 dark:border-primary-800">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-lg shrink-0">
             {session?.user.name?.charAt(0) || "م"}
           </div>
           <div className="min-w-0">
@@ -85,7 +85,7 @@ export function DashboardSidebar({ mobile, onClose }: SidebarProps) {
       <div className="p-3 mt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="sidebar-link w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+          className="sidebar-link w-full text-danger hover:bg-danger/10"
         >
           <LogOut className="h-5 w-5 shrink-0" />
           تسجيل الخروج

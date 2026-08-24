@@ -31,11 +31,11 @@ export function MaintenancePage() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center max-w-md">
         {/* Logo */}
-        <SiteLogo size="xl" className="mb-8 shadow-2xl shadow-purple-900/60" />
+        <SiteLogo size="xl" className="mb-8 shadow-2xl shadow-primary-900/60" />
 
         {/* Icon */}
         <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
-          <Wrench className="h-10 w-10 text-purple-400" />
+          <Wrench className="h-10 w-10 text-brand" />
         </div>
 
         <h1 className="text-4xl font-black text-white mb-3">
@@ -49,12 +49,12 @@ export function MaintenancePage() {
         {/* Status cards */}
         <div className="grid grid-cols-2 gap-3 w-full mb-8">
           <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col items-center gap-2">
-            <Clock className="h-5 w-5 text-yellow-400" />
+            <Clock className="h-5 w-5 text-warning" />
             <p className="text-xs text-white/50">العودة المتوقعة</p>
             <p className="text-sm font-bold text-white">قريباً</p>
           </div>
           <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col items-center gap-2">
-            <Mail className="h-5 w-5 text-blue-400" />
+            <Mail className="h-5 w-5 text-info" />
             <p className="text-xs text-white/50">للتواصل</p>
             <p className="text-sm font-bold text-white">راسلنا</p>
           </div>

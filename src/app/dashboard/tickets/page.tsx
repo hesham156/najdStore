@@ -22,17 +22,17 @@ export default async function TicketsPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">تذاكر الدعم</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{tickets.length} تذكرة</p>
+          <h1 className="text-2xl font-bold text-fg">تذاكر الدعم</h1>
+          <p className="text-fg-subtle text-sm mt-1">{tickets.length} تذكرة</p>
         </div>
         <NewTicketModal />
       </div>
 
       {tickets.length === 0 ? (
         <Card className="text-center py-16">
-          <MessageSquare className="h-14 w-14 text-gray-300 mx-auto mb-4" />
-          <h2 className="font-bold text-gray-900 dark:text-white mb-2">لا توجد تذاكر دعم</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+          <MessageSquare className="h-14 w-14 text-fg-subtle mx-auto mb-4" />
+          <h2 className="font-bold text-fg mb-2">لا توجد تذاكر دعم</h2>
+          <p className="text-fg-subtle text-sm mb-6">
             لديك مشكلة؟ افتح تذكرة وسيساعدك فريقنا
           </p>
           <NewTicketModal />
@@ -47,23 +47,23 @@ export default async function TicketsPage() {
                 <Card hover>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
-                        <MessageSquare className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+                        <MessageSquare className="h-5 w-5 text-brand" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-bold text-gray-900 dark:text-white text-sm">{ticket.subject}</p>
+                          <p className="font-bold text-fg text-sm">{ticket.subject}</p>
                           <Badge variant={variant} className="text-xs">{label}</Badge>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{ticket.ticketNumber}</p>
+                        <p className="text-xs text-fg-subtle">{ticket.ticketNumber}</p>
                         {lastMsg && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-xs">
+                          <p className="text-xs text-fg-subtle mt-1 truncate max-w-xs">
                             {lastMsg.message}
                           </p>
                         )}
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400 shrink-0">{formatDate(ticket.updatedAt)}</span>
+                    <span className="text-xs text-fg-subtle shrink-0">{formatDate(ticket.updatedAt)}</span>
                   </div>
                 </Card>
               </Link>

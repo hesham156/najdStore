@@ -39,8 +39,8 @@ export default function ContactPage() {
     <div className="min-h-screen py-12">
       <div className="container-custom max-w-5xl">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-3">تواصل معنا</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-lg">نحن هنا لمساعدتك في أي وقت</p>
+          <h1 className="text-4xl font-black text-fg mb-3">تواصل معنا</h1>
+          <p className="text-fg-subtle text-lg">نحن هنا لمساعدتك في أي وقت</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -50,32 +50,32 @@ export default function ContactPage() {
               {
                 icon: Mail, title: "البريد الإلكتروني",
                 lines: ["support@store.com", "يُردّ خلال 2-6 ساعات"],
-                color: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+                color: "bg-info/10 text-info",
               },
               {
                 icon: Phone, title: "الهاتف / واتساب",
                 lines: ["+966 50 123 4567", "السبت - الخميس: 9ص - 11م"],
-                color: "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400",
+                color: "bg-success/10 text-success",
               },
               {
                 icon: MessageSquare, title: "تذكرة الدعم",
                 lines: ["عبر لوحة التحكم", "أسرع طريقة للمساعدة"],
-                color: "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400",
+                color: "bg-brand/10 text-brand",
               },
               {
                 icon: Clock, title: "ساعات العمل",
                 lines: ["السبت - الخميس: 9ص - 11م", "الجمعة: 2م - 11م"],
-                color: "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+                color: "bg-warning/10 text-warning",
               },
             ].map((item) => (
-              <div key={item.title} className="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div key={item.title} className="flex items-start gap-4 p-4 rounded-2xl bg-surface border border-line">
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
                   <item.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900 dark:text-white text-sm">{item.title}</p>
+                  <p className="font-bold text-fg text-sm">{item.title}</p>
                   {item.lines.map((line) => (
-                    <p key={line} className="text-sm text-gray-500 dark:text-gray-400">{line}</p>
+                    <p key={line} className="text-sm text-fg-subtle">{line}</p>
                   ))}
                 </div>
               </div>
@@ -84,19 +84,19 @@ export default function ContactPage() {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8">
+            <div className="bg-surface rounded-2xl border border-line p-8">
               {sent ? (
                 <div className="text-center py-12">
-                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">تم الإرسال!</h2>
-                  <p className="text-gray-500 dark:text-gray-400">سيتواصل معك فريقنا في أقرب وقت ممكن.</p>
+                  <CheckCircle className="h-16 w-16 text-success mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-fg mb-2">تم الإرسال!</h2>
+                  <p className="text-fg-subtle">سيتواصل معك فريقنا في أقرب وقت ممكن.</p>
                   <Button className="mt-6" onClick={() => setSent(false)} variant="outline">
                     إرسال رسالة أخرى
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">أرسل رسالة</h2>
+                  <h2 className="text-xl font-bold text-fg mb-6">أرسل رسالة</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input label="الاسم" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="محمد أحمد" />
                     <Input label="البريد الإلكتروني" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="example@email.com" />

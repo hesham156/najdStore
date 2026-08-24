@@ -114,7 +114,7 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-2 text-sm font-semibold text-fg">
-              <Truck className="h-4 w-4 text-orange-500" /> {shipment.carrier}
+              <Truck className="h-4 w-4 text-warning" /> {shipment.carrier}
             </span>
             <Badge variant={STATUS_STYLE[shipment.status] || "default"}>{shipment.status}</Badge>
           </div>

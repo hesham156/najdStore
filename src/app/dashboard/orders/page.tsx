@@ -25,8 +25,8 @@ export default async function OrdersPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">طلباتي</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{orders.length} طلب</p>
+          <h1 className="text-2xl font-bold text-fg">طلباتي</h1>
+          <p className="text-fg-subtle text-sm mt-1">{orders.length} طلب</p>
         </div>
         <Link href="/products" className="btn-primary text-sm px-4 py-2">
           طلب جديد
@@ -35,9 +35,9 @@ export default async function OrdersPage() {
 
       {orders.length === 0 ? (
         <Card className="text-center py-16">
-          <ShoppingBag className="h-14 w-14 text-gray-300 mx-auto mb-4" />
-          <h2 className="font-bold text-gray-900 dark:text-white mb-2">لا توجد طلبات</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">لم تقم بأي طلبات بعد</p>
+          <ShoppingBag className="h-14 w-14 text-fg-subtle mx-auto mb-4" />
+          <h2 className="font-bold text-fg mb-2">لا توجد طلبات</h2>
+          <p className="text-fg-subtle text-sm mb-6">لم تقم بأي طلبات بعد</p>
           <Link href="/products" className="btn-primary inline-flex">تصفح المنتجات</Link>
         </Card>
       ) : (
@@ -55,15 +55,15 @@ export default async function OrdersPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-bold text-gray-900 dark:text-white">{order.orderNumber}</p>
+                          <p className="font-bold text-fg">{order.orderNumber}</p>
                           <Badge variant={variant}>{label}</Badge>
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-fg-subtle">
                           {order.items.length} منتج • {formatDate(order.createdAt)}
                         </p>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {order.items.slice(0, 3).map((item) => (
-                            <span key={item.id} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                            <span key={item.id} className="text-xs px-2 py-0.5 rounded-full bg-surface-sunken text-fg-muted">
                               {item.product.nameAr}
                             </span>
                           ))}
@@ -71,7 +71,7 @@ export default async function OrdersPage() {
                       </div>
                     </div>
                     <div className="text-end shrink-0">
-                      <p className="font-black text-lg text-gray-900 dark:text-white">{formatCurrency(parseFloat(String(order.total)))}</p>
+                      <p className="font-black text-lg text-fg">{formatCurrency(parseFloat(String(order.total)))}</p>
                       {paymentStatus && (
                         <Badge variant={paymentStatus.variant} className="mt-1 text-xs">
                           {paymentStatus.label}

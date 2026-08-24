@@ -74,16 +74,16 @@ const faqs = [
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+    <div className="border border-line rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full px-5 py-4 text-start hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+        className="flex items-center justify-between w-full px-5 py-4 text-start hover:bg-surface-sunken transition-colors"
       >
-        <span className="font-semibold text-gray-900 dark:text-white">{q}</span>
-        <ChevronDown className={cn("h-5 w-5 text-gray-400 shrink-0 transition-transform", open && "rotate-180")} />
+        <span className="font-semibold text-fg">{q}</span>
+        <ChevronDown className={cn("h-5 w-5 text-fg-subtle shrink-0 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="px-5 pb-4 text-gray-600 dark:text-gray-400 leading-relaxed border-t border-gray-100 dark:border-gray-700 pt-3">
+        <div className="px-5 pb-4 text-fg-muted leading-relaxed border-t border-line pt-3">
           {a}
         </div>
       )}
@@ -96,14 +96,14 @@ export default function FAQPage() {
     <div className="min-h-screen py-12">
       <div className="container-custom max-w-3xl">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-3">الأسئلة الشائعة</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-lg">إجابات على أكثر الأسئلة شيوعاً</p>
+          <h1 className="text-4xl font-black text-fg mb-3">الأسئلة الشائعة</h1>
+          <p className="text-fg-subtle text-lg">إجابات على أكثر الأسئلة شيوعاً</p>
         </div>
 
         <div className="space-y-8">
           {faqs.map((section) => (
             <div key={section.category}>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-fg mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
                   <span className="w-2 h-2 rounded-full bg-primary-600 dark:bg-primary-400" />
                 </span>
@@ -119,8 +119,8 @@ export default function FAQPage() {
         </div>
 
         <div className="mt-12 text-center bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-2xl p-8">
-          <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">لم تجد إجابتك؟</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">تواصل مع فريق الدعم الفني</p>
+          <h3 className="font-bold text-fg text-lg mb-2">لم تجد إجابتك؟</h3>
+          <p className="text-fg-muted mb-4">تواصل مع فريق الدعم الفني</p>
           <a href="/contact" className="btn-primary inline-flex">تواصل معنا</a>
         </div>
       </div>

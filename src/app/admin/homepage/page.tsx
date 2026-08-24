@@ -110,12 +110,12 @@ export default function HomepageBuilderPage() {
               <div className="flex items-center gap-2 px-4 py-3 border-b border-line/60">
                 <GripVertical className="h-4 w-4 text-fg-subtle shrink-0" />
                 <span className="font-semibold text-sm flex-1">{LABELS[s.type]}</span>
-                <button onClick={() => patch(s.id, { enabled: !s.enabled })} className="p-1.5 rounded-lg text-fg-subtle hover:text-fg hover:bg-gray-100 dark:hover:bg-gray-800" title={s.enabled ? "إخفاء" : "إظهار"}>
+                <button onClick={() => patch(s.id, { enabled: !s.enabled })} className="p-1.5 rounded-lg text-fg-subtle hover:text-fg hover:bg-surface-sunken" title={s.enabled ? "إخفاء" : "إظهار"}>
                   {s.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
                 <button onClick={() => move(i, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-fg-subtle hover:text-fg disabled:opacity-30"><ArrowUp className="h-4 w-4" /></button>
                 <button onClick={() => move(i, 1)} disabled={i === sections.length - 1} className="p-1.5 rounded-lg text-fg-subtle hover:text-fg disabled:opacity-30"><ArrowDown className="h-4 w-4" /></button>
-                <button onClick={() => remove(s.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Trash2 className="h-4 w-4" /></button>
+                <button onClick={() => remove(s.id)} className="p-1.5 rounded-lg text-danger hover:bg-danger/10"><Trash2 className="h-4 w-4" /></button>
               </div>
 
               <div className="p-4">
@@ -127,7 +127,7 @@ export default function HomepageBuilderPage() {
       )}
 
       {dirty && (
-        <div className="sticky bottom-4 flex items-center justify-between gap-3 bg-gray-900 text-white rounded-card px-5 py-3 shadow-overlay">
+        <div className="sticky bottom-4 flex items-center justify-between gap-3 bg-surface-sunken text-white rounded-card px-5 py-3 shadow-overlay">
           <span className="text-sm text-white/70">لديك تغييرات غير محفوظة</span>
           <Button size="sm" onClick={save} loading={saving}><Save className="h-3.5 w-3.5" /> حفظ الآن</Button>
         </div>
@@ -194,7 +194,7 @@ function SectionEditor({ section: s, onChange }: { section: HomeSection; onChang
             value={s.html || ""}
             onChange={(e) => onChange({ html: e.target.value })}
             placeholder="<section>…تصميمك الخاص…</section>"
-            className="w-full rounded-card border border-line bg-gray-950 text-gray-100 font-mono text-xs leading-relaxed p-3 focus:outline-none focus:ring-2 focus:ring-primary-500/40 resize-y"
+            className="w-full resize-y rounded-card border border-line bg-primary-950 p-3 font-mono text-xs leading-relaxed text-primary-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
           />
           <p className="text-xs text-fg-muted mt-1">نصيحة: نسّق تصميمك عبر «الإعدادات ← أكواد مخصّصة (CSS)».</p>
         </div>

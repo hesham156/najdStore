@@ -226,7 +226,7 @@ export default function AdminProductsPage() {
             <p className={cn("truncate text-[13px] font-semibold", row.isActive ? "text-fg" : "text-fg-subtle")}>
               {row.nameAr}
               {row.isFeatured && (
-                <Star className="ms-1 inline h-3 w-3 fill-amber-400 text-amber-400 align-[-1px]" aria-label="منتج مميز" />
+                <Star className="ms-1 inline h-3 w-3 fill-warning text-warning align-[-1px]" aria-label="منتج مميز" />
               )}
             </p>
             <p className="truncate font-mono text-[11px] text-fg-subtle">{row.slug}</p>

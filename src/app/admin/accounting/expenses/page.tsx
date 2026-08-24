@@ -29,16 +29,6 @@ const CATEGORIES = [
 
 const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map(c => [c.value, c.label]));
 
-const CATEGORY_COLORS: Record<string, string> = {
-  HOSTING: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
-  MARKETING: "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300",
-  SALARY: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
-  TOOLS: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
-  PURCHASE: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
-  TAX: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
-  OTHER: "bg-surface-sunken text-fg",
-};
-
 const emptyForm = { titleAr: "", amount: "", category: "OTHER", date: new Date().toISOString().split("T")[0], notes: "" };
 
 export default function ExpensesPage() {
@@ -115,8 +105,8 @@ export default function ExpensesPage() {
       {/* Summary + Filter */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Card className="p-4 flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-            <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+          <div className="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center">
+            <TrendingDown className="h-5 w-5 text-danger" />
           </div>
           <div>
             <p className="text-xl font-black text-fg">
@@ -195,7 +185,9 @@ export default function ExpensesPage() {
                   {expense.notes && <p className="text-xs text-fg-subtle mt-0.5 truncate">{expense.notes}</p>}
                 </div>
                 <div className="col-span-2">
-                  <span className={`inline-flex px-2 py-0.5 rounded-lg text-xs font-medium ${CATEGORY_COLORS[expense.category] ?? CATEGORY_COLORS.OTHER}`}>
+                  {/* Expense categories are neutral: a tax line is not an error,
+                      and hosting is not "info". The label carries the meaning. */}
+                  <span className="inline-flex rounded-lg bg-surface-sunken px-2 py-0.5 text-xs font-medium text-fg-muted">
                     {CATEGORY_MAP[expense.category] ?? expense.category}
                   </span>
                 </div>
@@ -209,11 +201,11 @@ export default function ExpensesPage() {
                   <button onClick={() => startEdit(expense)} className="p-1.5 rounded-lg text-fg-subtle hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
                   {deleteId === expense.id ? (
                     <div className="flex gap-1">
-                      <button onClick={() => handleDelete(expense.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><Check className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(expense.id)} className="p-1.5 rounded-lg text-danger hover:bg-danger/10"><Check className="h-3.5 w-3.5" /></button>
                       <button onClick={() => setDeleteId(null)} className="p-1.5 rounded-lg text-fg-subtle hover:bg-surface-hover"><X className="h-3.5 w-3.5" /></button>
                     </div>
                   ) : (
-                    <button onClick={() => setDeleteId(expense.id)} className="p-1.5 rounded-lg text-fg-subtle hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => setDeleteId(expense.id)} className="p-1.5 rounded-lg text-fg-subtle hover:text-danger hover:bg-danger/10 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
                   )}
                 </div>
               </div>

@@ -43,8 +43,8 @@ export function Navbar() {
       className={cn(
         "sticky top-0 z-40 w-full transition-colors duration-300",
         scrolled
-          ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-md border-b border-gray-200/50 dark:border-gray-700/50"
-          : "bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800"
+          ? "border-b border-line/50 bg-surface/95 shadow-md backdrop-blur-md"
+          : "bg-surface border-b border-line"
       )}
       initial={{ y: -64, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -62,7 +62,7 @@ export function Navbar() {
               <SiteLogo size="sm" />
             </motion.div>
             <div className="hidden sm:block">
-              <span className="font-bold text-gray-900 dark:text-white text-base leading-tight block">متجرك الإلكتروني</span>
+              <span className="font-bold text-fg text-base leading-tight block">متجرك الإلكتروني</span>
               <span className="text-xs text-primary-600 dark:text-primary-400 leading-tight block">أفضل الأسعار وأعلى جودة</span>
             </div>
           </Link>
@@ -73,7 +73,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-3 py-2 text-sm font-medium text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="relative px-3 py-2 text-sm font-medium text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 rounded-lg hover:bg-surface-sunken transition-colors"
               >
                 {link.label}
               </Link>
@@ -88,7 +88,7 @@ export function Navbar() {
             {/* Cart */}
             <motion.button
               onClick={toggleCart}
-              className="relative p-2.5 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+              className="relative p-2.5 rounded-xl text-fg-muted hover:bg-surface-sunken transition-colors"
               whileTap={reduced ? {} : { scale: 0.9 }}
               aria-label="سلة التسوق"
             >
@@ -114,20 +114,20 @@ export function Navbar() {
               <div className="relative">
                 <motion.button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-surface-sunken transition-colors"
                   whileTap={reduced ? {} : { scale: 0.97 }}
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-semibold text-sm">
                     {session.user.name.charAt(0)}
                   </div>
-                  <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[100px] truncate">
+                  <span className="hidden sm:block text-sm font-medium text-fg-muted max-w-[100px] truncate">
                     {session.user.name}
                   </span>
                   <motion.span
                     animate={{ rotate: isUserMenuOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                    <ChevronDown className="h-4 w-4 text-fg-subtle" />
                   </motion.span>
                 </motion.button>
 
@@ -140,17 +140,17 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -8, scale: 0.96 }}
                         transition={{ duration: 0.18, ease: EASE }}
-                        className="absolute start-0 top-full mt-2 w-56 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl z-20 overflow-hidden"
+                        className="absolute start-0 top-full mt-2 w-56 rounded-xl border border-line bg-surface shadow-xl z-20 overflow-hidden"
                       >
-                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                          <p className="font-semibold text-gray-900 dark:text-white text-sm">{session.user.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{session.user.email}</p>
+                        <div className="px-4 py-3 border-b border-line">
+                          <p className="font-semibold text-fg text-sm">{session.user.name}</p>
+                          <p className="text-xs text-fg-subtle mt-0.5">{session.user.email}</p>
                         </div>
                         <div className="py-1">
-                          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700" onClick={() => setIsUserMenuOpen(false)}>
+                          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-2.5 text-sm text-fg-muted hover:bg-surface-sunken" onClick={() => setIsUserMenuOpen(false)}>
                             <LayoutDashboard className="h-4 w-4" />لوحة التحكم
                           </Link>
-                          <Link href="/dashboard/notifications" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700" onClick={() => setIsUserMenuOpen(false)}>
+                          <Link href="/dashboard/notifications" className="flex items-center gap-3 px-4 py-2.5 text-sm text-fg-muted hover:bg-surface-sunken" onClick={() => setIsUserMenuOpen(false)}>
                             <Bell className="h-4 w-4" />الإشعارات
                           </Link>
                           {(session.user.role === "ADMIN" || session.user.role === "STAFF") && (
@@ -158,8 +158,8 @@ export function Navbar() {
                               <Shield className="h-4 w-4" />لوحة الإدارة
                             </Link>
                           )}
-                          <hr className="my-1 border-gray-100 dark:border-gray-700" />
-                          <button onClick={() => signOut({ callbackUrl: "/" })} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full">
+                          <hr className="my-1 border-line" />
+                          <button onClick={() => signOut({ callbackUrl: "/" })} className="flex items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger/10 w-full">
                             <LogOut className="h-4 w-4" />تسجيل الخروج
                           </button>
                         </div>
@@ -170,7 +170,7 @@ export function Navbar() {
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
-                <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <Link href="/login" className="px-4 py-2 text-sm font-medium text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                   تسجيل الدخول
                 </Link>
                 <motion.div whileTap={reduced ? {} : { scale: 0.96 }}>
@@ -183,7 +183,7 @@ export function Navbar() {
 
             {/* Mobile toggle */}
             <motion.button
-              className="md:hidden p-2.5 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              className="md:hidden p-2.5 rounded-xl text-fg-muted hover:bg-surface-sunken"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               whileTap={reduced ? {} : { scale: 0.9 }}
               aria-label="القائمة"
@@ -206,7 +206,7 @@ export function Navbar() {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: reduced ? 0.1 : 0.28, ease: EASE }}
-              className="md:hidden overflow-hidden border-t border-gray-200 dark:border-gray-700"
+              className="md:hidden overflow-hidden border-t border-line"
             >
               <div className="py-3 space-y-1">
                 {navLinks.map((link, i) => (
@@ -218,7 +218,7 @@ export function Navbar() {
                   >
                     <Link
                       href={link.href}
-                      className="block px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      className="block px-3 py-2.5 text-sm font-medium text-fg-muted rounded-xl hover:bg-surface-sunken transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {link.label}
@@ -232,7 +232,7 @@ export function Navbar() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.25 }}
                   >
-                    <Link href="/login" className="flex-1 text-center px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-xl">
+                    <Link href="/login" className="flex-1 text-center px-4 py-2 text-sm font-medium border border-line rounded-xl">
                       تسجيل الدخول
                     </Link>
                     <Link href="/register" className="flex-1 text-center btn-primary text-sm">

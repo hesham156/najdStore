@@ -14,7 +14,7 @@ export function CurrencySelector() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-fg-muted hover:bg-surface-sunken transition-colors"
         aria-label="اختر العملة"
       >
         <span className="text-xs font-bold">{currency.symbol}</span>
@@ -33,7 +33,7 @@ export function CurrencySelector() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="absolute start-0 top-full mt-1.5 w-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl z-20 overflow-hidden"
+              className="absolute start-0 top-full mt-1.5 w-48 rounded-xl border border-line bg-surface shadow-xl z-20 overflow-hidden"
             >
               <div className="py-1">
                 {CURRENCIES.map((c) => (
@@ -44,11 +44,11 @@ export function CurrencySelector() {
                       "w-full flex items-center justify-between px-3.5 py-2 text-sm transition-colors",
                       c.code === currency.code
                         ? "bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        : "text-fg-muted hover:bg-surface-sunken"
                     )}
                   >
                     <span>{c.nameAr}</span>
-                    <span className="text-xs font-bold text-gray-400 dark:text-gray-500">{c.symbol}</span>
+                    <span className="text-xs font-bold text-fg-subtle">{c.symbol}</span>
                   </button>
                 ))}
               </div>

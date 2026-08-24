@@ -32,14 +32,14 @@ export function StickyCTA({ productName, price, variantLabel, onAddToCart, ancho
   return (
     <div
       className={cn(
-        "fixed bottom-0 inset-x-0 z-[9980] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-2xl px-4 py-3 flex items-center gap-3 transition-transform duration-300",
+        "fixed bottom-0 inset-x-0 z-[9980] bg-surface border-t border-line shadow-2xl px-4 py-3 flex items-center gap-3 transition-transform duration-300",
         visible ? "translate-y-0" : "translate-y-full"
       )}
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{productName}</p>
+        <p className="text-sm font-bold text-fg truncate">{productName}</p>
         {variantLabel && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">{variantLabel}</p>
+          <p className="text-xs text-fg-subtle">{variantLabel}</p>
         )}
       </div>
       <p className="text-base font-black text-primary-600 dark:text-primary-400 shrink-0">

@@ -25,6 +25,31 @@
     --fg-muted: 107 114 128;
     --fg-subtle: 156 163 175;
 
+    /* Semantic tones — colour carries MEANING, never decoration.
+       Anything that is merely "a card" or "an icon" stays neutral or brand.
+
+       Light values sit at the 700/800 step on purpose. A tone is used three
+       ways — as `text-x`, as a 10% tint behind that text, and as a solid fill
+       with white text on it — and only a dark step clears 4.5:1 in all three.
+       (amber-500 under white text was 2.1:1.) */
+    --brand: 109 40 217;
+    --success: 4 120 87;
+    --warning: 146 64 14;
+    --danger: 185 28 28;
+    --info: 29 78 216;
+
+    /* Solid fills that carry WHITE text — a filled button, a "Live" pill.
+       These deliberately do NOT flip in dark mode: the tones above become
+       light 400-steps there, and white on those is ~1.9:1. Fixed and dark
+       keeps white legible in both themes. Use for fills WITH text on them;
+       use the tones above for bare bars, dots and swatches, which need to
+       flip to stay visible against the canvas. */
+    --brand-solid: 109 40 217;
+    --success-solid: 4 120 87;
+    --warning-solid: 146 64 14;
+    --danger-solid: 185 28 28;
+    --info-solid: 29 78 216;
+
     /* Effects */
     --shadow-color: 15 23 42;
     --ring: 139 92 246;
@@ -49,6 +74,13 @@
     --fg-muted: 148 163 184;
     --fg-subtle: 113 128 150;
 
+    /* On a dark canvas the 300/400 steps carry the contrast instead. */
+    --brand: 167 139 250;
+    --success: 52 211 153;
+    --warning: 251 191 36;
+    --danger: 248 113 113;
+    --info: 96 165 250;
+
     --shadow-color: 0 0 0;
     --ring: 167 139 250;
   }
@@ -66,8 +98,7 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
-    @apply dark:bg-gray-950 dark:text-gray-100;
+    @apply bg-canvas text-fg antialiased;
   }
 
   /* Accessible focus: visible for keyboards, quiet for pointers */
@@ -102,6 +133,11 @@
     @apply bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100;
   }
 
+  /* One typographic scale for headings inside admin content */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-fg;
+  }
+
   /* Respect reduced-motion across every animated utility */
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -121,21 +157,22 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-l from-primary-600 to-purple-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-l from-primary-600 to-primary-400 bg-clip-text text-transparent;
   }
 
   .glass-card {
-    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50;
+    @apply border border-line/60 bg-surface/80 backdrop-blur-sm;
   }
 
+  /* Brand gradient — one ramp, taken straight from the primary scale */
   .hero-gradient {
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+    background: linear-gradient(135deg, #2e1065 0%, #4c1d95 50%, #6d28d9 100%);
   }
 
   .input-base {
-    @apply w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm;
+    @apply w-full rounded-control border border-line-strong bg-surface px-4 py-2.5 text-sm text-fg;
+    @apply placeholder:text-fg-subtle;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
-    @apply dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100;
     @apply transition-colors;
   }
 
@@ -148,16 +185,15 @@
   }
 
   .nav-link {
-    @apply text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors;
-    @apply dark:text-gray-400 dark:hover:text-primary-400;
+    @apply text-sm font-medium text-fg-muted transition-colors hover:text-primary-600 dark:hover:text-primary-400;
   }
 
   .page-title {
-    @apply text-2xl font-bold text-gray-900 dark:text-white;
+    @apply text-2xl font-bold text-fg;
   }
 
   .section-title {
-    @apply text-xl font-bold text-gray-900 dark:text-white;
+    @apply text-xl font-bold text-fg;
   }
 
   .card-hover {
@@ -189,6 +225,9 @@
   .sidebar-group-label {
     @apply px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.08em] text-fg-subtle;
   }
+
+  /* Soft tinted blocks all go through <Alert> in ui/States.tsx — one
+     recipe, one component, so notes never drift apart visually. */
 
   /* Skip link for keyboard users */
   .skip-link {

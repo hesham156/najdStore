@@ -668,9 +668,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
           <Section title="المخزون" contentClassName="pt-0">
             <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl bg-emerald-50 p-3 text-center dark:bg-emerald-500/10">
-                <p className="text-xl font-bold tnum text-emerald-600 dark:text-emerald-400">{availableStock}</p>
-                <p className="text-[11px] text-emerald-700 dark:text-emerald-400/80">متاح</p>
+              <div className="rounded-xl bg-success/10 p-3 text-center">
+                <p className="text-xl font-bold tnum text-success">{availableStock}</p>
+                <p className="text-[11px] text-success">متاح</p>
               </div>
               <div className="rounded-xl bg-surface-sunken p-3 text-center">
                 <p className="text-xl font-bold tnum text-fg-muted">{deliveredStock}</p>

@@ -7,7 +7,7 @@ export default function NotFound() {
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 right-10 w-72 h-72 bg-primary-500/5 dark:bg-primary-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-500/5 dark:bg-purple-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary-500/5 dark:bg-primary-500/5 rounded-full blur-3xl" />
         {/* Subtle grid */}
         <svg
           className="absolute inset-0 w-full h-full opacity-[0.03] dark:opacity-[0.05]"
@@ -79,20 +79,20 @@ export default function NotFound() {
 
           <Link
             href="/products"
-            className="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-600 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-200"
+            className="group flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface p-4 transition-all duration-200 hover:border-brand/40 hover:shadow-lg hover:shadow-primary-500/10"
           >
-            <div className="w-11 h-11 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <ShoppingBag className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-control bg-brand/10 transition-transform group-hover:scale-110">
+              <ShoppingBag className="h-5 w-5 text-brand" />
             </div>
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">المنتجات</span>
           </Link>
 
           <Link
             href="/contact"
-            className="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 hover:border-teal-400 dark:hover:border-teal-600 hover:shadow-lg hover:shadow-teal-500/10 transition-all duration-200"
+            className="group flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface p-4 transition-all duration-200 hover:border-brand/40 hover:shadow-lg hover:shadow-primary-500/10"
           >
-            <div className="w-11 h-11 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Headphones className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-control bg-brand/10 transition-transform group-hover:scale-110">
+              <Headphones className="h-5 w-5 text-brand" />
             </div>
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">الدعم</span>
           </Link>
@@ -101,7 +101,7 @@ export default function NotFound() {
         {/* Primary button */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-primary-600 to-purple-600 text-white font-bold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-105 active:scale-95 transition-all duration-200"
+          className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-800 text-white font-bold text-sm shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-105 active:scale-95 transition-all duration-200"
         >
           <Home className="h-4 w-4" />
           العودة للرئيسية

@@ -119,7 +119,7 @@ export default function AdminAdminsPage() {
       render: (_, row) => (
         <div className="flex items-center gap-3">
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-[13px] font-bold text-white"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-[13px] font-bold text-white"
             aria-hidden
           >
             {row.name.charAt(0)}

@@ -45,7 +45,7 @@ export default function AdminError({
     <div className="flex min-h-[60vh] items-center justify-center">
       <Card className="w-full max-w-lg space-y-5 text-center">
         <div className="flex justify-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-danger/10 text-danger">
             <AlertOctagon className="h-6 w-6" aria-hidden />
           </span>
         </div>
@@ -70,7 +70,7 @@ export default function AdminError({
             >
               {error.digest}
               {copied ? (
-                <Check className="h-3.5 w-3.5 text-emerald-500" aria-hidden />
+                <Check className="h-3.5 w-3.5 text-success" aria-hidden />
               ) : (
                 <Copy className="h-3.5 w-3.5 opacity-50" aria-hidden />
               )}
@@ -82,7 +82,7 @@ export default function AdminError({
         {/* The real message only exists outside production builds. */}
         {process.env.NODE_ENV !== "production" && error.message && (
           <pre
-            className="max-h-40 overflow-auto rounded-control border border-line bg-surface-sunken p-3 text-start font-mono text-[11px] leading-relaxed text-red-600 dark:text-red-400"
+            className="max-h-40 overflow-auto rounded-control border border-line bg-surface-sunken p-3 text-start font-mono text-[11px] leading-relaxed text-danger"
             dir="ltr"
           >
             {error.message}

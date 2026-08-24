@@ -77,28 +77,28 @@ export function LiveActivityToast() {
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
           className="fixed bottom-6 start-6 z-[9990] max-w-[280px]"
         >
-          <div className="relative flex items-center gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-3 pr-8 cursor-pointer hover:shadow-xl transition-shadow">
+          <div className="relative flex items-center gap-3 bg-surface rounded-2xl shadow-2xl border border-line p-3 pr-8 cursor-pointer hover:shadow-xl transition-shadow">
             {/* Green dot */}
-            <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-              <ShoppingBag className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+              <ShoppingBag className="h-5 w-5 text-success" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+              <p className="text-sm font-bold text-fg truncate">
                 {item.name} من {item.city}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-xs text-fg-subtle truncate">
                 اشترى {item.product} · {item.time}
               </p>
             </div>
             {/* Pulse dot */}
             <span className="absolute top-3 end-3 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
             </span>
             {/* Close */}
             <button
               onClick={() => setVisible(false)}
-              className="absolute top-1.5 end-1.5 p-0.5 text-gray-300 hover:text-gray-500 transition-colors"
+              className="absolute top-1.5 end-1.5 p-0.5 text-fg-subtle hover:text-fg-subtle transition-colors"
             >
               <X className="h-3 w-3" />
             </button>

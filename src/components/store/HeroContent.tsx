@@ -138,13 +138,13 @@ export default function HeroContent({
       >
         {/* Brand mark */}
         <motion.div variants={item}>
-          <SiteLogo size="lg" className="shadow-2xl shadow-purple-900/60 mb-1" />
+          <SiteLogo size="lg" className="shadow-2xl shadow-primary-900/60 mb-1" />
         </motion.div>
 
         {/* Badge */}
         <motion.div variants={item}>
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm text-white/80 border border-white/15">
-            <Zap className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+            <Zap className="h-3.5 w-3.5 text-warning shrink-0" />
             {badge}
           </span>
         </motion.div>
@@ -156,7 +156,7 @@ export default function HeroContent({
         >
           {title}
           <br />
-          <span className="mt-2 text-transparent bg-clip-text bg-gradient-to-l from-yellow-400 via-orange-400 to-pink-400">
+          <span className="mt-2 bg-gradient-to-l from-primary-300 via-primary-200 to-white bg-clip-text text-transparent">
             {titleHighlight}
           </span>
         </motion.h1>
@@ -181,7 +181,7 @@ export default function HeroContent({
           >
             <Link
               href="/products"
-              className="flex items-center justify-center gap-2 bg-white text-primary-700 font-bold px-8 py-3.5 rounded-full hover:bg-gray-50 transition-all shadow-xl shadow-black/30 text-base w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 bg-white text-primary-700 font-bold px-8 py-3.5 rounded-full hover:bg-surface-sunken transition-all shadow-xl shadow-black/30 text-base w-full sm:w-auto"
             >
               تصفح المنتجات
               <ArrowLeft className="h-5 w-5" />

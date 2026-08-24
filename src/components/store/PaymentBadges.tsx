@@ -43,7 +43,7 @@ export function PaymentBadges({
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+      <p className="text-xs font-semibold text-fg-subtle uppercase tracking-wide">
         خيارات التقسيط
       </p>
       <div className="flex flex-col sm:flex-row gap-2">
@@ -52,11 +52,11 @@ export function PaymentBadges({
           <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-[#3DBDA7]/40 bg-[#3DBDA7]/5 dark:bg-[#3DBDA7]/10 hover:border-[#3DBDA7]/70 transition-colors group">
             <TabbyLogo className="h-5 w-auto shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
+              <p className="text-sm font-bold text-fg leading-tight">
                 {tabbyInstallments} دفعات ×{" "}
                 <span className="text-[#2eaa94]">{formatAmount(tabbyInstallmentPrice)}</span>
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">بدون فوائد • بدون رسوم</p>
+              <p className="text-xs text-fg-subtle">بدون فوائد • بدون رسوم</p>
             </div>
             <span className="ms-auto text-[10px] font-semibold text-[#3DBDA7] bg-[#3DBDA7]/10 dark:bg-[#3DBDA7]/20 px-2 py-0.5 rounded-full shrink-0">
               0%
@@ -69,11 +69,11 @@ export function PaymentBadges({
           <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-[#BC98D5]/40 bg-[#BC98D5]/5 dark:bg-[#BC98D5]/10 hover:border-[#BC98D5]/70 transition-colors group">
             <TamaraLogo className="h-5 w-auto shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
+              <p className="text-sm font-bold text-fg leading-tight">
                 {tamaraInstallments} دفعات ×{" "}
                 <span className="text-[#9b6dc0]">{formatAmount(tamaraInstallmentPrice)}</span>
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">بدون فوائد • بدون رسوم</p>
+              <p className="text-xs text-fg-subtle">بدون فوائد • بدون رسوم</p>
             </div>
             <span className="ms-auto text-[10px] font-semibold text-[#BC98D5] bg-[#BC98D5]/10 dark:bg-[#BC98D5]/20 px-2 py-0.5 rounded-full shrink-0">
               0%

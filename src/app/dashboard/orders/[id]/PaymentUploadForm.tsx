@@ -34,12 +34,12 @@ export function PaymentUploadForm({ orderId }: { orderId: string }) {
   };
 
   return (
-    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-5">
-      <h3 className="font-bold text-yellow-900 dark:text-yellow-300 mb-3 flex items-center gap-2">
+    <div className="bg-warning/10 border border-warning/25 rounded-2xl p-5">
+      <h3 className="font-bold text-warning mb-3 flex items-center gap-2">
         <Upload className="h-4 w-4" />
         رفع إثبات الدفع
       </h3>
-      <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
+      <p className="text-sm text-warning mb-3">
         لتسريع معالجة طلبك، ارفع صورة من إيصال التحويل البنكي.
       </p>
       <input
@@ -48,7 +48,7 @@ export function PaymentUploadForm({ orderId }: { orderId: string }) {
         onChange={(e) => setFile(e.target.files?.[0] || null)}
         className="input-base text-sm mb-3"
       />
-      {file && <p className="text-xs text-yellow-600 dark:text-yellow-400 mb-3">✅ {file.name}</p>}
+      {file && <p className="text-xs text-warning mb-3">✅ {file.name}</p>}
       <Button onClick={handleUpload} loading={loading} size="sm" variant="secondary">
         رفع الإثبات
       </Button>

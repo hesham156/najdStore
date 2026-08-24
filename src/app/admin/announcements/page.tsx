@@ -25,11 +25,13 @@ interface Announcement {
 }
 
 const TYPE_OPTIONS = [
-  { value: "INFO",    label: "إعلان عام",    icon: Megaphone,     color: "bg-blue-500" },
-  { value: "COUPON",  label: "كوبون خصم",    icon: Tag,           color: "bg-purple-500" },
-  { value: "SALE",    label: "عرض وخصم",     icon: Percent,       color: "bg-rose-500" },
-  { value: "SUCCESS", label: "خبر سار",      icon: CheckCircle,   color: "bg-emerald-500" },
-  { value: "WARNING", label: "عرض محدود",    icon: AlertTriangle, color: "bg-amber-500" },
+  // The announcement type IS the meaning here, so each one keeps its tone.
+  // `-solid` because these fills carry white text and must stay dark in both themes.
+  { value: "INFO",    label: "إعلان عام",    icon: Megaphone,     color: "bg-info-solid" },
+  { value: "COUPON",  label: "كوبون خصم",    icon: Tag,           color: "bg-brand-solid" },
+  { value: "SALE",    label: "عرض وخصم",     icon: Percent,       color: "bg-danger-solid" },
+  { value: "SUCCESS", label: "خبر سار",      icon: CheckCircle,   color: "bg-success-solid" },
+  { value: "WARNING", label: "عرض محدود",    icon: AlertTriangle, color: "bg-warning-solid" },
 ];
 
 const PRESET_COLORS = [
@@ -291,10 +293,11 @@ export default function AnnouncementsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "إجمالي الإعلانات", value: rows.length,                          color: "text-primary-600" },
-          { label: "نشط",              value: rows.filter((r) => r.isActive).length,  color: "text-emerald-600" },
-          { label: "كوبونات",          value: rows.filter((r) => r.couponCode).length,color: "text-purple-600" },
-          { label: "عروض وخصومات",    value: rows.filter((r) => r.type === "SALE").length, color: "text-rose-600" },
+          // Counts are just counts — the label says which. Only "نشط" is a state.
+          { label: "إجمالي الإعلانات", value: rows.length,                          color: "text-fg" },
+          { label: "نشط",              value: rows.filter((r) => r.isActive).length,  color: "text-success" },
+          { label: "كوبونات",          value: rows.filter((r) => r.couponCode).length,color: "text-fg" },
+          { label: "عروض وخصومات",    value: rows.filter((r) => r.type === "SALE").length, color: "text-fg" },
         ].map((s) => (
           <div key={s.label} className="bg-surface rounded-2xl border border-line p-4 text-center">
             <p className={`text-3xl font-black ${s.color}`}>{s.value}</p>
@@ -365,7 +368,7 @@ export default function AnnouncementsPage() {
                       <td className="px-4 py-3">
                         <button onClick={() => toggleActive(row)} className="transition-colors" title={row.isActive ? "إيقاف" : "تفعيل"}>
                           {row.isActive
-                            ? <ToggleRight className="h-7 w-7 text-emerald-500" />
+                            ? <ToggleRight className="h-7 w-7 text-success" />
                             : <ToggleLeft  className="h-7 w-7 text-fg-subtle" />
                           }
                         </button>
@@ -374,13 +377,13 @@ export default function AnnouncementsPage() {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => openEdit(row)}
-                            className="p-1.5 rounded-lg text-fg-subtle hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            className="p-1.5 rounded-lg text-fg-subtle hover:text-info hover:bg-info/10 transition-colors"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setDeleteId(row.id)}
-                            className="p-1.5 rounded-lg text-fg-subtle hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            className="p-1.5 rounded-lg text-fg-subtle hover:text-danger hover:bg-danger/10 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

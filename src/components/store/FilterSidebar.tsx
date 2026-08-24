@@ -19,17 +19,17 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
   const [open, setOpen] = useState(false);
 
   const content = (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 sticky top-20">
+    <div className="bg-surface rounded-2xl border border-line p-5 sticky top-20">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex items-center justify-between w-full lg:cursor-default lg:pointer-events-none mb-4"
         aria-expanded={open}
       >
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-gray-500" />
-          <h3 className="font-bold text-gray-900 dark:text-white">التصفية</h3>
+          <SlidersHorizontal className="h-4 w-4 text-fg-subtle" />
+          <h3 className="font-bold text-fg">التصفية</h3>
         </div>
-        <span className="lg:hidden text-gray-400">
+        <span className="lg:hidden text-fg-subtle">
           {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </span>
       </button>
@@ -54,14 +54,14 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
 
         {/* Category Filter */}
         <div className="mb-5">
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">الفئة</p>
+          <p className="text-sm font-semibold text-fg-muted mb-2">الفئة</p>
           <div className="space-y-1">
             <a
               href="/products"
               className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
                 !searchParams.category
                   ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 font-medium"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  : "text-fg-muted hover:bg-surface-sunken"
               }`}
             >
               جميع الفئات
@@ -73,7 +73,7 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ${
                   searchParams.category === cat.slug
                     ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    : "text-fg-muted hover:bg-surface-sunken"
                 }`}
               >
                 <span>{cat.icon}</span>
@@ -85,7 +85,7 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
 
         {/* Sort */}
         <div>
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">الترتيب</p>
+          <p className="text-sm font-semibold text-fg-muted mb-2">الترتيب</p>
           <div className="space-y-1">
             {[
               { value: "", label: "الأفضل مطابقةً" },
@@ -99,7 +99,7 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
                 className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
                   (searchParams.sort || "") === opt.value
                     ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    : "text-fg-muted hover:bg-surface-sunken"
                 }`}
               >
                 {opt.label}

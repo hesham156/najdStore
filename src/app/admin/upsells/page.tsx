@@ -198,7 +198,7 @@ export default function AdminUpsellsPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 text-sm">
+              <div className="rounded-control border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-fg">
                 {error}
               </div>
             )}
@@ -419,7 +419,7 @@ export default function AdminUpsellsPage() {
                       <button
                         onClick={() => handleDelete(upsell.id)}
                         disabled={deletingId === upsell.id}
-                        className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors disabled:opacity-40"
+                        className="text-danger hover:text-danger transition-colors disabled:opacity-40"
                         title="حذف"
                       >
                         <Trash2 className="w-4 h-4" />

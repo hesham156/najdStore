@@ -78,12 +78,12 @@ export default function AbandonedCartsPage() {
       title: "العميل",
       render: (_, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shrink-0">
             {(row.customerName || "؟").charAt(0)}
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-sm truncate">{row.customerName || "زائر غير مسجّل"}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-fg-subtle">
               {formatDistanceToNow(new Date(row.updatedAt), { addSuffix: true, locale: ar })}
             </p>
           </div>
@@ -101,15 +101,15 @@ export default function AbandonedCartsPage() {
       render: (_, row) => (
         <div className="flex items-center gap-1.5">
           {row.items.slice(0, 4).map((it, i) => (
-            <div key={i} className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 flex items-center justify-center">
+            <div key={i} className="w-8 h-8 rounded-lg bg-surface-sunken overflow-hidden shrink-0 flex items-center justify-center">
               {it.image ? (
                 <Image src={it.image} alt={it.nameAr || ""} width={32} height={32} className="w-full h-full object-cover" unoptimized />
               ) : (
-                <Package className="h-4 w-4 text-gray-400" />
+                <Package className="h-4 w-4 text-fg-subtle" />
               )}
             </div>
           ))}
-          {row.itemCount > 4 && <span className="text-xs text-gray-500">+{row.itemCount - 4}</span>}
+          {row.itemCount > 4 && <span className="text-xs text-fg-subtle">+{row.itemCount - 4}</span>}
         </div>
       ),
     },

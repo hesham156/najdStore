@@ -26,8 +26,8 @@ export default async function NotificationsPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الإشعارات</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-fg">الإشعارات</h1>
+          <p className="text-fg-subtle text-sm mt-1">
             {notifications.filter((n) => !n.isRead).length} إشعار غير مقروء
           </p>
         </div>
@@ -36,9 +36,9 @@ export default async function NotificationsPage() {
 
       {notifications.length === 0 ? (
         <Card className="text-center py-16">
-          <Bell className="h-14 w-14 text-gray-300 mx-auto mb-4" />
-          <h2 className="font-bold text-gray-900 dark:text-white mb-2">لا توجد إشعارات</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">ستظهر هنا الإشعارات المتعلقة بطلباتك</p>
+          <Bell className="h-14 w-14 text-fg-subtle mx-auto mb-4" />
+          <h2 className="font-bold text-fg mb-2">لا توجد إشعارات</h2>
+          <p className="text-fg-subtle text-sm">ستظهر هنا الإشعارات المتعلقة بطلباتك</p>
         </Card>
       ) : (
         <div className="space-y-2">
@@ -49,25 +49,25 @@ export default async function NotificationsPage() {
                 key={notif.id}
                 className={`flex items-start gap-4 p-4 rounded-2xl border transition-colors ${
                   notif.isRead
-                    ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                    ? "bg-surface border-line"
                     : "bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800"
                 }`}
               >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                   notif.isRead
-                    ? "bg-gray-100 dark:bg-gray-700 text-gray-500"
+                    ? "bg-surface-sunken text-fg-subtle"
                     : "bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400"
                 }`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`font-semibold text-sm ${notif.isRead ? "text-gray-700 dark:text-gray-300" : "text-gray-900 dark:text-white"}`}>
+                  <p className={`font-semibold text-sm ${notif.isRead ? "text-fg-muted" : "text-fg"}`}>
                     {notif.title}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                  <p className="text-sm text-fg-subtle mt-0.5 leading-relaxed">
                     {notif.body}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  <p className="text-xs text-fg-subtle mt-1">
                     {formatDateTime(notif.createdAt)}
                   </p>
                 </div>

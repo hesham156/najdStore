@@ -27,7 +27,7 @@ export default function RootError({
     <div className="flex min-h-screen items-center justify-center px-4 py-16" dir="rtl">
       <div className="w-full max-w-md space-y-5 rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div className="flex justify-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-danger/10 text-danger">
             <AlertOctagon className="h-6 w-6" aria-hidden />
           </span>
         </div>

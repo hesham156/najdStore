@@ -62,12 +62,12 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
   const rest = posts.slice(1);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950" dir="rtl">
+    <div className="min-h-screen bg-surface" dir="rtl">
       {/* Hero */}
-      <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 border-b border-gray-100 dark:border-gray-800 py-14">
+      <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 border-b border-line py-14">
         <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-4">المدونة</h1>
-          <p className="text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-black text-fg mb-4">المدونة</h1>
+          <p className="text-lg text-fg-subtle max-w-xl mx-auto">
             نصائح ومقالات حول المنتجات والخدمات، الذكاء الاصطناعي، وخدمات البث
           </p>
         </div>
@@ -80,7 +80,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
             <Link
               href="/blog"
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                !searchParams.category ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                !searchParams.category ? "bg-surface-sunken dark:bg-white text-white" : "bg-surface-sunken text-fg-muted hover:bg-surface-hover"
               }`}
             >
               الكل
@@ -92,7 +92,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   searchParams.category === cat.slug
                     ? "text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    : "bg-surface-sunken text-fg-muted hover:bg-surface-hover"
                 }`}
                 style={searchParams.category === cat.slug ? { backgroundColor: cat.color || "#6366f1" } : {}}
               >
@@ -104,7 +104,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
         )}
 
         {posts.length === 0 ? (
-          <div className="py-20 text-center text-gray-400">
+          <div className="py-20 text-center text-fg-subtle">
             <p className="text-lg">لا توجد مقالات بعد</p>
           </div>
         ) : (
@@ -112,7 +112,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
             {/* Featured post */}
             {featured && !searchParams.category && (
               <Link href={`/blog/${featured.slug}`} className="group block mb-10">
-                <div className="grid md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
+                <div className="grid md:grid-cols-2 gap-6 bg-surface-sunken rounded-3xl overflow-hidden border border-line hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
                   {featured.coverImage && (
                     <div className="aspect-video md:aspect-auto">
                       <img src={featured.coverImage} alt={featured.titleAr} className="w-full h-full object-cover" />
@@ -124,13 +124,13 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
                         {featured.category.nameAr}
                       </span>
                     )}
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors mb-3 leading-tight">
+                    <h2 className="text-2xl font-black text-fg group-hover:text-primary-600 transition-colors mb-3 leading-tight">
                       {featured.titleAr}
                     </h2>
                     {featured.excerptAr && (
-                      <p className="text-gray-500 dark:text-gray-400 line-clamp-3 mb-4">{featured.excerptAr}</p>
+                      <p className="text-fg-subtle line-clamp-3 mb-4">{featured.excerptAr}</p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 text-xs text-fg-subtle">
                       <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {featured.readingTime} دقيقة</span>
                       <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {featured.viewCount.toLocaleString("ar")}</span>
                       {featured.publishedAt && (
@@ -146,13 +146,13 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {(searchParams.category ? posts : rest).map((post) => (
                 <Link key={post.id} href={`/blog/${post.slug}`} className="group">
-                  <article className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-lg transition-all h-full flex flex-col">
+                  <article className="bg-surface rounded-2xl border border-line overflow-hidden hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-lg transition-all h-full flex flex-col">
                     {post.coverImage ? (
                       <div className="aspect-video overflow-hidden">
                         <img src={post.coverImage} alt={post.titleAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                     ) : (
-                      <div className="aspect-video bg-gradient-to-br from-primary-100 to-purple-100 dark:from-primary-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                      <div className="aspect-video bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center">
                         <span className="text-4xl">📝</span>
                       </div>
                     )}
@@ -162,13 +162,13 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
                           {post.category.nameAr}
                         </span>
                       )}
-                      <h2 className="font-black text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors mb-2 leading-snug line-clamp-2">
+                      <h2 className="font-black text-fg group-hover:text-primary-600 transition-colors mb-2 leading-snug line-clamp-2">
                         {post.titleAr}
                       </h2>
                       {post.excerptAr && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 flex-1 mb-4">{post.excerptAr}</p>
+                        <p className="text-sm text-fg-subtle line-clamp-2 flex-1 mb-4">{post.excerptAr}</p>
                       )}
-                      <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center justify-between text-xs text-fg-subtle pt-3 border-t border-line">
                         <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {post.readingTime} دقيقة</span>
                         <span className="flex items-center gap-1 text-primary-500">
                           اقرأ المزيد <ChevronLeft className="h-3 w-3" />

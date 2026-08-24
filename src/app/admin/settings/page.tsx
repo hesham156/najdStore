@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { cn } from "@/lib/utils";
 import {
   Settings, Save, CreditCard, BarChart2, ShoppingBag,
   Globe, AlertCircle, TrendingUp, Bell, Clock, Eye,
@@ -22,175 +24,138 @@ interface Setting {
   group: string;
 }
 
+/**
+ * Groups are told apart by their label and icon — never by colour.
+ * In this dashboard colour means state, not identity.
+ */
 const GROUP_META: Record<string, {
   label: string;
   icon: React.ReactNode;
   description: string;
-  color: string;
 }> = {
   general: {
     label: "عام",
     icon: <Globe className="h-4 w-4" />,
     description: "اسم المتجر، العملة، ومعلومات التواصل الأساسية",
-    color: "text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20",
   },
   branding: {
     label: "الواجهة والهيرو",
     icon: <Globe className="h-4 w-4" />,
     description: "نصوص الترويسة (Hero) والإحصائيات ووصف التذييل التي تظهر في المتجر.",
-    color: "text-fuchsia-700 dark:text-fuchsia-300 bg-fuchsia-50 dark:bg-fuchsia-900/20",
   },
   payment: {
     label: "الدفع البنكي",
     icon: <CreditCard className="h-4 w-4" />,
     description: "بيانات الحساب البنكي التي تظهر للعملاء عند الدفع بالتحويل",
-    color: "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20",
   },
   payments: {
     label: "Tabby / Tamara",
     icon: <CreditCard className="h-4 w-4" />,
     description: "فعّل خيارات التقسيط لعرض شارات الدفع تلقائياً على صفحات المنتجات",
-    color: "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20",
   },
   orders: {
     label: "الطلبات",
     icon: <ShoppingBag className="h-4 w-4" />,
     description: "إعدادات معالجة الطلبات والتسليم التلقائي",
-    color: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20",
   },
   tracking: {
     label: "التتبع والإعلانات",
     icon: <BarChart2 className="h-4 w-4" />,
     description: "بكسلات فيسبوك، جوجل تاج ماناجر وغيرها — تُحقن تلقائياً في جميع الصفحات",
-    color: "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20",
   },
   conversion: {
     label: "تحسين التحويل",
     icon: <TrendingUp className="h-4 w-4" />,
     description: "أدوات FOMO والإلحاح لتشجيع العملاء على اتخاذ قرار الشراء بسرعة",
-    color: "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20",
   },
   accounting: {
     label: "المحاسبة والضريبة",
     icon: <Calculator className="h-4 w-4" />,
     description: "إعدادات ضريبة القيمة المضافة، الرقم الضريبي، وبيانات الشركة للفواتير",
-    color: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20",
   },
   custom_code: {
     label: "أكواد مخصّصة (CSS/JS)",
     icon: <Code2 className="h-4 w-4" />,
     description: "أضِف CSS وJavaScript خاصاً بك يُحقن في جميع صفحات المتجر. أدخل أكواد JS بدون وسم <script>. الأكواد تُنفَّذ كما هي — أدخل مصادر تثق بها فقط.",
-    color: "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/40",
   },
   shipping: {
     label: "الشحن — RedBox",
     icon: <Truck className="h-4 w-4" />,
     description: "ربط شركة الشحن RedBox: أدخل التوكن وبيانات المرسِل، ثم أنشئ الشحنات من صفحة الطلب. استخدم بيئة sandbox للتجربة قبل التفعيل الفعلي (live).",
-    color: "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20",
   },
   shipping_dhl: {
     label: "الشحن — DHL",
     icon: <Truck className="h-4 w-4" />,
     description: "ربط شركة الشحن DHL Express (MyDHL API): أدخل مفتاح/سر الـ API ورقم الحساب وبيانات المرسِل. استخدم بيئة test للتجربة قبل التفعيل الفعلي (live).",
-    color: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20",
   },
   email: {
     label: "البريد الإلكتروني (SMTP)",
     icon: <Mail className="h-4 w-4" />,
     description: "إعداد إرسال رسائل البريد (تأكيد الطلب، استعادة كلمة المرور) عبر SMTP. يعمل مع أي مزوّد: Gmail، بريد النطاق، SendGrid… لجيميل استخدم App Password.",
-    color: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-900/20",
   },
   shipping_rates: {
     label: "رسوم الشحن",
     icon: <Truck className="h-4 w-4" />,
     description: "حدّد رسوم شحن ثابتة تُضاف في صفحة الدفع، مع خيار شحن مجاني عند تجاوز مبلغ معيّن. اترك الرسوم 0 لجعل الشحن مجانياً دائماً.",
-    color: "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20",
   },
 };
 
-// Conversion features definition — each card groups related keys
+// Conversion features definition — each card groups related keys.
+// No per-feature colour: an enabled card is brand-tinted, everything else neutral.
 const CONVERSION_FEATURES = [
   {
     id: "live_activity",
     icon: <Bell className="h-4 w-4" />,
-    emoji: "🔔",
     label: "إشعارات النشاط المباشر",
     desc: "يعرض إشعارات شراء تلقائية في الزاوية السفلية لإثبات الشعبية (Social Proof)",
-    color: "border-green-200 dark:border-green-800",
-    headerColor: "bg-green-50 dark:bg-green-900/20",
-    iconColor: "text-green-600 dark:text-green-400",
     enableKey: "live_activity_enabled",
     keys: ["live_activity_enabled", "live_activity_interval", "live_activity_names", "live_activity_cities"],
   },
   {
     id: "flash_sale",
     icon: <Clock className="h-4 w-4" />,
-    emoji: "⏰",
     label: "عداد العرض المحدود",
     desc: "عداد تنازلي على صفحة المنتج يخلق إحساساً بالإلحاح ويقلل التردد",
-    color: "border-red-200 dark:border-red-800",
-    headerColor: "bg-red-50 dark:bg-red-900/20",
-    iconColor: "text-red-600 dark:text-red-400",
     enableKey: "flash_sale_enabled",
     keys: ["flash_sale_enabled", "flash_sale_ends_at", "flash_sale_label"],
   },
   {
     id: "scarcity",
     icon: <Flame className="h-4 w-4" />,
-    emoji: "🔥",
     label: "مؤشر الندرة",
     desc: "يعرض شريط المخزون المتبقي على صفحة المنتج لتحفيز الشراء السريع",
-    color: "border-orange-200 dark:border-orange-800",
-    headerColor: "bg-orange-50 dark:bg-orange-900/20",
-    iconColor: "text-orange-600 dark:text-orange-400",
     enableKey: "scarcity_enabled",
     keys: ["scarcity_enabled", "scarcity_max"],
   },
   {
     id: "live_viewers",
     icon: <Eye className="h-4 w-4" />,
-    emoji: "👁",
     label: "عداد المشاهدين الحاليين",
     desc: "يعرض عدد الأشخاص المتواجدين على صفحة المنتج — يرفع الثقة ويخلق التنافس",
-    color: "border-blue-200 dark:border-blue-800",
-    headerColor: "bg-blue-50 dark:bg-blue-900/20",
-    iconColor: "text-blue-600 dark:text-blue-400",
     enableKey: "live_viewers_enabled",
     keys: ["live_viewers_enabled", "live_viewers_min", "live_viewers_max"],
   },
   {
     id: "sticky_cta",
     icon: <ShoppingCart className="h-4 w-4" />,
-    emoji: "📌",
     label: "زر الشراء الثابت",
     desc: "يظهر زر 'أضف للسلة' ثابتاً أسفل الشاشة عند التمرير — يقلل الاحتكاك",
-    color: "border-primary-200 dark:border-primary-800",
-    headerColor: "bg-primary-50 dark:bg-primary-900/20",
-    iconColor: "text-primary-600 dark:text-primary-400",
     enableKey: "sticky_cta_enabled",
     keys: ["sticky_cta_enabled"],
   },
   {
     id: "cart_progress",
     icon: <Gift className="h-4 w-4" />,
-    emoji: "🎁",
     label: "شريط تقدم السلة",
     desc: "يعرض شريطاً في السلة يحفز العميل على إضافة منتجات للحصول على مكافأة",
-    color: "border-purple-200 dark:border-purple-800",
-    headerColor: "bg-purple-50 dark:bg-purple-900/20",
-    iconColor: "text-purple-600 dark:text-purple-400",
     enableKey: "cart_progress_enabled",
     keys: ["cart_progress_enabled", "cart_progress_target", "cart_progress_reward", "cart_progress_coupon"],
   },
   {
     id: "guarantee",
     icon: <Shield className="h-4 w-4" />,
-    emoji: "🛡",
     label: "رسالة الضمان",
     desc: "نص الضمان الذي يظهر أسفل زر الشراء — يزيد الثقة ويقلل المخاوف",
-    color: "border-teal-200 dark:border-teal-800",
-    headerColor: "bg-teal-50 dark:bg-teal-900/20",
-    iconColor: "text-teal-600 dark:text-teal-400",
     enableKey: "guarantee_enabled",
     keys: ["guarantee_enabled", "guarantee_text"],
   },
@@ -230,7 +195,7 @@ function SettingRow({
 }) {
   const label = setting.labelAr || setting.label || setting.key;
   return (
-    <div className={`px-4 py-3 transition-colors rounded-xl ${isChanged ? "bg-amber-50 dark:bg-amber-900/10 ring-1 ring-amber-200 dark:ring-amber-800" : ""}`}>
+    <div className={cn("rounded-control px-4 py-3 transition-colors", isChanged && "bg-warning/[0.07] ring-1 ring-warning/25")}>
       {setting.type === "boolean" ? (
         <div className="flex items-center justify-between gap-4">
           <p className="font-medium text-sm text-fg">{label}</p>
@@ -271,27 +236,27 @@ function ConversionPanel({
         return (
           <div
             key={feature.id}
-            className={`rounded-2xl border-2 overflow-hidden transition-all duration-200 ${
-              hasChanges
-                ? "border-amber-300 dark:border-amber-700"
-                : feature.color
-            }`}
+            className={cn(
+              "overflow-hidden rounded-card border transition-colors duration-200",
+              // Only two things earn colour here: unsaved edits, and being switched on.
+              hasChanges ? "border-warning/40" : isEnabled ? "border-brand/30" : "border-line"
+            )}
           >
             {/* Feature header */}
-            <div className={`flex items-center justify-between gap-4 px-5 py-4 ${feature.headerColor}`}>
+            <div className={cn("flex items-center justify-between gap-4 px-5 py-4", isEnabled ? "bg-brand/[0.06]" : "bg-surface-muted")}>
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-xl bg-surface/40 flex items-center justify-center shadow-sm shrink-0 ${feature.iconColor}`}>
+                <div
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-control transition-colors",
+                    isEnabled ? "bg-brand/10 text-brand" : "bg-surface-sunken text-fg-subtle"
+                  )}
+                >
                   {feature.icon}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-base">{feature.emoji}</span>
                     <p className="font-bold text-sm text-fg">{feature.label}</p>
-                    {hasChanges && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
-                        تغييرات
-                      </span>
-                    )}
+                    {hasChanges && <Badge variant="warning" size="sm">تغييرات</Badge>}
                   </div>
                   <p className="text-xs text-fg-muted mt-0.5 leading-relaxed">{feature.desc}</p>
                 </div>
@@ -428,7 +393,7 @@ export default function AdminSettingsPage() {
           <>
           {isDirty && (
             <>
-              <span className="hidden sm:flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
+              <span className="hidden items-center gap-1.5 text-sm font-medium text-warning sm:flex">
                 <AlertCircle className="h-4 w-4" />
                 تغييرات غير محفوظة
               </span>
@@ -472,11 +437,13 @@ export default function AdminSettingsPage() {
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-5">
           {/* Group header banner */}
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl ${meta?.color ?? "bg-surface-muted text-fg"}`}>
-            <div className="shrink-0">{meta?.icon ?? <Settings className="h-4 w-4" />}</div>
-            <div>
-              <p className="font-bold text-sm">{meta?.label ?? activeGroup}</p>
-              <p className="text-xs opacity-75 mt-0.5">{meta?.description}</p>
+          <div className="flex items-center gap-3 rounded-card border border-line bg-surface-muted px-4 py-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-brand/10 text-brand">
+              {meta?.icon ?? <Settings className="h-4 w-4" />}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-fg">{meta?.label ?? activeGroup}</p>
+              <p className="mt-0.5 text-xs text-fg-muted">{meta?.description}</p>
             </div>
           </div>
 
@@ -500,7 +467,7 @@ export default function AdminSettingsPage() {
                   const label = setting.labelAr || setting.label || setting.key;
                   const isChanged = values[setting.key] !== saved[setting.key];
                   return (
-                    <div key={setting.key} className={`px-5 py-4 transition-colors ${isChanged ? "bg-amber-50/50 dark:bg-amber-900/5" : ""}`}>
+                    <div key={setting.key} className={cn("px-5 py-4 transition-colors", isChanged && "bg-warning/[0.05]")}>
                       {setting.type === "boolean" ? (
                         <div className="flex items-center justify-between gap-4">
                           <div>
@@ -524,7 +491,7 @@ export default function AdminSettingsPage() {
                             value={values[setting.key] || ""}
                             onChange={(e) => set(setting.key, e.target.value)}
                             placeholder={setting.key === "custom_css" ? "/* مثال */\n.header { background: #7c3aed; }" : "// مثال\nconsole.log('مرحباً');"}
-                            className="w-full rounded-card border border-line bg-gray-950 text-gray-100 font-mono text-xs leading-relaxed p-3 focus:outline-none focus:ring-2 focus:ring-primary-500/40 resize-y placeholder:text-gray-600"
+                            className="w-full resize-y rounded-card border border-line bg-primary-950 p-3 font-mono text-xs leading-relaxed text-primary-100 placeholder:text-primary-400/50 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
                           />
                         </div>
                       ) : (
@@ -544,15 +511,15 @@ export default function AdminSettingsPage() {
 
           {/* Sticky bottom save bar */}
           {isDirty && (
-            <div className="sticky bottom-4 z-10 flex items-center justify-between gap-3 bg-gray-900 dark:bg-gray-950 text-white rounded-card px-5 py-3 shadow-overlay border border-white/10">
-              <div className="flex items-center gap-2 text-sm text-fg-subtle">
-                <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className="sticky bottom-4 z-10 flex items-center justify-between gap-3 rounded-card border border-warning/30 bg-surface px-5 py-3 shadow-overlay">
+              <div className="flex items-center gap-2 text-sm text-fg">
+                <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
                 <span>لديك تغييرات غير محفوظة</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleDiscard}
-                  className="text-sm text-fg-subtle hover:text-white transition-colors px-3 py-1"
+                  className="px-3 py-1 text-sm text-fg-muted transition-colors hover:text-fg"
                 >
                   إلغاء
                 </button>

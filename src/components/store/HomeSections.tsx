@@ -24,12 +24,12 @@ export interface HomeData {
 function ProductGrid({ title, subtitle, products }: { title?: string; subtitle?: string; products: ProductWithCategory[] }) {
   if (!products.length) return null;
   return (
-    <section className="py-16 bg-gray-50 dark:bg-gray-950">
+    <section className="py-16 bg-surface-sunken">
       <div className="container-custom">
         <AnimatedSection className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title || "منتجات"}</h2>
-            {subtitle && <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{subtitle}</p>}
+            <h2 className="text-2xl font-bold text-fg">{title || "منتجات"}</h2>
+            {subtitle && <p className="text-fg-subtle mt-1 text-sm">{subtitle}</p>}
           </div>
           <Link href="/products" className="flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:gap-2 transition-all font-medium">
             عرض الكل <ChevronLeft className="h-4 w-4" />
@@ -69,12 +69,12 @@ function renderSection(s: HomeSection, data: HomeData) {
     case "categories":
       if (!data.categories.length) return null;
       return (
-        <section className="py-16 bg-white dark:bg-gray-900">
+        <section className="py-16 bg-surface">
           <div className="container-custom">
             <AnimatedSection className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{s.title || "الفئات"}</h2>
-                {s.subtitle && <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{s.subtitle}</p>}
+                <h2 className="text-2xl font-bold text-fg">{s.title || "الفئات"}</h2>
+                {s.subtitle && <p className="text-fg-subtle mt-1 text-sm">{s.subtitle}</p>}
               </div>
               <Link href="/products" className="flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:gap-2 transition-all font-medium">
                 عرض الكل <ChevronLeft className="h-4 w-4" />
@@ -83,13 +83,13 @@ function renderSection(s: HomeSection, data: HomeData) {
             <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               {data.categories.map((cat) => (
                 <StaggerItem key={cat.id}>
-                  <Link href={`/categories/${cat.slug}`} className="group flex flex-col items-center gap-3 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-lg transition-all">
+                  <Link href={`/categories/${cat.slug}`} className="group flex flex-col items-center gap-3 p-4 rounded-2xl border border-line bg-surface hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-lg transition-all">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110" style={{ background: `${cat.color || "#7c3aed"}20` }}>
                       {cat.icon}
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{cat.nameAr}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{cat._count.products} منتج</p>
+                      <p className="text-sm font-semibold text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{cat.nameAr}</p>
+                      <p className="text-xs text-fg-subtle mt-0.5">{cat._count.products} منتج</p>
                     </div>
                   </Link>
                 </StaggerItem>
@@ -124,7 +124,7 @@ function renderSection(s: HomeSection, data: HomeData) {
       return (
         <section className="py-14">
           <div className="container-custom max-w-3xl text-center">
-            {s.title && <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{s.title}</h2>}
+            {s.title && <h2 className="text-2xl font-bold text-fg mb-4">{s.title}</h2>}
             {s.html && <div className="prose prose-lg dark:prose-invert mx-auto" dangerouslySetInnerHTML={{ __html: s.html }} />}
           </div>
         </section>

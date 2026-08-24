@@ -16,11 +16,11 @@ export default function CartPage() {
     return (
       <div className="min-h-screen py-20 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-24 h-24 rounded-3xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto">
-            <ShoppingBag className="h-12 w-12 text-gray-400" />
+          <div className="w-24 h-24 rounded-3xl bg-surface-sunken flex items-center justify-center mx-auto">
+            <ShoppingBag className="h-12 w-12 text-fg-subtle" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">السلة فارغة</h1>
-          <p className="text-gray-500 dark:text-gray-400">لم تضف أي منتجات بعد</p>
+          <h1 className="text-2xl font-bold text-fg">السلة فارغة</h1>
+          <p className="text-fg-subtle">لم تضف أي منتجات بعد</p>
           <Link href="/products">
             <Button>
               <ArrowLeft className="h-4 w-4" />
@@ -36,10 +36,10 @@ export default function CartPage() {
     <div className="min-h-screen py-8">
       <div className="container-custom">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">سلة الشراء</h1>
+          <h1 className="text-3xl font-bold text-fg">سلة الشراء</h1>
           <button
             onClick={() => { if (window.confirm("هل تريد إفراغ السلة بالكامل؟")) clearCart(); }}
-            className="text-sm text-red-500 hover:text-red-600 hover:underline"
+            className="text-sm text-danger hover:text-danger hover:underline"
           >
             مسح الكل
           </button>
@@ -51,9 +51,9 @@ export default function CartPage() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700"
+                className="flex items-center gap-4 p-4 bg-surface rounded-2xl border border-line"
               >
-                <div className="w-20 h-20 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="w-20 h-20 rounded-xl bg-surface-sunken border border-line overflow-hidden flex items-center justify-center shrink-0">
                   {item.image ? (
                     <Image src={item.image} alt={item.nameAr} width={80} height={80} className="object-contain p-2" unoptimized />
                   ) : (
@@ -63,36 +63,36 @@ export default function CartPage() {
 
                 <div className="flex-1 min-w-0">
                   <Link href={`/products/${item.slug}`}>
-                    <h3 className="font-bold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                    <h3 className="font-bold text-fg hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                       {item.nameAr}
                     </h3>
                   </Link>
                   <p className="text-primary-600 dark:text-primary-400 font-bold text-lg mt-1">
                     {formatAmount(item.price * item.quantity)}
                   </p>
-                  <p className="text-xs text-gray-400">{formatAmount(item.price)} × {item.quantity}</p>
+                  <p className="text-xs text-fg-subtle">{formatAmount(item.price)} × {item.quantity}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
+                  <div className="flex items-center gap-1 bg-surface-sunken rounded-xl p-1">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       disabled={item.quantity <= 1}
-                      className="w-7 h-7 rounded-lg bg-white dark:bg-gray-600 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface shadow-sm transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
                     <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-7 h-7 rounded-lg bg-white dark:bg-gray-600 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors shadow-sm"
+                      className="w-7 h-7 rounded-lg bg-surface flex items-center justify-center hover:bg-surface-sunken transition-colors shadow-sm"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
                   </div>
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                    className="p-2 text-fg-subtle hover:text-danger hover:bg-danger/10 rounded-xl transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -103,25 +103,25 @@ export default function CartPage() {
 
           {/* Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 sticky top-20">
-              <h2 className="font-bold text-gray-900 dark:text-white text-lg mb-4">ملخص الطلب</h2>
+            <div className="bg-surface rounded-2xl border border-line p-6 sticky top-20">
+              <h2 className="font-bold text-fg text-lg mb-4">ملخص الطلب</h2>
 
               <div className="space-y-3 mb-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400 truncate pe-2">
+                    <span className="text-fg-muted truncate pe-2">
                       {item.nameAr} × {item.quantity}
                     </span>
-                    <span className="font-medium text-gray-900 dark:text-white shrink-0">
+                    <span className="font-medium text-fg shrink-0">
                       {formatAmount(item.price * item.quantity)}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
+              <div className="border-t border-line pt-4 mb-6">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-gray-900 dark:text-white text-lg">الإجمالي</span>
+                  <span className="font-bold text-fg text-lg">الإجمالي</span>
                   <span className="font-black text-primary-600 dark:text-primary-400 text-2xl">
                     {formatAmount(total)}
                   </span>

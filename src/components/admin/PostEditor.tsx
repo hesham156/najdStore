@@ -242,8 +242,8 @@ export function PostEditor({ postId }: PostEditorProps) {
       {/* Tab: SEO */}
       {tab === "seo" && (
         <div className="space-y-6">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+          <div className="bg-info/10 border border-info/25 rounded-2xl p-4">
+            <p className="text-sm text-info">
               حقول SEO اختيارية. إذا تركتها فارغة، سيُستخدم عنوان وملخص المقال تلقائياً.
             </p>
           </div>
@@ -296,10 +296,10 @@ export function PostEditor({ postId }: PostEditorProps) {
               <Search className="h-3.5 w-3.5" /> معاينة نتيجة Google
             </p>
             <div className="space-y-1 max-w-xl">
-              <p className="text-lg text-blue-700 dark:text-blue-400 font-medium truncate">
+              <p className="text-lg text-info font-medium truncate">
                 {metaTitleAr || titleAr || "عنوان المقال"}
               </p>
-              <p className="text-xs text-green-700 dark:text-green-500 truncate">
+              <p className="text-xs text-success truncate">
                 {process.env.NEXTAUTH_URL || "https://yourstore.com"}/blog/{slug || "slug-المقال"}
               </p>
               <p className="text-sm text-fg-muted line-clamp-2">

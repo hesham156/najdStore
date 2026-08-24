@@ -12,6 +12,7 @@
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle, Inbox, RefreshCw, SearchX, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Tone } from "@/lib/tone";
 import { Button } from "./Button";
 
 /* ═══════════════════════════════════════════════════════════
@@ -97,7 +98,7 @@ export function ErrorState({
         size === "sm" ? "px-4 py-10" : "px-6 py-16"
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-danger/10 text-danger">
         <WifiOff className="h-5 w-5" aria-hidden />
       </div>
       <div className="space-y-1">
@@ -150,25 +151,21 @@ export function SkeletonStats({ count = 4 }: { count?: number }) {
 
 /* ── Inline alert / callout ───────────────────────────────── */
 
-type AlertTone = "info" | "success" | "warning" | "danger";
+/**
+ * Every soft coloured block in the dashboard is this component.
+ * The tint is always the same recipe (8% fill / 22% border on the tone
+ * token) so a note never competes with the content around it, and the
+ * light and dark palettes stay in step automatically.
+ */
+type AlertTone = Tone;
 
 const ALERT_TONES: Record<AlertTone, { wrap: string; icon: string }> = {
-  info: {
-    wrap: "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-200",
-    icon: "text-blue-600 dark:text-blue-400",
-  },
-  success: {
-    wrap: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-200",
-    icon: "text-emerald-600 dark:text-emerald-400",
-  },
-  warning: {
-    wrap: "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200",
-    icon: "text-amber-600 dark:text-amber-400",
-  },
-  danger: {
-    wrap: "border-red-200 bg-red-50 text-red-800 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-200",
-    icon: "text-red-600 dark:text-red-400",
-  },
+  brand: { wrap: "border-brand/25 bg-brand/[0.08] text-fg", icon: "text-brand" },
+  info: { wrap: "border-info/25 bg-info/[0.08] text-fg", icon: "text-info" },
+  success: { wrap: "border-success/25 bg-success/[0.08] text-fg", icon: "text-success" },
+  warning: { wrap: "border-warning/25 bg-warning/[0.08] text-fg", icon: "text-warning" },
+  danger: { wrap: "border-danger/25 bg-danger/[0.08] text-fg", icon: "text-danger" },
+  neutral: { wrap: "border-line bg-surface-sunken text-fg", icon: "text-fg-muted" },
 };
 
 export function Alert({

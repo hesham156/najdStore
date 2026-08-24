@@ -159,8 +159,8 @@ export function Dropdown({
                   className={cn(
                     "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-start text-[13px] font-medium transition-colors",
                     "disabled:cursor-not-allowed disabled:opacity-40",
-                    item.danger ? "text-red-600 dark:text-red-400" : "text-fg",
-                    activeIdx === i && !item.disabled && (item.danger ? "bg-red-50 dark:bg-red-500/10" : "bg-surface-hover")
+                    item.danger ? "text-danger" : "text-fg",
+                    activeIdx === i && !item.disabled && (item.danger ? "bg-danger/10" : "bg-surface-hover")
                   )}
                 >
                   {item.icon && <span className="shrink-0 [&>svg]:h-4 [&>svg]:w-4">{item.icon}</span>}

@@ -70,7 +70,7 @@ export function AdminShell({ children, storeName }: { children: React.ReactNode;
       {/* ── Mobile drawer ── */}
       {drawerOpen && (
         <div className="fixed inset-0 z-drawer lg:hidden" role="dialog" aria-modal="true" aria-label="القائمة الجانبية">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-[2px] animate-fade-in" onClick={() => setDrawerOpen(false)} />
+          <div className="absolute inset-0 bg-surface-sunken backdrop-blur-[2px] animate-fade-in" onClick={() => setDrawerOpen(false)} />
           <div className="absolute inset-y-0 start-0 flex w-[var(--sidebar-w)] max-w-[85%] shadow-overlay animate-drawer">
             <AdminSidebar storeName={storeName} onNavigate={() => setDrawerOpen(false)} />
             <button

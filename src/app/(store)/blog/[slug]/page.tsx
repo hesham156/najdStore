@@ -129,11 +129,11 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="min-h-screen bg-white dark:bg-gray-950" dir="rtl">
+      <div className="min-h-screen bg-surface" dir="rtl">
         {/* Breadcrumb */}
-        <div className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+        <div className="border-b border-line bg-surface-sunken">
           <div className="container-custom py-3">
-            <nav className="flex items-center gap-2 text-sm text-gray-500">
+            <nav className="flex items-center gap-2 text-sm text-fg-subtle">
               <Link href="/" className="hover:text-primary-600 transition-colors">الرئيسية</Link>
               <ChevronLeft className="h-3.5 w-3.5" />
               <Link href="/blog" className="hover:text-primary-600 transition-colors">المدونة</Link>
@@ -146,7 +146,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                 </>
               )}
               <ChevronLeft className="h-3.5 w-3.5" />
-              <span className="text-gray-900 dark:text-white truncate max-w-[200px]">{post.titleAr}</span>
+              <span className="text-fg truncate max-w-[200px]">{post.titleAr}</span>
             </nav>
           </div>
         </div>
@@ -173,13 +173,13 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                     {post.category.nameAr}
                   </Link>
                 )}
-                <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white leading-tight mb-5">
+                <h1 className="text-3xl md:text-4xl font-black text-fg leading-tight mb-5">
                   {post.titleAr}
                 </h1>
                 {post.excerptAr && (
-                  <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-5">{post.excerptAr}</p>
+                  <p className="text-lg text-fg-subtle leading-relaxed mb-5">{post.excerptAr}</p>
                 )}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 pb-6 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-fg-subtle pb-6 border-b border-line">
                   <span className="flex items-center gap-1.5">
                     <User className="h-4 w-4" /> {post.author.name}
                   </span>
@@ -202,17 +202,17 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
               {/* Markdown content */}
               <div
-                className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-black prose-headings:text-gray-900 dark:prose-headings:text-white prose-a:text-primary-600 prose-code:text-primary-700 dark:prose-code:text-primary-400 prose-pre:bg-gray-900 dark:prose-pre:bg-gray-800 prose-blockquote:border-primary-500"
+                className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-black prose-headings:text-fg dark:prose-headings:text-white prose-a:text-primary-600 prose-code:text-primary-700 dark:prose-code:text-primary-400 prose-pre:bg-surface-sunken dark:prose-pre:bg-surface-sunken prose-blockquote:border-primary-500"
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
               />
 
               {/* Tags */}
               {post.tags.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
+                <div className="mt-8 pt-6 border-t border-line">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Tag className="h-4 w-4 text-gray-400" />
+                    <Tag className="h-4 w-4 text-fg-subtle" />
                     {post.tags.map((tag) => (
-                      <span key={tag} className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300">
+                      <span key={tag} className="px-3 py-1.5 rounded-full bg-surface-sunken text-sm text-fg-muted">
                         {tag}
                       </span>
                     ))}
@@ -225,14 +225,14 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             <aside className="space-y-6">
               {/* Table of contents */}
               {headings.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 sticky top-24">
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-3 text-sm">محتويات المقال</h3>
+                <div className="bg-surface-sunken rounded-2xl p-5 border border-line sticky top-24">
+                  <h3 className="font-bold text-fg mb-3 text-sm">محتويات المقال</h3>
                   <nav className="space-y-1.5">
                     {headings.map((h) => (
                       <a
                         key={h.id}
                         href={`#${h.id}`}
-                        className="block text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors leading-snug"
+                        className="block text-sm text-fg-subtle hover:text-primary-600 dark:hover:text-primary-400 transition-colors leading-snug"
                         style={{ paddingRight: `${(h.level - 1) * 12}px` }}
                       >
                         {h.text}
@@ -246,24 +246,24 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
           {/* Related posts */}
           {related.length > 0 && (
-            <div className="mt-14 pt-10 border-t border-gray-100 dark:border-gray-800">
-              <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6">مقالات ذات صلة</h2>
+            <div className="mt-14 pt-10 border-t border-line">
+              <h2 className="text-xl font-black text-fg mb-6">مقالات ذات صلة</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {related.map((rp) => (
                   <Link key={rp.id} href={`/blog/${rp.slug}`} className="group">
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 transition-all">
+                    <div className="bg-surface-sunken rounded-2xl overflow-hidden border border-line hover:border-primary-300 dark:hover:border-primary-700 transition-all">
                       {rp.coverImage ? (
                         <div className="aspect-video overflow-hidden">
                           <img src={rp.coverImage} alt={rp.titleAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
                       ) : (
-                        <div className="aspect-video bg-gradient-to-br from-primary-100 to-purple-100 dark:from-primary-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                        <div className="aspect-video bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center">
                           <span className="text-3xl">📝</span>
                         </div>
                       )}
                       <div className="p-4">
-                        <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors line-clamp-2 text-sm">{rp.titleAr}</h3>
-                        <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                        <h3 className="font-bold text-fg group-hover:text-primary-600 transition-colors line-clamp-2 text-sm">{rp.titleAr}</h3>
+                        <p className="text-xs text-fg-subtle mt-2 flex items-center gap-1">
                           <Clock className="h-3 w-3" /> {rp.readingTime} دقيقة
                         </p>
                       </div>

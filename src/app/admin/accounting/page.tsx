@@ -38,16 +38,6 @@ const CATEGORY_AR: Record<string, string> = {
   OTHER: "أخرى",
 };
 
-const CATEGORY_COLOR: Record<string, string> = {
-  HOSTING: "bg-blue-500",
-  MARKETING: "bg-pink-500",
-  SALARY: "bg-amber-500",
-  TOOLS: "bg-purple-500",
-  PURCHASE: "bg-green-500",
-  TAX: "bg-red-500",
-  OTHER: "bg-slate-400",
-};
-
 function KPICard({
   icon: Icon,
   label,
@@ -69,8 +59,8 @@ function KPICard({
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
           <Icon className="h-5 w-5 text-white" />
         </div>
-        {trend === "up" && <TrendingUp className="h-4 w-4 text-green-500" />}
-        {trend === "down" && <TrendingDown className="h-4 w-4 text-red-500" />}
+        {trend === "up" && <TrendingUp className="h-4 w-4 text-success" />}
+        {trend === "down" && <TrendingDown className="h-4 w-4 text-danger" />}
       </div>
       <div>
         <p className="text-2xl font-black text-fg">{value}</p>
@@ -98,7 +88,7 @@ function MiniChart({ data }: { data: { month: string; revenue: number; expenses:
                 title={`إيراد: ${d.revenue.toFixed(0)}`}
               />
               <div
-                className="flex-1 bg-red-400 rounded-t opacity-80 min-h-[2px]"
+                className="flex-1 bg-danger rounded-t opacity-80 min-h-[2px]"
                 style={{ height: `${(d.expenses / maxVal) * 80}px` }}
                 title={`مصاريف: ${d.expenses.toFixed(0)}`}
               />
@@ -170,10 +160,12 @@ export default function AccountingDashboard() {
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <KPICard icon={DollarSign}  label="إجمالي الإيراد"     value={fmt(summary.revenue)}   sub={`${summary.orderCount} طلب`} color="bg-primary-600" trend="up" />
-            <KPICard icon={PiggyBank}   label="صافي الربح"          value={fmt(summary.profit)}    sub={summary.profit >= 0 ? "ربح 🟢" : "خسارة 🔴"} color={summary.profit >= 0 ? "bg-green-600" : "bg-red-600"} trend={summary.profit >= 0 ? "up" : "down"} />
-            <KPICard icon={TrendingDown} label="إجمالي المصاريف"   value={fmt(summary.expenses)}  color="bg-red-500" trend="down" />
-            <KPICard icon={Percent}     label={`ضريبة القيمة المضافة (${summary.taxRate}%)`} value={fmt(summary.taxAmount)} sub="مستحقة للهيئة" color="bg-amber-600" />
+            {/* Only net profit earns a colour, because only its sign is good or bad.
+                Expenses and VAT are normal facts of running a store, not errors. */}
+            <KPICard icon={DollarSign}  label="إجمالي الإيراد"     value={fmt(summary.revenue)}   sub={`${summary.orderCount} طلب`} color="bg-brand-solid" trend="up" />
+            <KPICard icon={PiggyBank}   label="صافي الربح"          value={fmt(summary.profit)}    sub={summary.profit >= 0 ? "ربح" : "خسارة"} color={summary.profit >= 0 ? "bg-success-solid" : "bg-danger-solid"} trend={summary.profit >= 0 ? "up" : "down"} />
+            <KPICard icon={TrendingDown} label="إجمالي المصاريف"   value={fmt(summary.expenses)}  color="bg-brand-solid" />
+            <KPICard icon={Percent}     label={`ضريبة القيمة المضافة (${summary.taxRate}%)`} value={fmt(summary.taxAmount)} sub="مستحقة للهيئة" color="bg-brand-solid" />
           </div>
 
           {/* Second row */}
@@ -184,7 +176,7 @@ export default function AccountingDashboard() {
                 <h3 className="font-bold text-fg">الإيرادات والمصاريف — آخر 12 شهر</h3>
                 <div className="flex items-center gap-3 text-xs text-fg-muted">
                   <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-primary-500 inline-block" />إيراد</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-red-400 inline-block" />مصاريف</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-danger inline-block" />مصاريف</span>
                 </div>
               </div>
               <MiniChart data={summary.monthlyChart} />
@@ -207,7 +199,8 @@ export default function AccountingDashboard() {
                           <span className="text-fg-muted">{fmt(amt)}</span>
                         </div>
                         <div className="h-1.5 bg-surface-sunken rounded-full overflow-hidden">
-                          <div className={`h-full ${CATEGORY_COLOR[e.category] ?? "bg-slate-400"} rounded-full`} style={{ width: `${pct}%` }} />
+                          {/* Each bar is already labelled, so it does not need its own hue. */}
+                          <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     );
@@ -220,8 +213,8 @@ export default function AccountingDashboard() {
           {/* Quick stats row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
-                <Receipt className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <div className="w-9 h-9 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+                <Receipt className="h-4 w-4 text-warning" />
               </div>
               <div>
                 <p className="text-lg font-black text-fg">{fmt(summary.discounts)}</p>
@@ -229,8 +222,8 @@ export default function AccountingDashboard() {
               </div>
             </Card>
             <Card className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                <CreditCard className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <div className="w-9 h-9 rounded-xl bg-danger/10 flex items-center justify-center shrink-0">
+                <CreditCard className="h-4 w-4 text-danger" />
               </div>
               <div>
                 <p className="text-lg font-black text-fg">{fmt(summary.refunds)}</p>
@@ -238,8 +231,8 @@ export default function AccountingDashboard() {
               </div>
             </Card>
             <Card className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                <Wallet className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                <Wallet className="h-4 w-4 text-success" />
               </div>
               <div>
                 <p className="text-lg font-black text-fg">{fmt(summary.revenue - summary.refunds)}</p>
@@ -265,8 +258,8 @@ export default function AccountingDashboard() {
               <Card className="p-5 hover:border-primary-300 dark:hover:border-primary-700 transition-colors cursor-pointer group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                      <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    <div className="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center">
+                      <TrendingDown className="h-5 w-5 text-danger" />
                     </div>
                     <div>
                       <p className="font-bold text-fg">إدارة المصاريف</p>
@@ -281,8 +274,8 @@ export default function AccountingDashboard() {
               <Card className="p-5 hover:border-primary-300 dark:hover:border-primary-700 transition-colors cursor-pointer group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <div className="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center">
+                      <Receipt className="h-5 w-5 text-info" />
                     </div>
                     <div>
                       <p className="font-bold text-fg">الفواتير الضريبية</p>

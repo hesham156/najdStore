@@ -55,12 +55,12 @@ export default async function CategoryPage({ params }: Props) {
   return (
     <div className="min-h-screen py-8">
       <div className="container-custom">
-        <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-fg-subtle mb-6">
           <Link href="/" className="hover:text-primary-600 dark:hover:text-primary-400">الرئيسية</Link>
           <ArrowRight className="h-4 w-4" />
           <Link href="/products" className="hover:text-primary-600 dark:hover:text-primary-400">المنتجات</Link>
           <ArrowRight className="h-4 w-4" />
-          <span className="text-gray-900 dark:text-white">{category.nameAr}</span>
+          <span className="text-fg">{category.nameAr}</span>
         </nav>
 
         <div
@@ -82,8 +82,8 @@ export default async function CategoryPage({ params }: Props) {
         {products.length === 0 ? (
           <div className="text-center py-24">
             <div className="text-6xl mb-4">📦</div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">لا توجد منتجات حالياً</h2>
-            <p className="text-gray-500 dark:text-gray-400">نعمل على إضافة منتجات جديدة قريباً</p>
+            <h2 className="text-xl font-bold text-fg mb-2">لا توجد منتجات حالياً</h2>
+            <p className="text-fg-subtle">نعمل على إضافة منتجات جديدة قريباً</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

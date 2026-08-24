@@ -206,7 +206,7 @@ export default function AdminPopupsPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 text-sm">
+              <div className="rounded-control border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-fg">
                 {error}
               </div>
             )}
@@ -445,7 +445,7 @@ export default function AdminPopupsPage() {
                           {popup.titleAr}
                         </p>
                         {popup.couponCode && (
-                          <p className="text-xs text-green-600 dark:text-green-400 font-mono mt-0.5">
+                          <p className="text-xs text-success font-mono mt-0.5">
                             كوبون: {popup.couponCode}
                           </p>
                         )}
@@ -502,7 +502,7 @@ export default function AdminPopupsPage() {
                       <button
                         onClick={() => handleDelete(popup.id)}
                         disabled={deletingId === popup.id}
-                        className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors disabled:opacity-40"
+                        className="text-danger hover:text-danger transition-colors disabled:opacity-40"
                         title="حذف"
                       >
                         <Trash2 className="w-4 h-4" />

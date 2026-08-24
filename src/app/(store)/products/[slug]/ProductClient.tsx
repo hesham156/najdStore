@@ -185,20 +185,20 @@ export default function ProductClient({ product, publicSettings, options = [], o
     <div className="min-h-screen py-8">
       <div className="container-custom">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-8">
+        <nav className="flex items-center gap-2 text-sm text-fg-subtle mb-8">
           <Link href="/" className="hover:text-primary-600 dark:hover:text-primary-400">الرئيسية</Link>
           <ArrowRight className="h-4 w-4" />
           <Link href="/products" className="hover:text-primary-600 dark:hover:text-primary-400">المنتجات</Link>
           <ArrowRight className="h-4 w-4" />
           <Link href={`/categories/${product.category.slug}`} className="hover:text-primary-600 dark:hover:text-primary-400">{product.category.nameAr}</Link>
           <ArrowRight className="h-4 w-4" />
-          <span className="text-gray-900 dark:text-white font-medium">{product.nameAr}</span>
+          <span className="text-fg font-medium">{product.nameAr}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Image */}
           <div className="space-y-4">
-            <div className="relative aspect-square rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden flex items-center justify-center">
+            <div className="relative aspect-square rounded-2xl bg-surface-sunken border border-line overflow-hidden flex items-center justify-center">
               {product.image ? (
                 <Image src={product.image} alt={product.nameAr} fill className="object-contain p-12" unoptimized />
               ) : (
@@ -222,7 +222,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 <span>{product.category.icon}</span>
                 {product.category.nameAr}
               </Link>
-              <h1 className="text-3xl font-black text-gray-900 dark:text-white">{product.nameAr}</h1>
+              <h1 className="text-3xl font-black text-fg">{product.nameAr}</h1>
 
               {/* Delivery badge */}
               <div className="flex items-center gap-2 mt-3">
@@ -243,25 +243,25 @@ export default function ProductClient({ product, publicSettings, options = [], o
             {product.descriptionAr && (
               /<[a-z][\s\S]*>/i.test(product.descriptionAr) ? (
                 <div
-                  className="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 prose-headings:text-gray-900 dark:prose-headings:text-white prose-strong:text-gray-900 dark:prose-strong:text-white prose-a:text-primary-600"
+                  className="prose prose-sm dark:prose-invert max-w-none text-fg-muted prose-headings:text-fg dark:prose-headings:text-white prose-strong:text-fg dark:prose-strong:text-white prose-a:text-primary-600"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.descriptionAr) }}
                 />
               ) : (
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">{product.descriptionAr}</p>
+                <p className="text-fg-muted leading-relaxed whitespace-pre-line">{product.descriptionAr}</p>
               )
             )}
 
             {/* Features */}
             {product.featuresAr && product.featuresAr.length > 0 && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-5">
-                <h3 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <div className="bg-surface-sunken rounded-2xl p-5">
+                <h3 className="font-bold text-fg mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4 text-primary-600" />
                   ما يتضمنه المنتج
                 </h3>
                 <ul className="space-y-2">
                   {product.featuresAr.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                      <Check className="h-4 w-4 text-green-500 shrink-0" />
+                    <li key={feature} className="flex items-center gap-2 text-sm text-fg-muted">
+                      <Check className="h-4 w-4 text-success shrink-0" />
                       {feature}
                     </li>
                   ))}
@@ -269,15 +269,15 @@ export default function ProductClient({ product, publicSettings, options = [], o
               </div>
             )}
             {(!product.featuresAr || product.featuresAr.length === 0) && product.features && product.features.length > 0 && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-5">
-                <h3 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <div className="bg-surface-sunken rounded-2xl p-5">
+                <h3 className="font-bold text-fg mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4 text-primary-600" />
                   ما يتضمنه المنتج
                 </h3>
                 <ul className="space-y-2">
                   {product.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                      <Check className="h-4 w-4 text-green-500 shrink-0" />
+                    <li key={feature} className="flex items-center gap-2 text-sm text-fg-muted">
+                      <Check className="h-4 w-4 text-success shrink-0" />
                       {feature}
                     </li>
                   ))}
@@ -290,20 +290,20 @@ export default function ProductClient({ product, publicSettings, options = [], o
               <div className="space-y-4">
                 {options.map((opt) => (
                   <div key={opt.id} className="space-y-1.5">
-                    <label className="flex items-center gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <label className="flex items-center gap-1 text-sm font-semibold text-fg-muted">
                       {opt.nameAr}
-                      {opt.required && <span className="text-red-500">*</span>}
+                      {opt.required && <span className="text-danger">*</span>}
                     </label>
                     <div className="relative">
                       <select
                         value={selection[opt.id] || ""}
                         onChange={(e) => setSelection((s) => ({ ...s, [opt.id]: e.target.value }))}
                         className={cn(
-                          "w-full appearance-none rounded-xl border-2 bg-white dark:bg-gray-800 px-4 py-3 pe-10 text-sm font-medium text-gray-900 dark:text-white transition-colors",
+                          "w-full appearance-none rounded-xl border-2 bg-surface px-4 py-3 pe-10 text-sm font-medium text-fg transition-colors",
                           "focus:outline-none focus:border-primary-500",
                           selection[opt.id]
                             ? "border-primary-400 dark:border-primary-700"
-                            : "border-gray-200 dark:border-gray-700",
+                            : "border-line",
                         )}
                       >
                         <option value="" disabled>اختر</option>
@@ -316,12 +316,12 @@ export default function ProductClient({ product, publicSettings, options = [], o
                           );
                         })}
                       </select>
-                      <ChevronDown className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <ChevronDown className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-subtle" />
                     </div>
                   </div>
                 ))}
                 {selectionIncomplete && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400">اختر كل الخيارات لعرض السعر النهائي.</p>
+                  <p className="text-xs text-warning">اختر كل الخيارات لعرض السعر النهائي.</p>
                 )}
               </div>
             )}
@@ -329,7 +329,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
             {/* Variants selector (legacy tag-based) */}
             {hasVariants && (
               <div className="space-y-3">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">اختر أحد الخيارات</p>
+                <p className="text-sm font-semibold text-fg-muted">اختر أحد الخيارات</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {variants.map((v) => {
                     const isSelected = selectedVariant?.label === v.label;
@@ -345,28 +345,28 @@ export default function ProductClient({ product, publicSettings, options = [], o
                           "relative flex flex-col items-center gap-1 p-3 rounded-xl border-2 text-center transition-all duration-150",
                           isSelected
                             ? "border-primary-600 bg-primary-50 dark:bg-primary-900/20 shadow-md shadow-primary-500/10"
-                            : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700"
+                            : "border-line hover:border-primary-300 dark:hover:border-primary-700"
                         )}
                       >
                         {varDiscount > 0 && (
-                          <span className="absolute -top-2 -start-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          <span className="absolute -top-2 -start-2 bg-danger text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                             -{varDiscount}%
                           </span>
                         )}
                         <span className={cn(
                           "text-sm font-bold",
-                          isSelected ? "text-primary-700 dark:text-primary-300" : "text-gray-700 dark:text-gray-300"
+                          isSelected ? "text-primary-700 dark:text-primary-300" : "text-fg-muted"
                         )}>
                           {v.label}
                         </span>
                         <span className={cn(
                           "text-base font-black",
-                          isSelected ? "text-primary-600 dark:text-primary-400" : "text-gray-900 dark:text-white"
+                          isSelected ? "text-primary-600 dark:text-primary-400" : "text-fg"
                         )}>
                           {formatAmount(v.price)}
                         </span>
                         {v.comparePrice && (
-                          <span className="text-xs text-gray-400 line-through">
+                          <span className="text-xs text-fg-subtle line-through">
                             {formatAmount(v.comparePrice)}
                           </span>
                         )}
@@ -391,13 +391,13 @@ export default function ProductClient({ product, publicSettings, options = [], o
             )}
             {conversion.scarcity_enabled && (
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-surface-sunken rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full"
+                    className="h-full rounded-full bg-warning"
                     style={{ width: `${Math.min(100, (3 / conversion.scarcity_max) * 100)}%` }}
                   />
                 </div>
-                <span className="text-xs font-bold text-red-600 dark:text-red-400 shrink-0">
+                <span className="text-xs font-bold text-danger shrink-0">
                   🔥 متبقي 3 فقط!
                 </span>
               </div>
@@ -407,17 +407,17 @@ export default function ProductClient({ product, publicSettings, options = [], o
             <div className="flex items-end gap-4">
               <div>
                 {hasOptions && !resolvedVariant && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">ابتداءً من</p>
+                  <p className="text-xs text-fg-subtle mb-0.5">ابتداءً من</p>
                 )}
-                <p className="text-4xl font-black text-gray-900 dark:text-white transition-all duration-200">
+                <p className="text-4xl font-black text-fg transition-all duration-200">
                   {formatAmount(activePrice)}
                 </p>
                 {activeComparePrice && (
-                  <p className="text-lg text-gray-400 line-through">{formatAmount(activeComparePrice)}</p>
+                  <p className="text-lg text-fg-subtle line-through">{formatAmount(activeComparePrice)}</p>
                 )}
               </div>
               {discount > 0 && (
-                <div className="mb-1 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold text-sm">
+                <div className="mb-1 px-3 py-1 bg-danger/10 text-danger rounded-xl font-bold text-sm">
                   وفر {formatAmount(activeComparePrice! - activePrice)}
                 </div>
               )}
@@ -435,16 +435,16 @@ export default function ProductClient({ product, publicSettings, options = [], o
             {/* Quantity & Add to Cart */}
             <div className="space-y-3" ref={ctaRef}>
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">الكمية:</span>
-                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                <span className="text-sm font-medium text-fg-muted">الكمية:</span>
+                <div className="flex items-center gap-2 bg-surface-sunken rounded-xl p-1">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-8 rounded-lg bg-white dark:bg-gray-700 flex items-center justify-center font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
+                    className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center font-bold text-fg-muted hover:bg-surface-sunken transition-colors shadow-sm"
                   >-</button>
-                  <span className="w-8 text-center font-bold text-gray-900 dark:text-white">{quantity}</span>
+                  <span className="w-8 text-center font-bold text-fg">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-8 rounded-lg bg-white dark:bg-gray-700 flex items-center justify-center font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
+                    className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center font-bold text-fg-muted hover:bg-surface-sunken transition-colors shadow-sm"
                   >+</button>
                 </div>
               </div>
@@ -485,16 +485,16 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 { icon: "✅", label: "منتجات أصلية" },
                 { icon: "🎧", label: "دعم 24/7" },
               ].map((badge) => (
-                <div key={badge.label} className="flex flex-col items-center gap-1 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-center">
+                <div key={badge.label} className="flex flex-col items-center gap-1 p-3 rounded-xl bg-surface-sunken text-center">
                   <span className="text-xl">{badge.icon}</span>
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{badge.label}</span>
+                  <span className="text-xs font-medium text-fg-muted">{badge.label}</span>
                 </div>
               ))}
             </div>
 
             {/* Guarantee */}
             {conversion.guarantee_enabled && conversion.guarantee_text && (
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 font-medium py-1">
+              <p className="text-xs text-center text-fg-subtle font-medium py-1">
                 {conversion.guarantee_text}
               </p>
             )}
@@ -502,8 +502,8 @@ export default function ProductClient({ product, publicSettings, options = [], o
         </div>
 
         {/* FAQ */}
-        <div className="mt-16 border-t border-gray-100 dark:border-gray-800 pt-12">
-          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6">الأسئلة الشائعة</h2>
+        <div className="mt-16 border-t border-line pt-12">
+          <h2 className="text-xl font-black text-fg mb-6">الأسئلة الشائعة</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 max-w-4xl">
             {[
               { q: "كيف أستلم طلبي بعد الدفع؟", a: "بعد تأكيد الدفع تصلك تفاصيل طلبك مباشرة في صفحة الطلب وعبر البريد الإلكتروني. التسليم التلقائي فوري، واليدوي خلال 1-24 ساعة." },
@@ -513,18 +513,18 @@ export default function ProductClient({ product, publicSettings, options = [], o
               { q: "ما طرق الدفع المتاحة؟", a: "نقبل التحويل البنكي، بطاقات الائتمان، والعملات المشفرة. جميع طرق الدفع آمنة ومشفرة." },
               { q: "كم يستغرق التوصيل؟", a: product.deliveryMethod === "AUTOMATIC" ? "التسليم فوري تلقائي — ستحصل على بياناتك مباشرة بعد تأكيد الدفع." : "التسليم يدوي ويستغرق من 1 إلى 24 ساعة بعد تأكيد الدفع." },
             ].map((item, i) => (
-              <div key={i} className="rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div key={i} className="rounded-2xl border border-line overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-start bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                  className="w-full flex items-center justify-between gap-3 px-5 py-4 text-start bg-surface hover:bg-surface-sunken transition-colors"
                 >
-                  <span className="font-semibold text-sm text-gray-900 dark:text-white">{item.q}</span>
+                  <span className="font-semibold text-sm text-fg">{item.q}</span>
                   {openFaq === i
                     ? <ChevronUp className="h-4 w-4 text-primary-500 shrink-0" />
-                    : <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />}
+                    : <ChevronDown className="h-4 w-4 text-fg-subtle shrink-0" />}
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 leading-relaxed">
+                  <div className="px-5 py-4 text-sm text-fg-muted bg-surface-sunken border-t border-line leading-relaxed">
                     {item.a}
                   </div>
                 )}
@@ -535,9 +535,9 @@ export default function ProductClient({ product, publicSettings, options = [], o
 
         {/* Related Products */}
         {related.length > 0 && (
-          <div className="mt-16 border-t border-gray-100 dark:border-gray-800 pt-12">
+          <div className="mt-16 border-t border-line pt-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-black text-gray-900 dark:text-white">منتجات من نفس الفئة</h2>
+              <h2 className="text-xl font-black text-fg">منتجات من نفس الفئة</h2>
               <Link href={`/categories/${product.category.slug}`} className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1 font-medium">
                 عرض الكل <ArrowRight className="h-4 w-4" />
               </Link>
@@ -549,22 +549,22 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 const rpDiscount = rpCompare ? Math.round(((rpCompare - rpPrice) / rpCompare) * 100) : 0;
                 return (
                   <Link key={rp.id} href={`/products/${rp.slug}`} className="group">
-                    <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all">
-                      <div className="relative aspect-video bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                    <div className="rounded-2xl border border-line bg-surface overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all">
+                      <div className="relative aspect-video bg-surface-sunken flex items-center justify-center overflow-hidden">
                         {rp.image
                           ? <Image src={rp.image} alt={rp.nameAr} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300" unoptimized />
                           : <span className="text-4xl">{rp.category?.icon || "📦"}</span>}
                         {rpDiscount > 0 && (
-                          <span className="absolute top-2 start-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-lg">-{rpDiscount}%</span>
+                          <span className="absolute top-2 start-2 bg-danger text-white text-xs font-bold px-2 py-0.5 rounded-lg">-{rpDiscount}%</span>
                         )}
                       </div>
                       <div className="p-4">
                         <p className="text-xs text-primary-600 dark:text-primary-400 font-medium mb-1">{rp.category?.nameAr}</p>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1 group-hover:text-primary-600 transition-colors">{rp.nameAr}</h3>
+                        <h3 className="font-bold text-fg text-sm line-clamp-1 group-hover:text-primary-600 transition-colors">{rp.nameAr}</h3>
                         <div className="flex items-center justify-between mt-3">
                           <div>
-                            <p className="font-black text-gray-900 dark:text-white">{formatAmount(rpPrice)}</p>
-                            {rpCompare && <p className="text-xs text-gray-400 line-through">{formatAmount(rpCompare)}</p>}
+                            <p className="font-black text-fg">{formatAmount(rpPrice)}</p>
+                            {rpCompare && <p className="text-xs text-fg-subtle line-through">{formatAmount(rpCompare)}</p>}
                           </div>
                           <span className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-lg font-medium">أضف للسلة</span>
                         </div>

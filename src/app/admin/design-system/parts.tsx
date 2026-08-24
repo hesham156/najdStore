@@ -65,7 +65,7 @@ export function CodeChip({ value, className }: { value: string; className?: stri
     >
       <span className="truncate">{value}</span>
       {copied ? (
-        <Check className="h-3 w-3 shrink-0 text-emerald-500" aria-hidden />
+        <Check className="h-3 w-3 shrink-0 text-success" aria-hidden />
       ) : (
         <Copy className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-60" aria-hidden />
       )}
@@ -109,13 +109,13 @@ export function Row({ children, className }: { children: React.ReactNode; classN
 export function Guidance({ good, bad }: { good: React.ReactNode; bad: React.ReactNode }) {
   return (
     <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-      <div className="rounded-control border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 dark:border-emerald-500/25 dark:bg-emerald-500/10">
-        <p className="mb-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">افعل</p>
-        <p className="text-xs leading-relaxed text-emerald-900/80 dark:text-emerald-200/80">{good}</p>
+      <div className="rounded-control border border-success/25 bg-success/10 px-3.5 py-2.5">
+        <p className="mb-0.5 text-[11px] font-bold text-success">افعل</p>
+        <p className="text-xs leading-relaxed text-fg">{good}</p>
       </div>
-      <div className="rounded-control border border-red-200 bg-red-50 px-3.5 py-2.5 dark:border-red-500/25 dark:bg-red-500/10">
-        <p className="mb-0.5 text-[11px] font-bold text-red-700 dark:text-red-400">تجنّب</p>
-        <p className="text-xs leading-relaxed text-red-900/80 dark:text-red-200/80">{bad}</p>
+      <div className="rounded-control border border-danger/25 bg-danger/10 px-3.5 py-2.5">
+        <p className="mb-0.5 text-[11px] font-bold text-danger">تجنّب</p>
+        <p className="text-xs leading-relaxed text-fg">{bad}</p>
       </div>
     </div>
   );

@@ -1,5 +1,9 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Five meanings, not five decorations. `purple` is kept as an alias of
+ * `primary` so old call sites keep working while resolving to the brand.
+ */
 export type BadgeVariant =
   | "default"
   | "primary"
@@ -23,25 +27,25 @@ interface BadgeProps {
  * status always reads the same across the whole dashboard.
  */
 const VARIANTS: Record<BadgeVariant, string> = {
-  default: "bg-primary-50 text-primary-700 ring-primary-600/15 dark:bg-primary-500/10 dark:text-primary-300 dark:ring-primary-400/20",
-  primary: "bg-primary-50 text-primary-700 ring-primary-600/15 dark:bg-primary-500/10 dark:text-primary-300 dark:ring-primary-400/20",
-  success: "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20",
-  warning: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20",
-  danger: "bg-red-50 text-red-700 ring-red-600/15 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/20",
-  info: "bg-blue-50 text-blue-700 ring-blue-600/15 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20",
-  purple: "bg-violet-50 text-violet-700 ring-violet-600/15 dark:bg-violet-500/10 dark:text-violet-300 dark:ring-violet-400/20",
+  default: "bg-brand/10 text-brand ring-brand/20",
+  primary: "bg-brand/10 text-brand ring-brand/20",
+  purple: "bg-brand/10 text-brand ring-brand/20",
+  success: "bg-success/10 text-success ring-success/20",
+  warning: "bg-warning/10 text-warning ring-warning/20",
+  danger: "bg-danger/10 text-danger ring-danger/20",
+  info: "bg-info/10 text-info ring-info/20",
   gray: "bg-surface-sunken text-fg-muted ring-line-strong/40",
 };
 
 const DOT_COLORS: Record<BadgeVariant, string> = {
-  default: "bg-primary-500",
-  primary: "bg-primary-500",
-  success: "bg-emerald-500",
-  warning: "bg-amber-500",
-  danger: "bg-red-500",
-  info: "bg-blue-500",
-  purple: "bg-violet-500",
-  gray: "bg-gray-400",
+  default: "bg-brand",
+  primary: "bg-brand",
+  purple: "bg-brand",
+  success: "bg-success",
+  warning: "bg-warning",
+  danger: "bg-danger",
+  info: "bg-info",
+  gray: "bg-fg-subtle",
 };
 
 export function Badge({ variant = "default", children, className, dot, size = "md" }: BadgeProps) {
@@ -80,7 +84,7 @@ export function getStatusBadge(status: string): { variant: BadgeVariant; label: 
   const map: Record<string, { variant: BadgeVariant; label: string }> = {
     PENDING: { variant: "warning", label: "في الانتظار" },
     PENDING_PAYMENT_REVIEW: { variant: "info", label: "بانتظار مراجعة الدفع" },
-    PAYMENT_APPROVED: { variant: "purple", label: "تم الموافقة على الدفع" },
+    PAYMENT_APPROVED: { variant: "primary", label: "تم الموافقة على الدفع" },
     PROCESSING: { variant: "default", label: "جاري المعالجة" },
     DELIVERED: { variant: "success", label: "تم التسليم" },
     CANCELLED: { variant: "danger", label: "ملغي" },

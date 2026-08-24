@@ -34,11 +34,11 @@ const VARIANTS: Record<ButtonVariant, string> = {
   ghost:
     "text-fg-muted hover:bg-surface-hover hover:text-fg",
   danger:
-    "bg-red-600 text-white shadow-xs hover:bg-red-700 active:bg-red-800 focus-visible:outline-red-600",
+    "bg-danger-solid text-white shadow-xs hover:opacity-90 active:opacity-80 focus-visible:outline-danger",
   success:
-    "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700 active:bg-emerald-800 focus-visible:outline-emerald-600",
+    "bg-success-solid text-white shadow-xs hover:opacity-90 active:opacity-80 focus-visible:outline-success",
   "soft-danger":
-    "bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20",
+    "bg-danger/10 text-danger hover:bg-danger/[0.16]",
 };
 
 const SIZES: Record<ButtonSize, string> = {
