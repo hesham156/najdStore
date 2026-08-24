@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import {
   Calendar,
@@ -41,9 +42,17 @@ interface Customer {
   createdAt: string;
   orders: Order[];
   _count: { orders: number };
+  /** Totals computed server-side across ALL orders, not just the listed ones. */
+  totalSpent?: number;
+  paidOrders?: number;
+  deliveredOrders?: number;
 }
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {
+  // Toggling a customer account is ADMIN-only on the server. Reflect that here
+  // instead of showing STAFF a button that answers with a bare 403.
+  const { data: session } = useSession();
+  const canToggle = session?.user.role === "ADMIN";
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -126,9 +135,15 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
     );
   }
 
-  const deliveredOrders = customer.orders.filter((o) => o.status === "DELIVERED");
-  const totalSpent = deliveredOrders.reduce((s, o) => s + parseFloat(String(o.total)), 0);
-  const avgOrder = deliveredOrders.length > 0 ? totalSpent / deliveredOrders.length : 0;
+  // Spend comes from the API, which sums EVERY paid order using the same rule
+  // as the accounting books. Computing it here from the last 20 orders alone
+  // would quietly disagree with the customers list and the ledger.
+  const deliveredCount = customer.deliveredOrders ?? 0;
+  const totalSpent = Number(customer.totalSpent ?? 0);
+  const paidCount = customer.paidOrders ?? 0;
+  const avgOrder = paidCount > 0 ? totalSpent / paidCount : 0;
+  const shownOrders = customer.orders.length;
+  const allOrders = customer._count.orders;
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -146,22 +161,24 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
           </Badge>
         }
         actions={
-          <Button
-            variant={customer.isActive ? "soft-danger" : "success"}
-            loading={toggling}
-            onClick={() => setConfirmToggle(true)}
-            icon={customer.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-          >
-            {customer.isActive ? "تعطيل الحساب" : "تفعيل الحساب"}
-          </Button>
+          canToggle && (
+            <Button
+              variant={customer.isActive ? "soft-danger" : "success"}
+              loading={toggling}
+              onClick={() => setConfirmToggle(true)}
+              icon={customer.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+            >
+              {customer.isActive ? "تعطيل الحساب" : "تفعيل الحساب"}
+            </Button>
+          )
         }
       />
 
       <AdminStats
         items={[
-          { label: "إجمالي الطلبات", value: customer._count.orders, icon: ShoppingBag, color: statColors.blue },
-          { label: "طلبات مكتملة", value: deliveredOrders.length, icon: CheckCircle2, color: statColors.green },
-          { label: "إجمالي الإنفاق", value: formatCurrency(totalSpent), icon: DollarSign, color: statColors.primary },
+          { label: "إجمالي الطلبات", value: allOrders, icon: ShoppingBag, color: statColors.blue },
+          { label: "طلبات مكتملة", value: deliveredCount, icon: CheckCircle2, color: statColors.green },
+          { label: "إجمالي الإنفاق", value: formatCurrency(totalSpent), icon: DollarSign, color: statColors.primary, hint: "الطلبات المدفوعة وغير الملغاة" },
           { label: "متوسط الطلب", value: formatCurrency(avgOrder), icon: DollarSign, color: statColors.amber },
         ]}
       />
@@ -196,7 +213,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
 
         <Section
           title="سجل الطلبات"
-          description={`${customer.orders.length} طلب`}
+          description={shownOrders < allOrders ? `أحدث ${shownOrders} من ${allOrders} طلب` : `${allOrders} طلب`}
           className="lg:col-span-2"
           contentClassName="pt-0"
         >

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, serverError } from "@/lib/api";
+import { PAID_STATUSES } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +11,6 @@ function monthStartKsa(): Date {
   const now = new Date(Date.now() + KSA);
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - KSA);
 }
-
-const PAID_STATUSES = ["PAYMENT_APPROVED", "PROCESSING", "DELIVERED"] as const;
 
 export async function GET() {
   if (!(await requireAdmin())) return unauthorized();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized } from "@/lib/api";
+import { PAID_STATUSES } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
   // Revenue = orders that are PAYMENT_APPROVED, PROCESSING, or DELIVERED
   const revenueOrders = await prisma.order.aggregate({
     where: {
-      status: { in: ["PAYMENT_APPROVED", "PROCESSING", "DELIVERED"] },
+      status: { in: PAID_STATUSES },
       createdAt: dateFilter,
     },
     _sum: { total: true, discount: true },
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
 
   const monthlyOrders = await prisma.order.findMany({
     where: {
-      status: { in: ["PAYMENT_APPROVED", "PROCESSING", "DELIVERED"] },
+      status: { in: PAID_STATUSES },
       createdAt: { gte: twelveMonthsAgo },
     },
     select: { total: true, createdAt: true },

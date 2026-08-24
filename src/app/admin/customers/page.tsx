@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DollarSign, Eye, ShoppingBag, UserCheck, Users, UsersRound } from "lucide-react";
@@ -30,9 +30,15 @@ interface Customer {
 type StatusFilter = "all" | "active" | "inactive" | "buyers";
 type SortKey = "name" | "orders" | "totalSpent" | "createdAt";
 
+const EMPTY_COUNTS = { all: 0, active: 0, inactive: 0, buyers: 0 };
+const EMPTY_STATS = { total: 0, active: 0, withOrders: 0, spent: 0 };
+
 export default function AdminCustomersPage() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState(EMPTY_COUNTS);
+  const [stats, setStats] = useState(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
@@ -42,67 +48,50 @@ export default function AdminCustomersPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // Filtering, sorting and paging all happen on the server: the list used to
+  // fetch a hard-capped 100 rows and slice them here, which silently truncated
+  // every larger store and made the KPI row wrong.
+  // Every tab, sort and page change is now a request, so a slow earlier one
+  // can land after a faster later one. Only the newest may write to state.
+  const requestId = useRef(0);
+
   const fetchCustomers = useCallback(async () => {
+    const id = ++requestId.current;
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch(`/api/admin/customers?search=${encodeURIComponent(search)}`);
+      const qs = new URLSearchParams({
+        search,
+        status,
+        sort: sortKey,
+        dir: sortDir,
+        page: String(page),
+        pageSize: String(pageSize),
+      });
+      const res = await fetch(`/api/admin/customers?${qs}`);
       const data = await res.json();
-      if (data.success) setCustomers(data.data);
-      else setError(true);
+      if (id !== requestId.current) return;
+      if (data.success) {
+        setCustomers(data.data);
+        setTotal(data.total ?? 0);
+        setCounts(data.counts ?? EMPTY_COUNTS);
+        setStats(data.stats ?? EMPTY_STATS);
+      } else setError(true);
     } catch {
-      setError(true);
+      if (id === requestId.current) setError(true);
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
-  }, [search]);
+  }, [search, status, sortKey, sortDir, page, pageSize]);
 
+  // Only the search box needs debouncing; the rest fire immediately.
   useEffect(() => {
-    const t = setTimeout(() => {
-      fetchCustomers();
-      setPage(1);
-    }, 300);
+    const t = setTimeout(fetchCustomers, search ? 300 : 0);
     return () => clearTimeout(t);
-  }, [fetchCustomers]);
+  }, [fetchCustomers, search]);
 
-  const counts = useMemo(
-    () => ({
-      all: customers.length,
-      active: customers.filter((c) => c.isActive).length,
-      inactive: customers.filter((c) => !c.isActive).length,
-      buyers: customers.filter((c) => (c._count?.orders ?? 0) > 0).length,
-    }),
-    [customers]
-  );
-
-  const stats = useMemo(() => {
-    const spent = customers.reduce((s, c) => s + (Number(c.totalSpent) || 0), 0);
-    return { total: customers.length, active: counts.active, withOrders: counts.buyers, spent };
-  }, [customers, counts]);
-
-  const filtered = useMemo(() => {
-    const rows = customers.filter((c) => {
-      if (status === "active") return c.isActive;
-      if (status === "inactive") return !c.isActive;
-      if (status === "buyers") return (c._count?.orders ?? 0) > 0;
-      return true;
-    });
-    const dir = sortDir === "asc" ? 1 : -1;
-    return [...rows].sort((a, b) => {
-      switch (sortKey) {
-        case "name":
-          return a.name.localeCompare(b.name, "ar") * dir;
-        case "orders":
-          return ((a._count?.orders ?? 0) - (b._count?.orders ?? 0)) * dir;
-        case "totalSpent":
-          return ((Number(a.totalSpent) || 0) - (Number(b.totalSpent) || 0)) * dir;
-        default:
-          return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * dir;
-      }
-    });
-  }, [customers, status, sortKey, sortDir]);
-
-  useEffect(() => setPage(1), [status]);
+  // Any change to what is being shown sends you back to the first page.
+  useEffect(() => setPage(1), [search, status, sortKey, sortDir, pageSize]);
 
   const filtersActive = search !== "" || status !== "all";
   const clearFilters = () => {
@@ -189,14 +178,13 @@ export default function AdminCustomersPage() {
     },
   ];
 
-  const totalPages = Math.ceil(filtered.length / pageSize);
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="space-y-5 animate-fade-in">
       <PageHeader
         title="العملاء"
-        description={`${filtered.length} عميل${filtersActive ? " بعد التصفية" : ""}`}
+        description={`${total} عميل${filtersActive ? " بعد التصفية" : ""}`}
         actions={<ImportExportBar entity="customers" onImported={fetchCustomers} />}
       />
 
@@ -232,7 +220,7 @@ export default function AdminCustomersPage() {
 
       <DataTable
         columns={columns}
-        data={paginated}
+        data={customers}
         loading={loading}
         error={error}
         onRetry={fetchCustomers}
@@ -259,13 +247,10 @@ export default function AdminCustomersPage() {
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        totalItems={filtered.length}
+        totalItems={total}
         pageSize={pageSize}
         onPageChange={setPage}
-        onPageSizeChange={(s) => {
-          setPageSize(s);
-          setPage(1);
-        }}
+        onPageSizeChange={setPageSize}
       />
     </div>
   );
