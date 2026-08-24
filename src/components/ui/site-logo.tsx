@@ -1,10 +1,13 @@
-import { cn } from "@/lib/utils";
+"use client";
 
-const LOGO_URL = "/logo.jpg";
+import { cn } from "@/lib/utils";
+import { useBranding } from "@/components/providers/BrandingProvider";
 
 interface SiteLogoProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
+  /** Overrides the configured logo — for previews in the settings screen. */
+  src?: string;
 }
 
 const sizes = {
@@ -15,17 +18,17 @@ const sizes = {
   xl: "w-20 h-20 rounded-2xl",
 };
 
-export function SiteLogo({ size = "md", className }: SiteLogoProps) {
+export function SiteLogo({ size = "md", className, src }: SiteLogoProps) {
+  // The logo used to be a hardcoded path, so changing it meant replacing a
+  // file in the repo. It now comes from settings via the branding context.
+  const { logoUrl, siteName } = useBranding();
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={LOGO_URL}
-      alt="شعار المنصة"
-      className={cn(
-        sizes[size],
-        "object-cover ring-1 ring-white/10 shadow-lg",
-        className
-      )}
+      src={src || logoUrl}
+      alt={`شعار ${siteName}`}
+      className={cn(sizes[size], "object-cover ring-1 ring-white/10 shadow-lg", className)}
     />
   );
 }

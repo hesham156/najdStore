@@ -15,7 +15,6 @@ import { VisitTracker } from "@/components/store/VisitTracker";
 import { CartTracker } from "@/components/store/CartTracker";
 import { CustomCodeInjector } from "@/components/providers/CustomCodeInjector";
 import type { ConversionSettings } from "@/context/ConversionContext";
-import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
 
 const CONVERSION_KEYS: (keyof ConversionSettings)[] = [
   "live_activity_enabled",
@@ -68,25 +67,16 @@ export default async function StoreLayout({ children }: { children: React.ReactN
     }
   }
 
-  const [conversionSettings, branding] = await Promise.all([
-    getConversionSettings(),
-    // The header is a client component, so the store's own name has to be
-    // handed to it here — it used to be hardcoded in the markup.
-    getSettings({
-      site_name: BRANDING_DEFAULTS.site_name,
-      site_tagline: BRANDING_DEFAULTS.site_tagline,
-    }).catch(() => ({
-      site_name: BRANDING_DEFAULTS.site_name,
-      site_tagline: BRANDING_DEFAULTS.site_tagline,
-    })),
-  ]);
+  // Branding reaches the header through the root layout's context, so this
+  // layout no longer queries the settings table for it a second time.
+  const conversionSettings = await getConversionSettings();
 
   return (
     <CurrencyProvider>
       <ConversionProvider settings={conversionSettings}>
         <UpsellProvider>
           <AnnouncementBar />
-          <Navbar storeName={branding.site_name} tagline={branding.site_tagline} />
+          <Navbar />
           <CartSidebar />
           <PopupManager />
           <LiveActivityToast />

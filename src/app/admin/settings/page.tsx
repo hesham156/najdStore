@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ImageSettingField } from "@/components/admin/ImageSettingField";
 
 interface Setting {
   key: string;
@@ -465,6 +466,13 @@ export default function AdminSettingsPage() {
                             onChange={(v) => set(setting.key, String(v))}
                           />
                         </div>
+                      ) : setting.type === "image" ? (
+                        <ImageSettingField
+                          label={label}
+                          value={values[setting.key] || ""}
+                          onChange={(url) => set(setting.key, url)}
+                          hint={setting.description}
+                        />
                       ) : setting.type === "code" ? (
                         <div>
                           <label className="block font-medium text-sm text-fg mb-1.5">{label}</label>

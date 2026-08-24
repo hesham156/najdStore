@@ -471,6 +471,7 @@ async function main() {
     { key: "site_name", value: "نجد برنت", type: "text", label: "Site Name", labelAr: "اسم الموقع", group: "general" },
     { key: "site_email", value: "support@store.com", type: "text", label: "Support Email", labelAr: "بريد الدعم", group: "general" },
     { key: "site_tagline", value: "طباعة وتغليف بجودة عالية", type: "text", label: "Site Tagline", labelAr: "الجملة أسفل اسم المتجر في الترويسة", group: "general" },
+    { key: "site_logo", value: "/logo.jpg", type: "image", label: "Site Logo", labelAr: "شعار المتجر", group: "general" },
     // Branding / marketing copy — re-theme the store for any niche from Settings
     { key: "hero_badge",           value: "طباعة احترافية وتسليم سريع", type: "text", label: "Hero Badge", labelAr: "الهيرو — الشارة العلوية", group: "general" },
     { key: "hero_title",           value: "اطبع أفكارك باحتراف", type: "text", label: "Hero Title", labelAr: "الهيرو — العنوان الرئيسي", group: "general" },

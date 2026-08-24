@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { SiteLogo } from "@/components/ui/site-logo";
+import { useBranding } from "@/components/providers/BrandingProvider";
 import { useSession, signOut } from "next-auth/react";
 import { useCartStore } from "@/store/cart";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -21,13 +22,11 @@ const navLinks = [
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as const;
 
-interface NavbarProps {
-  /** Passed from the server layout — this is a client component and cannot read settings itself. */
-  storeName: string;
-  tagline?: string;
-}
-
-export function Navbar({ storeName, tagline }: NavbarProps) {
+export function Navbar() {
+  // Name, tagline and logo all come from the branding context the root layout
+  // fills in — one source, rather than a prop for the name and a context for
+  // the logo that could drift apart.
+  const { siteName, tagline } = useBranding();
   const { data: session } = useSession();
   const { getTotalItems, toggleCart } = useCartStore();
   const [isMenuOpen, setIsMenuOpen]   = useState(false);
@@ -68,7 +67,7 @@ export function Navbar({ storeName, tagline }: NavbarProps) {
               <SiteLogo size="sm" />
             </motion.div>
             <div className="hidden sm:block">
-              <span className="block text-base font-bold leading-tight text-fg">{storeName}</span>
+              <span className="block text-base font-bold leading-tight text-fg">{siteName}</span>
               {tagline && (
                 <span className="block text-xs leading-tight text-primary-600 dark:text-primary-400">{tagline}</span>
               )}

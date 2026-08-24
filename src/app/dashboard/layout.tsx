@@ -3,19 +3,14 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { SiteLogo } from "@/components/ui/site-logo";
+import { StoreName } from "@/components/providers/BrandingProvider";
 import Link from "next/link";
 import { Home } from "lucide-react";
-import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login?redirect=/dashboard");
 
-  // The header used to hardcode a placeholder name and a stand-in letter
-  // instead of the store's own name and logo.
-  const { site_name } = await getSettings({ site_name: BRANDING_DEFAULTS.site_name }).catch(() => ({
-    site_name: BRANDING_DEFAULTS.site_name,
-  }));
 
   return (
     <div className="min-h-screen bg-surface-sunken">
@@ -32,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
           <Link href="/" className="flex items-center gap-2">
             <SiteLogo size="xs" />
-            <span className="hidden text-sm font-bold text-fg sm:block">{site_name}</span>
+            <StoreName className="hidden text-sm font-bold text-fg sm:block" />
           </Link>
         </div>
       </header>

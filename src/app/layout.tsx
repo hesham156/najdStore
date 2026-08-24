@@ -11,6 +11,8 @@ import { PixelInjector } from "@/components/providers/PixelInjector";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
 import { getSeoConfig, organizationJsonLd, webSiteJsonLd } from "@/lib/seo";
+import { BrandingProvider, DEFAULT_BRANDING } from "@/components/providers/BrandingProvider";
+import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
 
 // Load font via Next.js optimizer — bundled locally, zero external round-trip
 const cairo = Cairo({
@@ -81,6 +83,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cfg = await getSeoConfig();
 
+  // Read once here and share via context: `SiteLogo` appears in eight places
+  // across both server and client trees.
+  const brandingKeys = {
+    site_name: BRANDING_DEFAULTS.site_name,
+    site_logo: BRANDING_DEFAULTS.site_logo,
+    site_tagline: BRANDING_DEFAULTS.site_tagline,
+  };
+  const branding = await getSettings(brandingKeys).catch(() => brandingKeys);
+
   // One @graph rather than two loose blocks: it lets the WebSite reference the
   // Organization by @id, so a crawler reads one connected entity instead of
   // two strangers that happen to share a name.
@@ -101,6 +112,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body style={{ fontFamily: "var(--font-cairo), 'Cairo', sans-serif" }}>
         <SessionProvider>
+          <BrandingProvider
+            value={{
+              logoUrl: branding.site_logo || DEFAULT_BRANDING.logoUrl,
+              siteName: branding.site_name || DEFAULT_BRANDING.siteName,
+              tagline: branding.site_tagline || "",
+            }}
+          >
           <ThemeProvider>
             <DbKeepAlive />
             <Suspense fallback={null}><PixelInjector /></Suspense>
@@ -129,6 +147,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }}
             />
           </ThemeProvider>
+          </BrandingProvider>
         </SessionProvider>
       </body>
     </html>
