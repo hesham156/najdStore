@@ -22,6 +22,33 @@ async function main() {
     },
   });
 
+  console.log("✅ Users created");
+
+  // ─── Sample demo catalog ───────────────────────────────────────────────
+  //
+  // OPT-IN. This block used to run unless SEED_SAMPLE was explicitly "false",
+  // which meant a live store got the demo catalogue injected on every seed —
+  // and because each row is an upsert on its slug, products and categories the
+  // merchant had DELETED came back from the dead.
+  //
+  // Two locks now: the flag must be set on purpose, and a store that has ever
+  // taken an order is never touched regardless of the flag.
+  const wantsSample = process.env.SEED_SAMPLE === "true";
+  const orderCount = await prisma.order.count();
+
+  if (wantsSample && orderCount > 0) {
+    console.log(
+      `⏭️  Skipping the demo catalogue: this store has ${orderCount} real order(s). ` +
+      `Seeding samples here would resurrect deleted products.`
+    );
+  } else if (!wantsSample) {
+    console.log("⏭️  Skipping the demo catalogue (set SEED_SAMPLE=true to include it).");
+  }
+
+  if (wantsSample && orderCount === 0) {
+
+  // Demo accounts belong to the demo catalogue: they were created
+  // unconditionally, so a merchant who deleted them got them back.
   const staff = await prisma.user.upsert({
     where: { email: "staff@store.com" },
     update: {},
@@ -60,10 +87,6 @@ async function main() {
     },
   });
 
-  console.log("✅ Users created");
-
-  // ─── Sample demo catalog — set SEED_SAMPLE=false to skip (e.g. real stores) ───
-  if (process.env.SEED_SAMPLE !== "false") {
 
   // Categories
   const categories = await Promise.all([
@@ -464,7 +487,7 @@ async function main() {
     },
   });
 
-  } // ─── end sample demo catalog (SEED_SAMPLE) ───
+  } // ─── end sample demo catalog ───
 
   // Settings
   const settings = [
@@ -582,8 +605,11 @@ async function main() {
   console.log("\n🎉 Seed completed successfully!");
   console.log("\n📧 Login credentials:");
   console.log("  Admin: admin@store.com / admin123");
-  console.log("  Staff: staff@store.com / admin123");
-  console.log("  Customer: customer@example.com / customer123");
+  // Only advertise the demo accounts when they were actually created.
+  if (wantsSample && orderCount === 0) {
+    console.log("  Staff: staff@store.com / admin123");
+    console.log("  Customer: customer@example.com / customer123");
+  }
 }
 
 main()
