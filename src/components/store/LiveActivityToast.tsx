@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X } from "lucide-react";
 import { useConversion } from "@/context/ConversionContext";
+import { useCartStore } from "@/store/cart";
 
 const PRODUCTS = [
   "Adobe Creative Cloud",
@@ -31,6 +32,8 @@ function pick<T>(arr: T[]): T {
 
 export function LiveActivityToast() {
   const settings = useConversion();
+  // Hidden while the cart drawer is open so it never sits over the checkout CTA.
+  const cartOpen = useCartStore((s) => s.isOpen);
   const [visible, setVisible] = useState(false);
   const [item, setItem] = useState({ name: "", city: "", product: "", time: "" });
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -68,14 +71,17 @@ export function LiveActivityToast() {
 
   return (
     <AnimatePresence>
-      {visible && (
+      {visible && !cartOpen && (
         <motion.div
           key={item.name + item.time}
           initial={{ x: -120, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: -120, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="fixed bottom-6 start-6 z-[9990] max-w-[280px]"
+          // bottom-24 clears the sticky "add to cart" bar on product pages, which
+          // sits full-width at the very bottom; on other pages it just floats a
+          // little higher, never covering a bottom CTA.
+          className="fixed bottom-24 start-6 z-[9990] max-w-[280px]"
         >
           <div className="relative flex items-center gap-3 bg-surface rounded-2xl shadow-2xl border border-line p-3 pr-8 cursor-pointer hover:shadow-xl transition-shadow">
             {/* Green dot */}
