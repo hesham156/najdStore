@@ -6,7 +6,10 @@ import type { ProductWithCategory } from "@/types";
 const ROOT_ID = "najd-landing-block";
 const WHATSAPP_URL = "https://wa.me/966573999056";
 
-const CSS = `
+// Exported so individually-placed Najd builder blocks can re-scope the same
+// styles to their own wrapper (`#najd-landing-block` → `.najd-scope`) instead of
+// duplicating ~250 lines of CSS.
+export const NAJD_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
 
   #${ROOT_ID},
@@ -602,7 +605,7 @@ function ProductSlider({ title, subtitle, products }: { title: string; subtitle?
 export function NajdLanding({ featured, recent }: { featured: ProductWithCategory[]; recent: ProductWithCategory[] }) {
   return (
     <div id={ROOT_ID}>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: NAJD_CSS }} />
 
       <AnimatedSection direction="none">
         <div dangerouslySetInnerHTML={{ __html: HERO_HTML }} />

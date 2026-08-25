@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { NAJD_TYPES, NAJD_LABELS, isNajdType, parseNajdConfig, type NajdType, type NajdBlockConfig } from "@/lib/najd-blocks";
 
 /**
  * Merchant-controlled homepage layout. The layout is an ordered list of
@@ -18,7 +19,8 @@ export type HomeSectionType =
   | "banner_slider"  // rotating multi-slide banner carousel
   | "marquee"        // scrolling announcement text ticker
   | "richtext"       // heading + rich HTML in a centered container
-  | "custom_html";   // full-width raw HTML (merchant's own design)
+  | "custom_html"    // full-width raw HTML (merchant's own design)
+  | NajdType;        // individually-placeable Najd design sections
 
 /** A single slide inside a `banner_slider` section. */
 export interface BannerSlide {
@@ -47,6 +49,7 @@ export interface HomeSection {
   autoplay?: boolean;             // banner_slider: auto-advance slides
   text?: string;                  // marquee: the scrolling text
   slides?: BannerSlide[];         // banner_slider: the rotating slides
+  najd?: NajdBlockConfig;         // najd_*: per-section editable content
 }
 
 export const SECTION_LABELS: Record<HomeSectionType, string> = {
@@ -61,6 +64,7 @@ export const SECTION_LABELS: Record<HomeSectionType, string> = {
   marquee: "شريط إعلاني متحرك",
   richtext: "نص/عنوان منسّق",
   custom_html: "HTML مخصّص",
+  ...NAJD_LABELS,
 };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -80,7 +84,7 @@ export function starterSections(): HomeSection[] {
   ];
 }
 
-const VALID_TYPES: HomeSectionType[] = ["landing", "hero", "categories", "featured", "recent", "banner", "product_slider", "banner_slider", "marquee", "richtext", "custom_html"];
+const VALID_TYPES: HomeSectionType[] = ["landing", "hero", "categories", "featured", "recent", "banner", "product_slider", "banner_slider", "marquee", "richtext", "custom_html", ...NAJD_TYPES];
 
 /** Validate/normalize the slides array of a banner_slider section. */
 function cleanSlides(raw: unknown): BannerSlide[] | undefined {
@@ -125,6 +129,7 @@ export function parseSections(raw: string | null | undefined): HomeSection[] {
         autoplay: typeof s.autoplay === "boolean" ? s.autoplay : undefined,
         text: typeof s.text === "string" ? s.text : undefined,
         slides: cleanSlides(s.slides),
+        najd: isNajdType(s.type) ? parseNajdConfig(s.type, s.najd) : undefined,
       }));
     return cleaned.length ? cleaned : defaultSections();
   } catch {

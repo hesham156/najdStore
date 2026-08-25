@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { ProductCard } from "@/components/store/ProductCard";
-import { NajdLanding } from "@/components/store/NajdLanding";
+import { NajdLanding, NAJD_CSS } from "@/components/store/NajdLanding";
 import HeroContent from "@/components/store/HeroContent";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/store/AnimatedSection";
 import { ProductSlider, BannerSlider, Marquee } from "@/components/store/HomeAnimated";
 import type { HomeSection } from "@/lib/home-layout";
+import { isNajdType, renderNajdBlockHtml } from "@/lib/najd-blocks";
 import type { ProductWithCategory } from "@/types";
 
 /* eslint-disable @next/next/no-img-element */
+
+// The shared Najd styles re-scoped so an individually-placed Najd block styles
+// its own `.najd-scope` wrapper — injected once when any Najd block is present.
+const NAJD_SCOPED_CSS = NAJD_CSS.replace(/#najd-landing-block/g, ".najd-scope");
 
 interface Category {
   id: string; nameAr: string; slug: string; icon?: string | null; color?: string | null;
@@ -149,14 +154,25 @@ function renderSection(s: HomeSection, data: HomeData) {
       return <div dangerouslySetInnerHTML={{ __html: s.html }} />;
 
     default:
+      // Individually-placed Najd design sections.
+      if (isNajdType(s.type)) {
+        return (
+          <div className="najd-scope">
+            <div dangerouslySetInnerHTML={{ __html: renderNajdBlockHtml(s.type, s.najd) }} />
+          </div>
+        );
+      }
       return null;
   }
 }
 
 export function HomeSections({ sections, data }: { sections: HomeSection[]; data: HomeData }) {
+  const active = sections.filter((s) => s.enabled);
+  const hasNajdBlock = active.some((s) => isNajdType(s.type));
   return (
     <>
-      {sections.filter((s) => s.enabled).map((s) => (
+      {hasNajdBlock && <style dangerouslySetInnerHTML={{ __html: NAJD_SCOPED_CSS }} />}
+      {active.map((s) => (
         <div key={s.id}>{renderSection(s, data)}</div>
       ))}
     </>

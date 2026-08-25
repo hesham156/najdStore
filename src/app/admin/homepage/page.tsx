@@ -9,6 +9,8 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { Skeleton } from "@/components/ui/States";
 import toast from "react-hot-toast";
 import type { HomeSection, HomeSectionType, BannerSlide } from "@/lib/home-layout";
+import { NAJD_LABELS, NAJD_TYPES, isNajdType, defaultNajdConfig } from "@/lib/najd-blocks";
+import { NajdBlockEditor } from "@/components/admin/NajdBlockEditor";
 
 const LABELS: Record<HomeSectionType, string> = {
   landing: "تصميم نجد (جاهز)",
@@ -22,9 +24,10 @@ const LABELS: Record<HomeSectionType, string> = {
   marquee: "شريط إعلاني متحرك",
   richtext: "نص/عنوان منسّق",
   custom_html: "HTML مخصّص",
+  ...NAJD_LABELS,
 };
 
-const ADDABLE: HomeSectionType[] = ["hero", "categories", "featured", "recent", "product_slider", "banner", "banner_slider", "marquee", "richtext", "custom_html", "landing"];
+const ADDABLE: HomeSectionType[] = ["hero", "categories", "featured", "recent", "product_slider", "banner", "banner_slider", "marquee", "richtext", "custom_html", "landing", ...NAJD_TYPES];
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 export default function HomepageBuilderPage() {
@@ -55,7 +58,10 @@ export default function HomepageBuilderPage() {
     [copy[i], copy[j]] = [copy[j], copy[i]];
     return copy;
   });
-  const add = () => mutate((s) => [...s, { id: uid(), type: addType, enabled: true }]);
+  const add = () => mutate((s) => [
+    ...s,
+    { id: uid(), type: addType, enabled: true, ...(isNajdType(addType) ? { najd: defaultNajdConfig(addType) } : {}) },
+  ]);
 
   const save = async () => {
     setSaving(true);
@@ -231,6 +237,9 @@ function SectionEditor({ section: s, onChange }: { section: HomeSection; onChang
       );
 
     default:
+      if (isNajdType(s.type)) {
+        return <NajdBlockEditor type={s.type} value={s.najd} onChange={(najd) => onChange({ najd })} />;
+      }
       return null;
   }
 }
