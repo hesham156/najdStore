@@ -1,44 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { PORTFOLIO_DEFAULTS, type PortfolioContent } from "@/lib/portfolio";
 
 /* eslint-disable @next/next/no-img-element */
 
-interface Item {
-  category: "packaging" | "identity" | "digital";
-  img: string;
-  tag: string;
-  tagColor: string;
-  title: string;
-}
-
-const ITEMS: Item[] = [
-  { category: "packaging", img: "https://i.ibb.co/BHZ0YL65/IMG-0069.jpg", tag: "استاند بوب اب", tagColor: "#ec205f", title: "استاندات بوب اب فاخره" },
-  { category: "identity", img: "https://i.ibb.co/whDKGPLk/Chat-GPT-Image-28-2025-02-25-40.png", tag: "هوية بصرية", tagColor: "#244da0", title: "مجموعة الأعمال الشاملة" },
-  { category: "digital", img: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", tag: "مطبوعات ديجيتال", tagColor: "#ec205f", title: "بوسترات المعارض" },
-];
-
-const FILTERS: { value: string; label: string }[] = [
-  { value: "all", label: "الكل" },
-  { value: "packaging", label: "استاندات" },
-  { value: "identity", label: "هويات تجارية" },
-  { value: "digital", label: "مطبوعات ديجيتال" },
-];
-
 export function NajdPortfolio() {
   const [filter, setFilter] = useState("all");
+  // Start from the shipped defaults so the section renders instantly, then swap
+  // in the merchant's saved gallery once it loads — no empty flash.
+  const [content, setContent] = useState<PortfolioContent>(PORTFOLIO_DEFAULTS);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/homepage/portfolio")
+      .then((r) => r.json())
+      .then((res) => {
+        if (alive && res?.success && res.data) setContent(res.data);
+      })
+      .catch(() => {/* keep defaults */});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (!content.enabled) return null;
+
+  const { titleTop, titleMain, titleHighlight, filters, items } = content;
 
   return (
     <section className="najd-portfolio">
       <div className="najd-container">
         <div className="najd-portfolio-head">
           <div className="text-right">
-            <h2 className="najd-portfolio-title-top">إبداعاتنا</h2>
-            <h3 className="najd-portfolio-title-main">معرض <span>الأعمال</span></h3>
+            <h2 className="najd-portfolio-title-top">{titleTop}</h2>
+            <h3 className="najd-portfolio-title-main">
+              {titleMain} <span>{titleHighlight}</span>
+            </h3>
           </div>
 
           <div className="najd-portfolio-filters">
-            {FILTERS.map((f) => (
+            {filters.map((f) => (
               <button
                 key={f.value}
                 type="button"
@@ -52,9 +54,9 @@ export function NajdPortfolio() {
         </div>
 
         <div className="najd-portfolio-grid">
-          {ITEMS.map((item) => (
+          {items.map((item) => (
             <div
-              key={item.title}
+              key={item.id}
               className={`najd-portfolio-item${filter === "all" || filter === item.category ? "" : " hidden"}`}
               data-category={item.category}
             >

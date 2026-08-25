@@ -76,6 +76,7 @@ export const navGroups: NavGroup[] = [
     label: "التسويق",
     items: [
       { href: "/admin/homepage", label: "تصميم الصفحة الرئيسية", icon: Palette, keywords: "homepage builder design sections الصفحة الرئيسية تصميم" },
+      { href: "/admin/homepage/portfolio", label: "معرض الأعمال", icon: Sparkles, keywords: "portfolio gallery works معرض الأعمال إبداعاتنا" },
       { href: "/admin/announcements", label: "الإعلانات والعروض", icon: Megaphone, keywords: "announcements" },
       { href: "/admin/ads", label: "البنرات الإعلانية", icon: Sparkles, keywords: "ads banners" },
       { href: "/admin/popups", label: "النوافذ المنبثقة", icon: Megaphone, keywords: "popups" },
