@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,15 @@ const sha256 = (s: string) => crypto.createHash("sha256").update(s).digest("hex"
 /** Complete a password reset with a valid, unused, unexpired token. */
 export async function POST(req: NextRequest) {
   try {
+    // Throttle token guessing.
+    const rl = rateLimit(`reset:${clientIp(req.headers)}`, 10, 15 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { success: false, error: "محاولات كثيرة. حاول لاحقاً." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
+    }
+
     const { token, password } = await req.json();
     if (typeof token !== "string" || !token) {
       return NextResponse.json({ success: false, error: "رابط غير صالح" }, { status: 400 });

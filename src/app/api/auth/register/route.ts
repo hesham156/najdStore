@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +15,24 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Throttle mass account creation from one source.
+    const rl = rateLimit(`register:${clientIp(req.headers)}`, 5, 10 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { success: false, error: "محاولات كثيرة. حاول لاحقاً." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+      );
+    }
+
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ success: false, error: "بيانات غير صحيحة" }, { status: 400 });
     }
 
-    const { name, email, password, phone } = parsed.data;
+    const { name, password, phone } = parsed.data;
+    // Normalize so "User@x.com" and "user@x.com" cannot become two accounts.
+    const email = parsed.data.email.trim().toLowerCase();
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {

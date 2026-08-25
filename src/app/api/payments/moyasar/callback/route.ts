@@ -45,16 +45,30 @@ export async function GET(req: NextRequest) {
     const config = await getMoyasarConfig();
     const invoice = await getInvoice(config, id);
 
-    if (invoice.status === "paid") {
+    // Verify the gateway actually collected the amount WE booked — never trust the
+    // redirect. Moyasar reports the amount in halalas (SAR × 100). If it does not
+    // match the order total to the halala, treat it as unverified and do not
+    // approve (guards against a tampered/re-pointed invoice id).
+    const expectedHalalas = Math.round(Number(order.total) * 100);
+    const amountMatches = Number(invoice.amount) === expectedHalalas;
+
+    if (invoice.status === "paid" && amountMatches) {
+      // Race-safe, idempotent approval: only the request that actually flips the
+      // status out of a non-final state runs the side effects. A duplicate
+      // callback (or a concurrent one) sees count === 0 and just redirects.
       const updated = await prisma.$transaction(async (tx) => {
+        const res = await tx.order.updateMany({
+          where: {
+            id: order.id,
+            status: { notIn: ["PAYMENT_APPROVED", "PROCESSING", "DELIVERED", "CANCELLED", "REFUNDED"] },
+          },
+          data: { status: "PAYMENT_APPROVED" },
+        });
+        if (res.count === 0) return null;
+
         await tx.payment.update({
           where: { orderId: order.id },
           data: { status: "APPROVED", transactionId: id, reviewedAt: new Date() },
-        });
-        const o = await tx.order.update({
-          where: { id: order.id },
-          data: { status: "PAYMENT_APPROVED" },
-          include: { user: { select: SAFE_USER_SELECT }, payment: true },
         });
         await tx.notification.create({
           data: {
@@ -65,19 +79,33 @@ export async function GET(req: NextRequest) {
             orderId: order.id,
           },
         });
-        return o;
+        return tx.order.findUnique({
+          where: { id: order.id },
+          include: { user: { select: SAFE_USER_SELECT }, payment: true },
+        });
       });
 
-      await notifyOrderStatusUpdated(updated).catch(() => {});
+      if (updated) await notifyOrderStatusUpdated(updated).catch(() => {});
       return NextResponse.redirect(new URL(`/thank-you?order=${order.id}&num=${encodeURIComponent(order.orderNumber)}`, req.url));
     }
 
-    // Payment failed / not completed → cancel and release stock
-    if (order.status !== "CANCELLED") {
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { status: "CANCELLED", payment: { update: { status: "REJECTED" } } },
-      });
+    if (invoice.status === "paid" && !amountMatches) {
+      // Paid, but not the amount we expected — leave the order untouched for an
+      // admin to reconcile rather than silently fulfilling it.
+      console.error(
+        `[moyasar callback] amount mismatch for order ${order.orderNumber}: invoice=${invoice.amount} expected=${expectedHalalas}`,
+      );
+      return NextResponse.redirect(new URL(`/dashboard/orders/${order.id}?error=amount_mismatch`, req.url));
+    }
+
+    // Payment failed / not completed → cancel and release stock (race-safe:
+    // restore stock only if THIS request is the one that cancelled the order).
+    const cancelled = await prisma.order.updateMany({
+      where: { id: order.id, status: { notIn: ["CANCELLED", "REFUNDED", "PAYMENT_APPROVED", "PROCESSING", "DELIVERED"] } },
+      data: { status: "CANCELLED" },
+    });
+    if (cancelled.count === 1) {
+      await prisma.payment.update({ where: { orderId: order.id }, data: { status: "REJECTED" } }).catch(() => {});
       await restoreStock(
         order.items.map((it) => ({ productId: it.productId, variantId: it.variantId, quantity: it.quantity })),
       ).catch(() => {});

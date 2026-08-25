@@ -15,9 +15,12 @@ import { BrandingProvider, DEFAULT_BRANDING } from "@/components/providers/Brand
 import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
 
 // Load font via Next.js optimizer — bundled locally, zero external round-trip
+// Only the weights the UI actually uses are loaded. 300 (font-light) and 800
+// (font-extrabold) have zero references, so shipping them was two extra Arabic
+// font files — a large payload — downloaded on every visit for nothing.
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "600", "700", "900"],
   display: "swap",
   variable: "--font-cairo",
   preload: true,

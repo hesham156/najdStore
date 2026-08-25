@@ -383,7 +383,14 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error("Error integrating PayPal:", err);
         // Rollback: delete the order + release reserved stock so the DB stays clean
-        await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+        // Payment and Notification rows hold FKs to this order, so they must be
+        // removed before the order itself — otherwise the delete fails silently
+        // and leaves an orphan PENDING order behind. order_items cascade.
+        await prisma.$transaction([
+          prisma.notification.deleteMany({ where: { orderId: order.id } }),
+          prisma.payment.deleteMany({ where: { orderId: order.id } }),
+          prisma.order.delete({ where: { id: order.id } }),
+        ]).catch(() => {});
         if (reservedLines) await restoreStock(reservedLines).catch(() => {});
         reservedLines = null;
         return NextResponse.json(
@@ -409,7 +416,14 @@ export async function POST(req: NextRequest) {
         await prisma.payment.update({ where: { orderId: order.id }, data: { transactionId: invoice.id } });
       } catch (err) {
         console.error("Error integrating Moyasar:", err);
-        await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+        // Payment and Notification rows hold FKs to this order, so they must be
+        // removed before the order itself — otherwise the delete fails silently
+        // and leaves an orphan PENDING order behind. order_items cascade.
+        await prisma.$transaction([
+          prisma.notification.deleteMany({ where: { orderId: order.id } }),
+          prisma.payment.deleteMany({ where: { orderId: order.id } }),
+          prisma.order.delete({ where: { id: order.id } }),
+        ]).catch(() => {});
         if (reservedLines) await restoreStock(reservedLines).catch(() => {});
         reservedLines = null;
         return NextResponse.json(
@@ -468,7 +482,14 @@ export async function POST(req: NextRequest) {
         }
       } catch (err) {
         console.error("Error integrating Tamara:", err);
-        await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+        // Payment and Notification rows hold FKs to this order, so they must be
+        // removed before the order itself — otherwise the delete fails silently
+        // and leaves an orphan PENDING order behind. order_items cascade.
+        await prisma.$transaction([
+          prisma.notification.deleteMany({ where: { orderId: order.id } }),
+          prisma.payment.deleteMany({ where: { orderId: order.id } }),
+          prisma.order.delete({ where: { id: order.id } }),
+        ]).catch(() => {});
         if (reservedLines) await restoreStock(reservedLines).catch(() => {});
         reservedLines = null;
         return NextResponse.json(

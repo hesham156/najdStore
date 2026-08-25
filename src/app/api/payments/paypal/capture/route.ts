@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { capturePayPalOrder } from "@/lib/paypal";
 import { notifyOrderStatusUpdated } from "@/lib/hayyak";
+import { restoreStock } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
     // Verify order exists
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { payment: true },
+      include: { payment: true, items: true },
     });
 
     if (!order || !order.payment) {
@@ -30,47 +31,60 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL(`/dashboard/orders/${orderId}?payment=success`, req.url));
     }
 
-    // Ensure it's the correct PayPal token
+    // Ensure it's the correct PayPal token. This binds the capture to the exact
+    // PayPal order WE created for THIS order at THIS amount — a replayed or
+    // swapped token for another order is rejected here.
     if (order.payment.transactionId !== token) {
       return NextResponse.redirect(new URL(`/dashboard/orders/${orderId}?error=invalid_token`, req.url));
     }
 
-    // Capture the payment via PayPal API
+    // Capture the payment via PayPal's authenticated API — the money is confirmed
+    // server-side, never inferred from the redirect.
     const captureData = await capturePayPalOrder(token);
 
     if (captureData.status === "COMPLETED") {
-      // Payment successful!
-      await prisma.$transaction([
-        prisma.payment.update({
-          where: { orderId: orderId },
-          data: {
-            status: "APPROVED",
-            // Save capture ID if available
-            transactionId: captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id || token,
+      const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id || token;
+
+      // Race-safe, idempotent approval so a concurrent/duplicate capture callback
+      // does not double-fire the status-change notification.
+      const changed = await prisma.$transaction(async (tx) => {
+        const res = await tx.order.updateMany({
+          where: {
+            id: orderId,
+            status: { notIn: ["PAYMENT_APPROVED", "PROCESSING", "DELIVERED", "CANCELLED", "REFUNDED"] },
           },
-        }),
-        prisma.order.update({
-          where: { id: orderId },
           data: { status: "PAYMENT_APPROVED" },
-        }),
-      ]);
-
-      // إشعار حياك بتغيّر حالة الطلب إلى "تمت الموافقة على الدفع"
-      const updatedOrder = await prisma.order.findUnique({
-        where: { id: orderId },
-        select: { id: true, orderNumber: true, status: true, total: true, user: { select: { name: true, phone: true } } },
+        });
+        if (res.count === 0) return false;
+        await tx.payment.update({
+          where: { orderId: orderId },
+          data: { status: "APPROVED", transactionId: captureId },
+        });
+        return true;
       });
-      if (updatedOrder) await notifyOrderStatusUpdated(updatedOrder);
 
-      // Automatically deliver AUTOMATIC products (Optional, but good for digital products)
-      // Here we just redirect and let the webhook or polling handle it, 
-      // or the site owner's existing logic.
-      // Wait, there is already an admin panel to approve or maybe an auto-delivery cron.
-      // For now, updating status to PAYMENT_APPROVED is enough.
+      if (changed) {
+        const updatedOrder = await prisma.order.findUnique({
+          where: { id: orderId },
+          select: { id: true, orderNumber: true, status: true, total: true, user: { select: { name: true, phone: true } } },
+        });
+        if (updatedOrder) await notifyOrderStatusUpdated(updatedOrder).catch(() => {});
+      }
 
       return NextResponse.redirect(new URL(`/dashboard/orders/${orderId}?payment=success`, req.url));
     } else {
-      // Payment not completed
+      // Payment not completed → release the stock reserved at order creation
+      // (race-safe: restore only if THIS request cancels the order).
+      const cancelled = await prisma.order.updateMany({
+        where: { id: orderId, status: { notIn: ["CANCELLED", "REFUNDED", "PAYMENT_APPROVED", "PROCESSING", "DELIVERED"] } },
+        data: { status: "CANCELLED" },
+      });
+      if (cancelled.count === 1) {
+        await prisma.payment.update({ where: { orderId }, data: { status: "REJECTED" } }).catch(() => {});
+        await restoreStock(
+          order.items.map((it) => ({ productId: it.productId, variantId: it.variantId, quantity: it.quantity })),
+        ).catch(() => {});
+      }
       return NextResponse.redirect(new URL(`/dashboard/orders/${orderId}?payment=failed`, req.url));
     }
 

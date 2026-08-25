@@ -280,6 +280,10 @@ model Payment {
   method        PaymentMethod
   status        PaymentStatus @default(PENDING)
   amount        Decimal       @db.Decimal(10, 2)
+  // Cumulative amount refunded so far (supports partial refunds). Once it
+  // reaches `amount` the order moves to REFUNDED.
+  refundedAmount Decimal      @default(0) @db.Decimal(10, 2)
+  refundedAt    DateTime?
   proofImage    String?
   transactionId String?
   notes         String?

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { issuePasswordReset } from "@/lib/password-reset";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +11,16 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: NextRequest) {
   try {
+    const ok = NextResponse.json({ success: true });
+
+    // Throttle reset-email requests per source. Still return the same generic
+    // success shape so nothing about accounts leaks, even when throttled.
+    const rl = rateLimit(`forgot:${clientIp(req.headers)}`, 5, 15 * 60 * 1000);
+    if (!rl.ok) return ok;
+
     const { email } = await req.json();
     const clean = typeof email === "string" ? email.trim().toLowerCase() : "";
 
-    const ok = NextResponse.json({ success: true });
     if (!clean || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return ok;
 
     const user = await prisma.user.findUnique({

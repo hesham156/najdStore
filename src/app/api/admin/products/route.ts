@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, unauthorized, serverError } from "@/lib/api";
+import { requireAdmin, unauthorized, serverError, badRequest } from "@/lib/api";
 import { notifyProductUpserted } from "@/lib/hayyak";
 
 export const dynamic = "force-dynamic";
@@ -40,14 +40,25 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+
+    // Required fields + price sanity — otherwise Prisma failed with a bare 500.
+    const name = String(body.name || "").trim();
+    const nameAr = String(body.nameAr || "").trim();
+    const slug = String(body.slug || "").trim();
+    if (!name || !nameAr) return badRequest("اسم المنتج مطلوب");
+    if (!slug) return badRequest("الرابط (slug) مطلوب");
+    if (!body.categoryId) return badRequest("الفئة مطلوبة");
+    const price = Number(body.price);
+    if (!Number.isFinite(price) || price < 0) return badRequest("سعر المنتج غير صحيح");
+
     const product = await prisma.product.create({
       data: {
-        name: body.name,
-        nameAr: body.nameAr,
-        slug: body.slug,
+        name,
+        nameAr,
+        slug,
         description: body.description,
         descriptionAr: body.descriptionAr,
-        price: body.price,
+        price,
         comparePrice: body.comparePrice || null,
         categoryId: body.categoryId,
         image: body.image || null,
@@ -77,6 +88,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: product });
   } catch (err) {
+    // Duplicate slug → a clear message instead of a bare "حدث خطأ".
+    if ((err as { code?: string })?.code === "P2002") {
+      return badRequest("الرابط (slug) مستخدم لمنتج آخر. اختر رابطاً مختلفاً.");
+    }
     return serverError("POST /api/admin/products", err);
   }
 }

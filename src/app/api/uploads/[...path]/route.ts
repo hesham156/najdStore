@@ -54,6 +54,11 @@ export async function GET(_req: NextRequest, { params }: { params: { path: strin
       headers: {
         "Content-Type": contentType,
         "Content-Length": String(info.size),
+        // Never let a browser sniff an uploaded file into an executable type
+        // (e.g. an image carrying HTML). The content-type above is authoritative.
+        "X-Content-Type-Options": "nosniff",
+        // User uploads are data, never a document to run in our origin.
+        "Content-Disposition": "inline",
         // Filenames carry a timestamp, so a given URL never changes content.
         "Cache-Control": "public, max-age=31536000, immutable",
       },

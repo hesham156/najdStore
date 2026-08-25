@@ -9,9 +9,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!await requireAdmin()) return unauthorized();
 
     const body = await req.json();
+
+    // Whitelist editable fields (no mass assignment from the raw body).
+    const data: Record<string, unknown> = {};
+    for (const key of ["name", "nameAr", "slug", "description", "color"] as const) {
+      if (body[key] !== undefined) data[key] = body[key];
+    }
+    if (body.sortOrder !== undefined) data.sortOrder = parseInt(String(body.sortOrder), 10) || 0;
+
     const category = await prisma.postCategory.update({
       where: { id: params.id },
-      data: body,
+      data,
     });
 
     return NextResponse.json({ success: true, data: category });

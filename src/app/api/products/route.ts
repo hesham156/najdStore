@@ -10,8 +10,10 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const category = searchParams.get("category") || "";
     const featured = searchParams.get("featured");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const page = parseInt(searchParams.get("page") || "1");
+    // Clamp so a crafted `limit`/`page` can't trigger a huge scan or a NaN that
+    // Prisma rejects with a 500.
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10) || 20));
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
 
     const where: Record<string, unknown> = { isActive: true };
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getTamaraConfig, isValidTamaraNotification } from "@/lib/tamara";
 import { notifyOrderStatusUpdated } from "@/lib/hayyak";
+import { restoreStock } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     const order = await prisma.order.findUnique({
       where: { orderNumber: orderReferenceId },
-      include: { payment: true },
+      include: { payment: true, items: true },
     });
     if (!order) {
       return NextResponse.json({ success: true, ignored: "order not found" });
@@ -39,23 +40,39 @@ export async function POST(req: NextRequest) {
     const event = (eventType || "").toLowerCase();
 
     if (event.includes("approved") || event.includes("authorised") || event.includes("fully_captured")) {
-      if (order.payment?.status !== "APPROVED") {
-        await prisma.$transaction([
-          prisma.payment.update({ where: { orderId: order.id }, data: { status: "APPROVED" } }),
-          prisma.order.update({ where: { id: order.id }, data: { status: "PAYMENT_APPROVED" } }),
-        ]);
+      // Race-safe, idempotent approval — only the request that actually flips the
+      // status runs the notification, so a duplicate webhook is a no-op.
+      const changed = await prisma.$transaction(async (tx) => {
+        const res = await tx.order.updateMany({
+          where: {
+            id: order.id,
+            status: { notIn: ["PAYMENT_APPROVED", "PROCESSING", "DELIVERED", "CANCELLED", "REFUNDED"] },
+          },
+          data: { status: "PAYMENT_APPROVED" },
+        });
+        if (res.count === 0) return false;
+        await tx.payment.update({ where: { orderId: order.id }, data: { status: "APPROVED" } });
+        return true;
+      });
+      if (changed) {
         const updated = await prisma.order.findUnique({
           where: { id: order.id },
           select: { id: true, orderNumber: true, status: true, total: true, user: { select: { name: true, phone: true } } },
         });
-        if (updated) await notifyOrderStatusUpdated(updated);
+        if (updated) await notifyOrderStatusUpdated(updated).catch(() => {});
       }
     } else if (event.includes("declined") || event.includes("canceled") || event.includes("cancelled") || event.includes("expired")) {
-      if (order.status !== "PAYMENT_APPROVED" && order.status !== "DELIVERED") {
-        await prisma.$transaction([
-          prisma.payment.update({ where: { orderId: order.id }, data: { status: "REJECTED" } }),
-          prisma.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } }),
-        ]);
+      // Only cancel + release stock if the order is still open, and only once
+      // (guarded update → restore runs a single time even on duplicate webhooks).
+      const cancelled = await prisma.order.updateMany({
+        where: { id: order.id, status: { notIn: ["CANCELLED", "REFUNDED", "PAYMENT_APPROVED", "PROCESSING", "DELIVERED"] } },
+        data: { status: "CANCELLED" },
+      });
+      if (cancelled.count === 1) {
+        await prisma.payment.update({ where: { orderId: order.id }, data: { status: "REJECTED" } }).catch(() => {});
+        await restoreStock(
+          order.items.map((it) => ({ productId: it.productId, variantId: it.variantId, quantity: it.quantity })),
+        ).catch(() => {});
       }
     }
 

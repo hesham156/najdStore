@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,9 +13,18 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("البريد الإلكتروني وكلمة المرور مطلوبان");
+        }
+
+        // Throttle password guessing per source IP (not per account, so a
+        // victim cannot be locked out by an attacker burning their allowance).
+        const hdrs = (req?.headers ?? {}) as Record<string, string | undefined>;
+        const ip = (hdrs["x-forwarded-for"]?.split(",")[0].trim()) || hdrs["x-real-ip"] || "unknown";
+        const rl = rateLimit(`login:${ip}`, 10, 5 * 60 * 1000);
+        if (!rl.ok) {
+          throw new Error("محاولات دخول كثيرة. انتظر قليلاً ثم حاول مجدداً.");
         }
 
         const user = await prisma.user.findUnique({

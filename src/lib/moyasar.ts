@@ -103,3 +103,34 @@ export async function getInvoice(config: MoyasarConfig, id: string): Promise<Moy
   const data = await moyasarFetch(config, `/invoices/${encodeURIComponent(id)}`);
   return { id: String(data?.id ?? id), status: String(data?.status ?? ""), amount: Number(data?.amount ?? 0), raw: data };
 }
+
+/**
+ * Refund a Moyasar payment.
+ *
+ * Moyasar refunds operate on the underlying *payment*, not the invoice, so we
+ * read the invoice, find its paid payment, then issue the refund against it.
+ *
+ * @param invoiceId  the invoice id we stored on the order's Payment.transactionId
+ * @param amountSar  amount to refund in SAR; omit for a full refund
+ */
+export async function refundMoyasarPayment(
+  config: MoyasarConfig,
+  invoiceId: string,
+  amountSar?: number,
+): Promise<{ refundId: string; paymentId: string }> {
+  const invoice = await moyasarFetch(config, `/invoices/${encodeURIComponent(invoiceId)}`);
+  const payments: any[] = Array.isArray(invoice?.payments) ? invoice.payments : [];
+  const paid = payments.find((p) => p?.status === "paid") || payments[0];
+  const paymentId: string | undefined = paid?.id;
+  if (!paymentId) {
+    throw new MoyasarError("لا يوجد دفع قابل للاسترجاع على هذه الفاتورة", 400, invoice);
+  }
+
+  const body =
+    amountSar != null ? { amount: Math.round(amountSar * 100) } : undefined; // halalas; omit → full
+  const data = await moyasarFetch(config, `/payments/${encodeURIComponent(paymentId)}/refund`, {
+    method: "POST",
+    body,
+  });
+  return { refundId: String(data?.id ?? paymentId), paymentId };
+}

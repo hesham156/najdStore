@@ -121,8 +121,14 @@ export async function PATCH(req: NextRequest) {
     );
     await Promise.all(updates);
 
+    // Audit which keys changed, but never write secret values into the log
+    // table — mask anything that looks like a key/secret/token/password.
+    const SECRET_RE = /(secret|token|api_?key|password|pass|_key|iban|account_number)/i;
+    const redacted = Object.fromEntries(
+      Object.keys(settings).map((k) => [k, SECRET_RE.test(k) ? "***" : settings[k]]),
+    );
     await prisma.adminLog.create({
-      data: { userId: session.user.id, action: "UPDATE_SETTINGS", entity: "Setting", details: settings },
+      data: { userId: session.user.id, action: "UPDATE_SETTINGS", entity: "Setting", details: redacted },
     });
 
     return NextResponse.json({ success: true });

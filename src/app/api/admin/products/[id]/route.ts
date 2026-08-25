@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, unauthorized, notFound, serverError } from "@/lib/api";
+import { requireAdmin, unauthorized, notFound, serverError, badRequest } from "@/lib/api";
 import { notifyProductUpserted, notifyProductDeleted } from "@/lib/hayyak";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.slug        !== undefined) data.slug         = body.slug;
     if (body.description !== undefined) data.description  = body.description;
     if (body.descriptionAr !== undefined) data.descriptionAr = body.descriptionAr;
-    if (body.price       !== undefined) data.price        = body.price;
+    if (body.price       !== undefined) {
+      const price = Number(body.price);
+      if (!Number.isFinite(price) || price < 0) return badRequest("سعر المنتج غير صحيح");
+      data.price = price;
+    }
     if (body.comparePrice !== undefined) data.comparePrice = body.comparePrice || null;
     if (body.categoryId  !== undefined) data.categoryId   = body.categoryId;
     if (body.deliveryMethod !== undefined) data.deliveryMethod = body.deliveryMethod;
@@ -61,6 +65,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json({ success: true, data: product });
   } catch (err) {
+    if ((err as { code?: string })?.code === "P2002") {
+      return badRequest("الرابط (slug) مستخدم لمنتج آخر. اختر رابطاً مختلفاً.");
+    }
     return serverError("PATCH /api/admin/products/[id]", err);
   }
 }

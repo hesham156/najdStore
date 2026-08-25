@@ -56,11 +56,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 where: { id: { in: stockItems.map((s) => s.id) } },
                 data: { isDelivered: true, orderItemId: item.id },
               });
-              // Update product stock count
-              await prisma.product.update({
-                where: { id: item.productId },
-                data: { stockCount: { decrement: item.quantity } },
-              });
+              // Decrement stockCount ONLY for products that don't already track
+              // stock — a tracked product had its stockCount reserved at order
+              // creation (reserveStock), so decrementing again here would
+              // double-count and drive the counter negative.
+              if (!item.product.trackStock) {
+                await prisma.product.update({
+                  where: { id: item.productId },
+                  data: { stockCount: { decrement: item.quantity } },
+                });
+              }
             }
           }
         }

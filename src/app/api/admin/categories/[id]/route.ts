@@ -90,7 +90,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   try {
     const body = await req.json();
-    const category = await prisma.category.update({ where: { id: params.id }, data: body });
+
+    // Whitelist editable fields — never hand the raw body to Prisma, or a caller
+    // could set columns the form never exposes (mass assignment).
+    const data: Record<string, unknown> = {};
+    for (const key of ["name", "nameAr", "slug", "description", "descriptionAr", "icon", "image", "color"] as const) {
+      if (body[key] !== undefined) data[key] = body[key];
+    }
+    if (body.isActive !== undefined) data.isActive = !!body.isActive;
+    if (body.sortOrder !== undefined) data.sortOrder = parseInt(String(body.sortOrder), 10) || 0;
+
+    const category = await prisma.category.update({ where: { id: params.id }, data });
     return NextResponse.json({ success: true, data: category });
   } catch (err) {
     return serverError("PATCH /api/admin/categories/[id]", err);

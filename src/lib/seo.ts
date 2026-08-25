@@ -1,4 +1,10 @@
+import { cache as reactCache } from "react";
 import { getSettings } from "@/lib/settings";
+
+// React's `cache` exists only in the Server Components runtime. Fall back to a
+// pass-through in plain Node (unit tests) so this module still loads there.
+const perRequestCache: <A extends unknown[], R>(fn: (...args: A) => R) => (...args: A) => R =
+  typeof reactCache === "function" ? reactCache : (fn) => fn;
 
 /**
  * ══════════════════════════════════════════════════════════════
@@ -128,7 +134,11 @@ const asPolicy = (raw: string): AiPolicy =>
   raw === "open" || raw === "blocked" || raw === "answers" ? raw : "answers";
 
 /** Resolves the settings table into a complete, always-valid config. */
-export async function getSeoConfig(): Promise<SeoConfig> {
+// Wrapped in React `cache()` so the many callers in one render — the root
+// layout's generateMetadata AND body, each product/category page's metadata AND
+// its JSON-LD builder — collapse to a single settings read per request instead
+// of a fresh DB round-trip every time.
+export const getSeoConfig = perRequestCache(async function getSeoConfig(): Promise<SeoConfig> {
   let s: SeoSettings;
   try {
     s = await getSettings({ ...SEO_DEFAULTS });
@@ -189,7 +199,7 @@ export async function getSeoConfig(): Promise<SeoConfig> {
     sameAs: splitLines(s.seo_social_profiles).filter((u) => /^https?:\/\//i.test(u)),
     returnDays: Number.isFinite(returnDays) && returnDays > 0 ? returnDays : null,
   };
-}
+});
 
 /**
  * The store as a schema.org entity. Returned WITHOUT `@context` — these are

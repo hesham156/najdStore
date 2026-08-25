@@ -29,6 +29,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
     if (!order) return notFound("الطلب غير موجود");
     if (order.shipment) return badRequest("توجد شحنة مسبقاً لهذا الطلب");
+    if (order.status === "CANCELLED" || order.status === "REFUNDED") {
+      return badRequest("لا يمكن إنشاء شحنة لطلب ملغى أو مسترجع");
+    }
 
     const body = await req.json().catch(() => ({}));
     const carrier: Carrier = CARRIERS.includes(body.carrier) ? body.carrier : "REDBOX";
@@ -53,31 +56,53 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const paidOnline = order.payment?.status === "APPROVED";
     const codAmount = body.codAmount !== undefined ? Number(body.codAmount) : (paidOnline ? 0 : Number(order.total));
+    const safeCod = Number.isFinite(codAmount) ? codAmount : 0;
 
-    const parsed = await createShipment(carrier, {
-      reference: order.orderNumber,
-      name: shipName,
-      phone: shipPhone,
-      email: order.user.email || undefined,
-      city: shipCity || undefined,
-      address: shipAddress || undefined,
-      postalCode: shipPostal || undefined,
-      country: order.shipCountry || "SA",
-      codAmount: Number.isFinite(codAmount) ? codAmount : 0,
-      declaredValue: Number(order.total),
-      currency: "SAR",
-    });
+    // Claim the shipment slot atomically BEFORE calling the carrier. The unique
+    // `orderId` constraint means a second concurrent request fails here instead
+    // of creating a duplicate real shipment (and a duplicate COD charge) at the
+    // carrier. The placeholder is rolled back if the carrier call fails.
+    let shipment;
+    try {
+      shipment = await prisma.shipment.create({
+        data: { orderId: order.id, carrier, status: "PENDING", codAmount: safeCod },
+      });
+    } catch (e) {
+      if ((e as { code?: string })?.code === "P2002") {
+        return badRequest("توجد شحنة مسبقاً لهذا الطلب");
+      }
+      throw e;
+    }
 
-    const shipment = await prisma.shipment.create({
+    let parsed;
+    try {
+      parsed = await createShipment(carrier, {
+        reference: order.orderNumber,
+        name: shipName,
+        phone: shipPhone,
+        email: order.user.email || undefined,
+        city: shipCity || undefined,
+        address: shipAddress || undefined,
+        postalCode: shipPostal || undefined,
+        country: order.shipCountry || "SA",
+        codAmount: safeCod,
+        declaredValue: Number(order.total),
+        currency: "SAR",
+      });
+    } catch (err) {
+      // Carrier refused — release the slot so the admin can retry cleanly.
+      await prisma.shipment.delete({ where: { id: shipment.id } }).catch(() => {});
+      throw err;
+    }
+
+    shipment = await prisma.shipment.update({
+      where: { id: shipment.id },
       data: {
-        orderId: order.id,
-        carrier,
         carrierId: parsed.carrierId,
         trackingNumber: parsed.trackingNumber,
         labelUrl: parsed.labelUrl,
         trackingUrl: parsed.trackingUrl,
         status: parsed.status || "CREATED",
-        codAmount: Number.isFinite(codAmount) ? codAmount : 0,
         raw: parsed.raw as object,
       },
     });

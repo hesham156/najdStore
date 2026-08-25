@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -214,13 +215,46 @@ export async function captureTamaraPayment(
 
 /**
  * Verify a Tamara webhook notification token.
- * Tamara sends a JWT in the `tamaraToken` header signed with the notification key.
- * We do a lightweight equality/secret check here.
+ *
+ * Tamara sends a JWT in the `tamaraToken` header, signed HS256 with the
+ * merchant's Notification Token (the value stored as `pm_tamara_notification_key`).
+ * We MUST verify that signature: the webhook can flip an order to PAYMENT_APPROVED
+ * without any money moving, so accepting an unverified token lets anyone who knows
+ * their own order number self-confirm a free order.
+ *
+ * Returns true only when the token is a well-formed HS256 JWT whose signature
+ * checks out against the configured key (constant-time compare).
  */
-export function isValidTamaraNotification(token: string | null, notificationKey: string) {
-  if (!notificationKey) return false;
-  if (!token) return false;
-  // Tamara signs the payload; a full JWT-HMAC verification can be added here.
-  // For now we ensure a token is present and the key is configured.
-  return true;
+export function isValidTamaraNotification(token: string | null, notificationKey: string): boolean {
+  if (!notificationKey || !token) return false;
+
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+  const [headerB64, payloadB64, signatureB64] = parts;
+  if (!headerB64 || !payloadB64 || !signatureB64) return false;
+
+  // Only accept the algorithm Tamara actually uses — never trust `alg` blindly
+  // (guards against the "alg: none" / algorithm-confusion class of JWT attacks).
+  let header: { alg?: string };
+  try {
+    header = JSON.parse(Buffer.from(headerB64, "base64url").toString("utf8"));
+  } catch {
+    return false;
+  }
+  if (header.alg !== "HS256") return false;
+
+  let provided: Buffer;
+  try {
+    provided = Buffer.from(signatureB64, "base64url");
+  } catch {
+    return false;
+  }
+
+  const expected = crypto
+    .createHmac("sha256", notificationKey)
+    .update(`${headerB64}.${payloadB64}`)
+    .digest();
+
+  if (provided.length !== expected.length) return false;
+  return crypto.timingSafeEqual(provided, expected);
 }

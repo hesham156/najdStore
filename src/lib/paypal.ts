@@ -161,3 +161,53 @@ export async function capturePayPalOrder(paypalOrderId: string) {
   const data = await response.json();
   return data;
 }
+
+/**
+ * Refund a captured PayPal payment.
+ *
+ * @param captureId  the capture id we stored on Payment.transactionId after a
+ *                   successful capture
+ * @param amountSar  amount to refund in the STORE currency (SAR); omit for a
+ *                   full refund. Converted to the PayPal currency with the same
+ *                   exchange rate used at checkout.
+ * @returns { id, status } — status is "COMPLETED" on success
+ */
+export async function refundPayPalCapture(captureId: string, amountSar?: number) {
+  const config = await getPayPalConfig();
+  if (!config.enabled || !config.clientId || !config.clientSecret) {
+    throw new Error("PayPal is not fully configured or enabled");
+  }
+
+  const accessToken = await generateAccessToken(config.clientId, config.clientSecret, config.mode);
+  const baseURL = config.mode === "live" ? PAYPAL_API_BASE_LIVE : PAYPAL_API_BASE_SANDBOX;
+
+  // Full refund → empty body; partial → converted amount in the PayPal currency.
+  const body =
+    amountSar != null
+      ? JSON.stringify({
+          amount: {
+            value: (amountSar * config.exchangeRate).toFixed(2),
+            currency_code: config.currency,
+          },
+        })
+      : undefined;
+
+  const response = await fetch(`${baseURL}/v2/payments/captures/${captureId}/refund`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error("PayPal Refund Error:", errorBody);
+    throw new Error("Failed to refund PayPal payment");
+  }
+
+  const data = await response.json();
+  return { id: data?.id as string, status: data?.status as string };
+}
