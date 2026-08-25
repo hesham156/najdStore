@@ -158,6 +158,36 @@ export default function CheckoutPage() {
       .finally(() => setGatewaysLoading(false));
   }, []);
 
+  /*
+   * Pre-fill the shipping details for a logged-in customer so they don't retype
+   * their name and phone on every order. We prefer the address they last shipped
+   * to (repeat customers just confirm), and fall back to their account name and
+   * phone. Fields are only filled while still empty — never overwriting what the
+   * customer is typing — and stay editable, since the recipient may differ from
+   * the account holder.
+   */
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    Promise.all([
+      fetch("/api/users/profile").then((r) => r.json()).catch(() => null),
+      fetch("/api/orders").then((r) => r.json()).catch(() => null),
+    ]).then(([prof, ord]) => {
+      const p = prof?.success ? prof.data : null;
+      const lastWithAddr =
+        ord?.success && Array.isArray(ord.data)
+          ? ord.data.find(
+              (o: { shipName?: string; shipPhone?: string; shipCity?: string; shipAddress?: string }) =>
+                o.shipName || o.shipPhone || o.shipCity || o.shipAddress,
+            )
+          : null;
+
+      setShipName((cur) => cur || lastWithAddr?.shipName || p?.name || "");
+      setShipPhone((cur) => cur || lastWithAddr?.shipPhone || p?.phone || "");
+      setShipCity((cur) => cur || lastWithAddr?.shipCity || "");
+      setShipAddress((cur) => cur || lastWithAddr?.shipAddress || "");
+    });
+  }, [session?.user?.id]);
+
   const shippingBase = resolveCityFee(shipCity, cityRates, shipFee);
   const hasShipping = shipFee > 0 || cityRates.length > 0;
   // Same function the order API uses, so the price shown here is the price charged.
@@ -530,7 +560,11 @@ if (items.length === 0) {
             {/* ── Shipping address ── */}
             <div className="bg-surface rounded-2xl border border-line p-6">
               <h2 className="font-bold text-fg text-lg mb-1">عنوان الشحن</h2>
-              <p className="text-sm text-fg-subtle mb-4">لشحن طلبك عبر شركات التوصيل</p>
+              <p className="text-sm text-fg-subtle mb-4">
+                {session
+                  ? "عبّأنا بياناتك المحفوظة — عدّلها إذا كنت تشحن لشخص آخر."
+                  : "لشحن طلبك عبر شركات التوصيل"}
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field error={fieldErrors.shipName}>
                   <input value={shipName} onChange={(e) => setShipName(e.target.value)} placeholder="اسم المستلم" aria-label="اسم المستلم" className="input-base" />

@@ -137,13 +137,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Script>
             <Script src="https://7ayak.app/widget.js" strategy="afterInteractive" />
             <Toaster
-              position="bottom-left"
+              // Top, not bottom: a bottom toast sat on top of the cart drawer's
+              // fixed footer (total + "إتمام الشراء") on mobile, where the drawer
+              // is full-width — covering the most important CTA. Anchoring at the
+              // top keeps the checkout button always tappable.
+              position="top-center"
+              containerStyle={{ top: 72 }}
               toastOptions={{
                 duration: 4000,
                 style: {
                   fontFamily: "var(--font-cairo), 'Cairo', sans-serif",
                   direction: "rtl",
                   borderRadius: "12px",
+                  maxWidth: "92vw",
                 },
                 success: { style: { background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" } },
                 error: { style: { background: "#fef2f2", color: "#991b1b", border: "1px solid #fecaca" } },
