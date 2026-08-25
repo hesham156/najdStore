@@ -110,7 +110,9 @@ export function Navbar() {
           {/* Actions */}
           <div className="flex items-center gap-2">
             <CurrencySelector />
-            <ThemeToggle className="hidden sm:flex" />
+            {/* Compact: one cycling button instead of three inline icons, which
+                were crowding the header next to the currency, cart and account. */}
+            <ThemeToggle compact className="hidden sm:flex" />
 
             {/* Cart */}
             <motion.button
