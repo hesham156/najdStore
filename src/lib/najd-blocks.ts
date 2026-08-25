@@ -58,6 +58,15 @@ function safeUrl(v: unknown): string {
   return "#";
 }
 
+/**
+ * URL safe to drop into a CSS `url('…')`. Rejects anything with whitespace,
+ * quotes or parentheses so it cannot break out of the url() and inject CSS.
+ */
+function cssUrl(v: unknown): string {
+  const s = String(v ?? "").trim();
+  return /^(https?:\/\/|\/)[^\s"'()]+$/i.test(s) ? s : "";
+}
+
 /** Allow hex / rgb / rgba / simple keyword colours only. */
 function safeColor(v: unknown, fallback: string): string {
   const s = String(v ?? "").trim();
@@ -98,6 +107,8 @@ export interface NajdBlockConfig {
   titleHighlight?: string;
   desc?: string;
   image?: string;
+  image2?: string;   // hero: second visual card
+  bgImage?: string;  // hero: section background image
   cards?: NajdCard[];
   cta?: NajdCta;
   // why-us extras
@@ -129,6 +140,9 @@ const DEFAULTS: Record<NajdType, NajdBlockConfig> = {
     title: "نحول هويتك إلى",
     titleHighlight: "واقع ملموس",
     desc: "من الصناديق الفاخرة الملونة إلى المطبوعات التجارية الدقيقة، نقدم لك في نجد برنت حلولاً متكاملة تبرز قيمة علامتك التجارية بأعلى معايير الجودة العالمية.",
+    bgImage: "https://images.unsplash.com/photo-1626785774573-4b799315345d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80",
+    image: "https://cdn.salla.sa/EZORvA/972ac16c-8599-4203-96c1-39d995cb9b62-500x500-31Qm8zuDg10SEabdsT10wNsPukwGqWQzkoFqwgeW.jpg",
+    image2: "https://cdn.salla.sa/EZORvA/04431389-c6c1-4675-a658-dbac51d4b558-333.06962025316x500-cPqGIfrcMJKGapfMlJbpglUk6SWjHRXQSYGQFpn9.png",
     cta: { label: "ابدأ مشروعك", link: WHATSAPP_URL },
     cards: [
       { id: "f1", text: "طباعة رقمية", tagColor: "#ec205f" },
@@ -249,6 +263,8 @@ export function parseNajdConfig(type: NajdType, raw: unknown): NajdBlockConfig {
     titleHighlight: o.titleHighlight != null ? s(o.titleHighlight, 120) : d.titleHighlight,
     desc: o.desc != null ? s(o.desc, 600) : d.desc,
     image: o.image != null ? s(o.image, 500) : d.image,
+    image2: o.image2 != null ? s(o.image2, 500) : d.image2,
+    bgImage: o.bgImage != null ? s(o.bgImage, 500) : d.bgImage,
     cards: o.cards != null ? arr(o.cards).slice(0, 12).map(parseCard) : d.cards,
     cta: o.cta != null
       ? { title: s(cta.title, 160), text: s(cta.text, 300), link: s(cta.link, 500), label: s(cta.label, 60) }
@@ -266,8 +282,20 @@ function heroHtml(c: NajdBlockConfig): string {
   const features = (c.cards || []).map((f) =>
     `<div class="najd-hero-feature"><span style="color:${safeColor(f.tagColor, "#ec205f")};">●</span><span>${esc(f.text)}</span></div>`
   ).join("");
+
+  // Merchant-controllable background + the two visual photo cards. Inline styles
+  // override the CSS defaults; empty values fall back to the stylesheet.
+  const bg = cssUrl(c.bgImage);
+  const heroStyle = bg
+    ? ` style="background: radial-gradient(circle at 50% 50%, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.95) 100%), url('${bg}'); background-size: cover; background-position: center;"`
+    : "";
+  const img1 = cssUrl(c.image);
+  const img2 = cssUrl(c.image2);
+  const blueStyle = img1 ? ` style="background-image:url('${img1}');background-size:cover;background-position:center;"` : "";
+  const pinkStyle = img2 ? ` style="background-image:url('${img2}');background-size:cover;background-position:center;background-repeat:no-repeat;"` : "";
+
   return `
-  <section class="najd-hero">
+  <section class="najd-hero"${heroStyle}>
     <div class="najd-hero-blur-1"></div><div class="najd-hero-blur-2"></div>
     <div class="najd-container"><div class="najd-hero-wrap"><div class="najd-hero-content">
       <div class="najd-hero-badge">${esc(c.label)}</div>
@@ -280,8 +308,8 @@ function heroHtml(c: NajdBlockConfig): string {
       <div class="najd-hero-features">${features}</div>
     </div>
     <div class="najd-hero-visual"><div class="najd-visual-grid">
-      <div class="najd-box-card najd-box-blue"><div class="overlay"></div><span class="najd-box-label">NAJD</span></div>
-      <div class="najd-box-card najd-box-pink"><div class="overlay"></div><span class="najd-box-label">NAJD</span></div>
+      <div class="najd-box-card najd-box-blue"${blueStyle}><div class="overlay"></div>${img1 ? "" : '<span class="najd-box-label">NAJD</span>'}</div>
+      <div class="najd-box-card najd-box-pink"${pinkStyle}><div class="overlay"></div>${img2 ? "" : '<span class="najd-box-label">NAJD</span>'}</div>
       <div class="najd-box-white"><div class="najd-white-bars"><div style="background:#244da0;"></div><div style="background:#ec205f;"></div></div><span class="najd-white-title">NAJD</span></div>
     </div><div class="najd-visual-frame"></div></div></div></div>
   </section>`;

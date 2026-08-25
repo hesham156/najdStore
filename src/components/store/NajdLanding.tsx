@@ -1,6 +1,7 @@
 import { ProductCard } from "@/components/store/ProductCard";
 import { NajdPortfolio } from "@/components/store/NajdPortfolio";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/store/AnimatedSection";
+import { renderNajdBlockHtml, type NajdBlockConfig } from "@/lib/najd-blocks";
 import type { ProductWithCategory } from "@/types";
 
 const ROOT_ID = "najd-landing-block";
@@ -272,44 +273,6 @@ export const NAJD_CSS = `
   #${ROOT_ID} .najd-slider-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 20px; }
   @media (min-width: 640px) { #${ROOT_ID} .najd-slider-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (min-width: 1024px) { #${ROOT_ID} .najd-slider-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-`;
-
-const HERO_HTML = `
-  <section class="najd-hero">
-    <div class="najd-hero-blur-1"></div>
-    <div class="najd-hero-blur-2"></div>
-    <div class="najd-container">
-      <div class="najd-hero-wrap">
-        <div class="najd-hero-content">
-          <div class="najd-hero-badge">متخصصون في التغليف والطباعة الفاخرة</div>
-          <h1 class="najd-hero-title">نحول هويتك إلى <br><span class="najd-gradient-text">واقع ملموس</span></h1>
-          <p class="najd-hero-desc">من الصناديق الفاخرة الملونة إلى المطبوعات التجارية الدقيقة، نقدم لك في نجد برنت حلولاً متكاملة تبرز قيمة علامتك التجارية بأعلى معايير الجودة العالمية.</p>
-          <div class="najd-hero-buttons">
-            <a href="${WHATSAPP_URL}" class="najd-hero-btn najd-btn-primary">ابدأ مشروعك
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-            </a>
-            <a href="/all-print-products/c804817736" class="najd-hero-btn najd-glass secondary">تصفح أعمالنا</a>
-          </div>
-          <div class="najd-hero-features">
-            <div class="najd-hero-feature"><span style="color:#ec205f;">●</span><span>طباعة رقمية</span></div>
-            <div class="najd-hero-feature"><span style="color:#244da0;">●</span><span>تغليف فاخر</span></div>
-            <div class="najd-hero-feature"><span style="color:#ffffff;">●</span><span>تصميم هويات</span></div>
-          </div>
-        </div>
-        <div class="najd-hero-visual">
-          <div class="najd-visual-grid">
-            <div class="najd-box-card najd-box-blue"><div class="overlay"></div><span class="najd-box-label">NAJD</span></div>
-            <div class="najd-box-card najd-box-pink"><div class="overlay"></div><span class="najd-box-label">NAJD</span></div>
-            <div class="najd-box-white">
-              <div class="najd-white-bars"><div style="background:#244da0;"></div><div style="background:#ec205f;"></div></div>
-              <span class="najd-white-title">NAJD</span>
-            </div>
-          </div>
-          <div class="najd-visual-frame"></div>
-        </div>
-      </div>
-    </div>
-  </section>
 `;
 
 const SERVICES_HTML = `
@@ -602,13 +565,13 @@ function ProductSlider({ title, subtitle, products }: { title: string; subtitle?
   );
 }
 
-export function NajdLanding({ featured, recent }: { featured: ProductWithCategory[]; recent: ProductWithCategory[] }) {
+export function NajdLanding({ featured, recent, hero }: { featured: ProductWithCategory[]; recent: ProductWithCategory[]; hero?: NajdBlockConfig }) {
   return (
     <div id={ROOT_ID}>
       <style dangerouslySetInnerHTML={{ __html: NAJD_CSS }} />
 
       <AnimatedSection direction="none">
-        <div dangerouslySetInnerHTML={{ __html: HERO_HTML }} />
+        <div dangerouslySetInnerHTML={{ __html: renderNajdBlockHtml("najd_hero", hero) }} />
       </AnimatedSection>
 
       <AnimatedSection>

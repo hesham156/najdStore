@@ -54,7 +54,7 @@ function ProductGrid({ title, subtitle, products }: { title?: string; subtitle?:
 function renderSection(s: HomeSection, data: HomeData) {
   switch (s.type) {
     case "landing":
-      return <NajdLanding featured={data.featured} recent={data.recent} />;
+      return <NajdLanding featured={data.featured} recent={data.recent} hero={s.najd} />;
 
     case "hero":
       // Single source of truth: hero content lives in Settings → "الواجهة والهيرو".

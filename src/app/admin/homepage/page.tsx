@@ -60,7 +60,16 @@ export default function HomepageBuilderPage() {
   });
   const add = () => mutate((s) => [
     ...s,
-    { id: uid(), type: addType, enabled: true, ...(isNajdType(addType) ? { najd: defaultNajdConfig(addType) } : {}) },
+    {
+      id: uid(),
+      type: addType,
+      enabled: true,
+      ...(isNajdType(addType)
+        ? { najd: defaultNajdConfig(addType) }
+        : addType === "landing"
+          ? { najd: defaultNajdConfig("najd_hero") }
+          : {}),
+    },
   ]);
 
   const save = async () => {
@@ -148,7 +157,15 @@ export default function HomepageBuilderPage() {
 function SectionEditor({ section: s, onChange }: { section: HomeSection; onChange: (p: Partial<HomeSection>) => void }) {
   switch (s.type) {
     case "landing":
-      return <p className="text-[13px] text-fg-muted">تصميم نجد الجاهز (الترويسة، الخدمات، سلايدرات المنتجات، المعرض…). لا يحتاج إعداداً.</p>;
+      return (
+        <div className="space-y-3">
+          <p className="text-[13px] text-fg-muted">
+            تصميم نجد الجاهز (الترويسة، الخدمات، سلايدرات المنتجات، المعرض…). يمكنك تخصيص
+            <span className="font-medium text-fg"> الترويسة (النصوص والصور والخلفية)</span> أدناه؛ بقية الأقسام تتبع التصميم الجاهز.
+          </p>
+          <NajdBlockEditor type="najd_hero" value={s.najd} onChange={(najd) => onChange({ najd })} />
+        </div>
+      );
 
     case "hero":
       return (

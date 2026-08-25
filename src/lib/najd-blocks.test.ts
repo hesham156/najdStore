@@ -81,4 +81,25 @@ describe("renderNajdBlockHtml", () => {
       expect(renderNajdBlockHtml(t)).toContain("<section");
     }
   });
+
+  it("puts merchant hero images into the background and cards", () => {
+    const cfg = parseNajdConfig("najd_hero", {
+      bgImage: "https://cdn.example.com/bg.jpg",
+      image: "https://cdn.example.com/a.jpg",
+      image2: "https://cdn.example.com/b.png",
+    });
+    const html = renderNajdBlockHtml("najd_hero", cfg);
+    expect(html).toContain("url('https://cdn.example.com/bg.jpg')");
+    expect(html).toContain("url('https://cdn.example.com/a.jpg')");
+    expect(html).toContain("url('https://cdn.example.com/b.png')");
+  });
+
+  it("rejects a CSS-injection attempt in an image url", () => {
+    const cfg = parseNajdConfig("najd_hero", {
+      bgImage: "https://x/y.jpg'); } body { display:none } .x{ background:url('z",
+    });
+    const html = renderNajdBlockHtml("najd_hero", cfg);
+    expect(html).not.toContain("display:none");
+    expect(html).not.toContain("body {");
+  });
 });

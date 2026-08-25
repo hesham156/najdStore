@@ -129,7 +129,13 @@ export function parseSections(raw: string | null | undefined): HomeSection[] {
         autoplay: typeof s.autoplay === "boolean" ? s.autoplay : undefined,
         text: typeof s.text === "string" ? s.text : undefined,
         slides: cleanSlides(s.slides),
-        najd: isNajdType(s.type) ? parseNajdConfig(s.type, s.najd) : undefined,
+        // najd_* blocks carry their own config; the "landing" preset carries a
+        // hero config so its header/images stay editable too.
+        najd: isNajdType(s.type)
+          ? parseNajdConfig(s.type, s.najd)
+          : s.type === "landing"
+            ? parseNajdConfig("najd_hero", s.najd)
+            : undefined,
       }));
     return cleaned.length ? cleaned : defaultSections();
   } catch {

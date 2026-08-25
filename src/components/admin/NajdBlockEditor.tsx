@@ -22,6 +22,7 @@ interface Spec {
   highlight?: boolean;
   desc?: boolean;
   image?: boolean; // section-level image (digital)
+  heroVisuals?: boolean; // hero background + 2 photo cards
   card: CardKind;
   cardsTitle?: string;
   cta?: "full" | "button";
@@ -29,7 +30,7 @@ interface Spec {
   testimonial?: boolean;
 }
 const SPECS: Record<NajdType, Spec> = {
-  najd_hero: { label: true, title: true, highlight: true, desc: true, card: "feature", cardsTitle: "الوسوم أسفل الترويسة", cta: "button" },
+  najd_hero: { label: true, title: true, highlight: true, desc: true, heroVisuals: true, card: "feature", cardsTitle: "الوسوم أسفل الترويسة", cta: "button" },
   najd_services: { label: true, title: true, highlight: true, desc: true, card: "service", cardsTitle: "الخدمات", cta: "full" },
   najd_stickers: { label: true, title: true, highlight: true, desc: true, card: "sticker", cardsTitle: "أنواع الملصقات" },
   najd_startups: { label: true, title: true, highlight: true, desc: true, card: "startup", cardsTitle: "المزايا", cta: "full" },
@@ -112,6 +113,19 @@ export function NajdBlockEditor({
       </div>
       {spec.desc && <Textarea label="الوصف" rows={2} value={cfg.desc || ""} onChange={(e) => set({ desc: e.target.value })} />}
       {spec.image && <ImageField label="صورة القسم" value={cfg.image} onChange={(v) => set({ image: v })} />}
+
+      {/* Hero visuals: background + two photo cards */}
+      {spec.heroVisuals && (
+        <div className="rounded-xl border border-line p-3 space-y-3">
+          <span className="text-sm font-semibold text-fg">صور الترويسة والخلفية</span>
+          <ImageField label="صورة الخلفية" value={cfg.bgImage} onChange={(v) => set({ bgImage: v })} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ImageField label="الصورة الأولى (البطاقة العلوية)" value={cfg.image} onChange={(v) => set({ image: v })} />
+            <ImageField label="الصورة الثانية (البطاقة الجانبية)" value={cfg.image2} onChange={(v) => set({ image2: v })} />
+          </div>
+          <p className="text-xs text-fg-muted">اترك أي حقل فارغاً للرجوع إلى التصميم الافتراضي.</p>
+        </div>
+      )}
 
       {/* Cards */}
       {spec.card && (
