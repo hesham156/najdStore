@@ -46,6 +46,17 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
     .map((t) => t.slice("bundle:".length))
     .filter((id) => id && id !== productRaw.id);
 
+  // Optional bundle discount, stored as `bundle_discount:<TYPE>:<VALUE>`.
+  let bundleDiscount: { type: "PERCENTAGE" | "FIXED"; value: number } | null = null;
+  const discTag = ((productRaw.tags || []) as string[]).find((t) => t.startsWith("bundle_discount:"));
+  if (discTag) {
+    const [, type, val] = discTag.split(":");
+    const num = parseFloat(val);
+    if ((type === "PERCENTAGE" || type === "FIXED") && Number.isFinite(num) && num > 0) {
+      bundleDiscount = { type, value: num };
+    }
+  }
+
   let bundleProducts: Array<{ id: string; nameAr: string; slug: string; price: number; image: string | null; icon: string | null }> = [];
   if (bundleIds.length > 0) {
     const rows = await prisma.product.findMany({
@@ -103,7 +114,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
   return (
     <>
-      <ProductClient product={product} publicSettings={publicSettings} options={optionsData} optionVariants={optionVariants} bundleProducts={bundleProducts} />
+      <ProductClient product={product} publicSettings={publicSettings} options={optionsData} optionVariants={optionVariants} bundleProducts={bundleProducts} bundleDiscount={bundleDiscount} />
     </>
   );
 }

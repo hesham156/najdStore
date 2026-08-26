@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Search, Package, X } from "lucide-react";
-import { Input } from "@/components/ui/Input";
+import { Input, Select } from "@/components/ui/Input";
 import { formatCurrency } from "@/lib/utils";
 
 interface PickerProduct {
@@ -23,10 +23,17 @@ export function BundlePicker({
   value,
   onChange,
   excludeId,
+  discountType,
+  discountValue,
+  onDiscountChange,
 }: {
   value: string[];
   onChange: (ids: string[]) => void;
   excludeId?: string;
+  /* Optional bundle discount (applied when the customer buys the set together) */
+  discountType?: "" | "PERCENTAGE" | "FIXED";
+  discountValue?: string;
+  onDiscountChange?: (type: "" | "PERCENTAGE" | "FIXED", value: string) => void;
 }) {
   const [products, setProducts] = useState<PickerProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,6 +142,36 @@ export function BundlePicker({
           })
         )}
       </div>
+
+      {/* Bundle discount — applied when the customer buys the set together */}
+      {onDiscountChange && (
+        <div className="rounded-control border border-line p-3 space-y-3">
+          <p className="text-xs font-semibold text-fg-subtle">خصم الحزمة (عند الشراء معاً)</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Select
+              label="نوع الخصم"
+              value={discountType || ""}
+              onChange={(e) => onDiscountChange(e.target.value as "" | "PERCENTAGE" | "FIXED", discountValue || "")}
+              options={[
+                { value: "", label: "بدون خصم" },
+                { value: "PERCENTAGE", label: "نسبة مئوية (%)" },
+                { value: "FIXED", label: "مبلغ ثابت (ر.س)" },
+              ]}
+            />
+            {discountType && (
+              <Input
+                label={discountType === "PERCENTAGE" ? "النسبة %" : "المبلغ (ر.س)"}
+                type="number"
+                min="0"
+                step={discountType === "PERCENTAGE" ? "1" : "0.01"}
+                value={discountValue || ""}
+                onChange={(e) => onDiscountChange(discountType, e.target.value)}
+                hint="يُطبَّق على مجموع المنتجات المكمّلة المختارة."
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

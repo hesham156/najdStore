@@ -64,6 +64,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [bundleIds, setBundleIds] = useState<string[]>([]);
+  const [bundleDiscountType, setBundleDiscountType] = useState<"" | "PERCENTAGE" | "FIXED">("");
+  const [bundleDiscountValue, setBundleDiscountValue] = useState("");
 
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [newStockData, setNewStockData] = useState("");
@@ -135,6 +137,13 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setBundleIds(
         tags.filter((t) => t.startsWith("bundle:")).map((t) => t.slice("bundle:".length)).filter(Boolean)
       );
+
+      const discTag = tags.find((t) => t.startsWith("bundle_discount:"));
+      if (discTag) {
+        const [, type, val] = discTag.split(":");
+        setBundleDiscountType(type === "PERCENTAGE" || type === "FIXED" ? type : "");
+        setBundleDiscountValue(val || "");
+      }
 
       setForm({
         nameAr: p.nameAr,
@@ -262,6 +271,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       if (form.seoDescription.trim()) seoTags.push(`seo_desc:${form.seoDescription.trim()}`);
       if (form.seoKeywords.trim()) seoTags.push(`seo_kw:${form.seoKeywords.trim()}`);
       const bundleTags = bundleIds.filter((id) => id !== params.id).map((id) => `bundle:${id}`);
+      if (bundleTags.length > 0 && bundleDiscountType && parseFloat(bundleDiscountValue) > 0) {
+        bundleTags.push(`bundle_discount:${bundleDiscountType}:${parseFloat(bundleDiscountValue)}`);
+      }
 
       const basePrice = variants.length > 0 ? parseFloat(variants[0].price) : parseFloat(form.price);
 
@@ -636,7 +648,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 description="منتجات تُعرض في صفحة هذا المنتج ضمن قسم «كمّل طلبك» ليضيفها العميل بضغطة."
                 contentClassName="space-y-4 pt-0"
               >
-                <BundlePicker value={bundleIds} onChange={setBundleIds} excludeId={params.id} />
+                <BundlePicker
+                  value={bundleIds}
+                  onChange={setBundleIds}
+                  excludeId={params.id}
+                  discountType={bundleDiscountType}
+                  discountValue={bundleDiscountValue}
+                  onDiscountChange={(t, v) => { setBundleDiscountType(t); setBundleDiscountValue(v); }}
+                />
               </Section>
             </TabPanel>
           </form>

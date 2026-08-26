@@ -35,6 +35,8 @@ export default function NewProductPage() {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [bundleIds, setBundleIds] = useState<string[]>([]);
+  const [bundleDiscountType, setBundleDiscountType] = useState<"" | "PERCENTAGE" | "FIXED">("");
+  const [bundleDiscountValue, setBundleDiscountValue] = useState("");
   const [form, setForm] = useState({
     nameAr: "",
     name: "",
@@ -102,6 +104,9 @@ export default function NewProductPage() {
         (v) => `variant:${v.label.trim()}:${parseFloat(v.price)}${v.comparePrice ? `:${parseFloat(v.comparePrice)}` : ""}`
       );
       const bundleTags = bundleIds.map((id) => `bundle:${id}`);
+      if (bundleTags.length > 0 && bundleDiscountType && parseFloat(bundleDiscountValue) > 0) {
+        bundleTags.push(`bundle_discount:${bundleDiscountType}:${parseFloat(bundleDiscountValue)}`);
+      }
       const basePrice = variants.length > 0 ? parseFloat(variants[0].price) : parseFloat(form.price);
       const res = await fetch("/api/admin/products", {
         method: "POST",
@@ -303,7 +308,13 @@ export default function NewProductPage() {
                 description="منتجات تُعرض في صفحة هذا المنتج ضمن قسم «كمّل طلبك» ليضيفها العميل بضغطة."
                 contentClassName="space-y-4 pt-0"
               >
-                <BundlePicker value={bundleIds} onChange={setBundleIds} />
+                <BundlePicker
+                  value={bundleIds}
+                  onChange={setBundleIds}
+                  discountType={bundleDiscountType}
+                  discountValue={bundleDiscountValue}
+                  onDiscountChange={(t, v) => { setBundleDiscountType(t); setBundleDiscountValue(v); }}
+                />
               </Section>
             </TabPanel>
           </form>

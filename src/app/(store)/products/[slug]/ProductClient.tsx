@@ -44,9 +44,11 @@ interface Props {
   optionVariants?: MatrixVariant[];
   /* "كمّل طلبك" — complementary products chosen by the merchant */
   bundleProducts?: BundleProduct[];
+  /* Optional discount applied when buying the bundle together */
+  bundleDiscount?: { type: "PERCENTAGE" | "FIXED"; value: number } | null;
 }
 
-export default function ProductClient({ product, publicSettings, options = [], optionVariants = [], bundleProducts = [] }: Props) {
+export default function ProductClient({ product, publicSettings, options = [], optionVariants = [], bundleProducts = [], bundleDiscount = null }: Props) {
   const { formatAmount } = useCurrency();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -211,21 +213,39 @@ export default function ProductClient({ product, publicSettings, options = [], o
     [bundleProducts, bundleSelected],
   );
 
+  // Discount on the selected complementary products, clamped to the total.
+  const bundleDiscountAmount = useMemo(() => {
+    if (!bundleDiscount || bundleTotal <= 0) return 0;
+    const raw = bundleDiscount.type === "PERCENTAGE"
+      ? bundleTotal * (Math.min(bundleDiscount.value, 100) / 100)
+      : bundleDiscount.value;
+    return Math.min(Math.round(raw * 100) / 100, bundleTotal);
+  }, [bundleDiscount, bundleTotal]);
+
+  const bundleFinal = Math.max(0, Math.round((bundleTotal - bundleDiscountAmount) * 100) / 100);
+
   const handleAddBundle = () => {
     const chosen = bundleProducts.filter((p) => bundleSelected.has(p.id));
     if (chosen.length === 0) {
       toast.error("اختر منتجاً واحداً على الأقل");
       return;
     }
+    // Spread the discount across the chosen items so the cart subtotal (a plain
+    // sum of item prices) reflects the discounted bundle price through checkout.
+    const factor = bundleTotal > 0 ? bundleFinal / bundleTotal : 1;
     chosen.forEach((p) => {
+      const price = bundleDiscountAmount > 0
+        ? Math.round(p.price * factor * 100) / 100
+        : p.price;
       addItem({
         id: p.id,
         name: p.nameAr,
         nameAr: p.nameAr,
-        price: p.price,
+        price,
         image: p.image || undefined,
         quantity: 1,
         slug: p.slug,
+        variantLabel: bundleDiscountAmount > 0 ? "ضمن حزمة كمّل طلبك" : undefined,
       });
     });
     toast.success(`تم إضافة ${chosen.length} منتج إلى السلة 🎉`);
@@ -602,15 +622,24 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 })}
               </div>
 
+              {bundleDiscountAmount > 0 && bundleSelected.size > 0 && (
+                <div className="mt-4 flex items-center justify-between rounded-xl bg-success/10 px-4 py-2.5">
+                  <span className="text-sm font-medium text-success">
+                    وفّر {formatAmount(bundleDiscountAmount)} عند الشراء معًا
+                  </span>
+                  <span className="text-sm text-fg-subtle line-through">{formatAmount(bundleTotal)}</span>
+                </div>
+              )}
+
               <Button
                 onClick={handleAddBundle}
                 fullWidth
                 size="lg"
-                className="mt-4 text-base"
+                className="mt-3 text-base"
                 disabled={bundleSelected.size === 0}
               >
                 <ShoppingCart className="h-5 w-5" />
-                اشترِها معًا بـ {formatAmount(bundleTotal)}
+                اشترِها معًا بـ {formatAmount(bundleFinal)}
               </Button>
             </div>
           </div>
