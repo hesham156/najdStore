@@ -89,6 +89,11 @@ const GROUP_META: Record<string, {
     icon: <Truck className="h-4 w-4" />,
     description: "ربط شركة الشحن DHL Express (MyDHL API): أدخل مفتاح/سر الـ API ورقم الحساب وبيانات المرسِل. استخدم بيئة test للتجربة قبل التفعيل الفعلي (live).",
   },
+  shipping_treek: {
+    label: "الشحن — Treek",
+    icon: <Truck className="h-4 w-4" />,
+    description: "ربط شركة الشحن Treek (تريك): أدخل بريد وكلمة مرور حسابك، معرّف المستودع، وشركة التوصيل الافتراضية. يُنشئ Treek الطلب ثم يحجز الموصّل ويولّد البوليصة تلقائياً عند إنشاء الشحنة من صفحة الطلب.",
+  },
   email: {
     label: "البريد الإلكتروني (SMTP)",
     icon: <Mail className="h-4 w-4" />,
@@ -338,10 +343,10 @@ export default function AdminSettingsPage() {
   //  - payment/payments/payment_methods → "طرق الدفع"
   //  - shipping_rates                    → "الشحن" (رسوم الشحن)
   //  - homepage                          → "تصميم الصفحة الرئيسية"
-  const EXCLUDED_GROUPS = ["payment_methods", "payment", "payments", "shipping_rates", "shipping", "shipping_dhl", "homepage"];
+  const EXCLUDED_GROUPS = ["payment_methods", "payment", "payments", "shipping_rates", "shipping", "shipping_dhl", "shipping_treek", "homepage"];
   // Keys owned by dedicated pages (SEO / payment / shipping carriers) must never
   // leak into the generic tabs even if they were saved with a stray group.
-  const DEDICATED_PREFIX = /^(seo_|pm_|redbox_|dhl_)/;
+  const DEDICATED_PREFIX = /^(seo_|pm_|redbox_|dhl_|treek_)/;
   const visibleSettings = settings.filter((s) => !EXCLUDED_GROUPS.includes(s.group) && !DEDICATED_PREFIX.test(s.key));
   // A tab only appears if it actually has visible settings.
   const groups = Array.from(new Set(visibleSettings.map((s) => s.group)));

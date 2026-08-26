@@ -54,6 +54,17 @@ const SHIPPING_KEYS: Array<{ key: string; value: string; labelAr: string; type: 
   { key: "dhl_sender_country",  value: "SA",       labelAr: "دولة المرسِل (ISO مثل SA)", type: "text", group: "shipping_dhl" },
   { key: "dhl_sender_address",  value: "",         labelAr: "عنوان استلام الشحنة", type: "text", group: "shipping_dhl" },
   { key: "dhl_default_weight",  value: "1",        labelAr: "الوزن الافتراضي للطرد (كجم)", type: "text", group: "shipping_dhl" },
+  // ── Treek — تريك (group "shipping_treek") ──
+  { key: "treek_enabled",           value: "false",   labelAr: "تفعيل شركة الشحن Treek (تريك)", type: "boolean", group: "shipping_treek" },
+  { key: "treek_email",             value: "",        labelAr: "بريد الدخول لحساب Treek", type: "text", group: "shipping_treek" },
+  { key: "treek_password",          value: "",        labelAr: "كلمة مرور حساب Treek", type: "text", group: "shipping_treek" },
+  { key: "treek_warehouse_id",      value: "",        labelAr: "معرّف المستودع (warehouse_id) في Treek", type: "text", group: "shipping_treek" },
+  { key: "treek_courier",           value: "aramex",  labelAr: "شركة التوصيل الافتراضية (aramex, barq, jt, spl…)", type: "text", group: "shipping_treek" },
+  { key: "treek_country_id",        value: "1",       labelAr: "معرّف دولة المستلم (1 = السعودية)", type: "text", group: "shipping_treek" },
+  { key: "treek_city_id",           value: "",        labelAr: "معرّف المدينة الافتراضية (يُستخدم عند تعذّر مطابقة اسم مدينة الطلب)", type: "text", group: "shipping_treek" },
+  { key: "treek_packaging_type_id", value: "1",       labelAr: "معرّف نوع التغليف (packaging_type_id)", type: "text", group: "shipping_treek" },
+  { key: "treek_default_weight",    value: "1000",    labelAr: "الوزن الافتراضي للطرد (جرام)", type: "text", group: "shipping_treek" },
+  { key: "treek_short_address",     value: "",        labelAr: "العنوان الوطني المختصر الافتراضي (Short Address)", type: "text", group: "shipping_treek" },
   // ── Transactional email / SMTP (group "email") ──
   { key: "email_enabled",   value: "false", labelAr: "تفعيل إرسال البريد", type: "boolean", group: "email" },
   { key: "smtp_host",       value: "",      labelAr: "SMTP Host (مثل smtp.gmail.com)", type: "text", group: "email" },

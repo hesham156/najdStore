@@ -109,7 +109,7 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
   };
 
   return (
-    <Section title="الشحن (RedBox)" contentClassName="pt-0 space-y-3">
+    <Section title="الشحن" contentClassName="pt-0 space-y-3">
       {shipment ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
@@ -128,7 +128,7 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
             )}
             {shipment.carrierId && (
               <div className="flex justify-between gap-2">
-                <dt className="text-fg-subtle">معرّف RedBox</dt>
+                <dt className="text-fg-subtle">معرّف الشحنة</dt>
                 <dd className="truncate font-mono text-[11px] text-fg">{shipment.carrierId}</dd>
               </div>
             )}
@@ -163,7 +163,7 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
         </div>
       ) : carriers.length === 0 ? (
         <p className="text-[13px] text-fg-muted">
-          لا توجد شركة شحن مفعّلة. فعّل RedBox أو DHL من <span className="font-medium text-fg">الإعدادات ← الشحن</span>.
+          لا توجد شركة شحن مفعّلة. فعّل RedBox أو DHL أو Treek من <span className="font-medium text-fg">الإعدادات ← الشحن</span>.
         </p>
       ) : (
         <div className="space-y-3">
@@ -201,6 +201,9 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
             <Input label="العنوان" value={form.shipAddress} onChange={(e) => set("shipAddress", e.target.value)} />
             {carrier === "DHL" && (
               <Input label="الرمز البريدي (DHL)" value={form.shipPostal} onChange={(e) => set("shipPostal", e.target.value)} />
+            )}
+            {carrier === "TREEK" && (
+              <Input label="العنوان الوطني المختصر (Treek)" value={form.shipPostal} onChange={(e) => set("shipPostal", e.target.value)} />
             )}
           </div>
           <Button size="sm" onClick={create} loading={loading === "create"} fullWidth>

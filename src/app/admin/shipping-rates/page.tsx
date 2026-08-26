@@ -56,7 +56,7 @@ export default function ShippingRatesPage() {
         setFreeThreshold(map["shipping_free_threshold"] ?? "0");
 
         const carriers: CarrierField[] = settingsRes.data
-          .filter((s: CarrierField) => s.group === "shipping" || s.group === "shipping_dhl")
+          .filter((s: CarrierField) => s.group === "shipping" || s.group === "shipping_dhl" || s.group === "shipping_treek")
           .map((s: CarrierField) => ({ key: s.key, labelAr: s.labelAr, type: s.type, group: s.group }));
         setCarrierMeta(carriers);
         const cv: Record<string, string> = {};
@@ -163,6 +163,7 @@ export default function ShippingRatesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <CarrierBlock title="RedBox" fields={carrierMeta.filter((c) => c.group === "shipping")} values={carrierVals} onChange={setCarrierVal} />
             <CarrierBlock title="DHL Express" fields={carrierMeta.filter((c) => c.group === "shipping_dhl")} values={carrierVals} onChange={setCarrierVal} />
+            <CarrierBlock title="Treek (تريك)" fields={carrierMeta.filter((c) => c.group === "shipping_treek")} values={carrierVals} onChange={setCarrierVal} />
           </div>
         </Card>
       )}

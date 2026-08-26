@@ -1,7 +1,8 @@
 import * as redbox from "@/lib/redbox";
 import * as dhl from "@/lib/dhl";
+import * as treek from "@/lib/treek";
 
-export type Carrier = "REDBOX" | "DHL";
+export type Carrier = "REDBOX" | "DHL" | "TREEK";
 
 export interface CarrierInfo { id: Carrier; label: string }
 
@@ -26,23 +27,52 @@ export interface ShipmentRequest {
   codAmount: number;      // used by RedBox (COD)
   declaredValue: number;  // used by DHL
   currency?: string;
+  // Treek needs the order line items and a total-weight hint. Optional so RedBox
+  // and DHL callers are unaffected.
+  items?: Array<{ name: string; quantity: number; price: number }>;
+  weightG?: number;
+  paidOnline?: boolean;   // Treek payment_method: "paid" vs "cod"
 }
 
 /** Enabled carriers, in display order. */
 export async function getEnabledCarriers(): Promise<CarrierInfo[]> {
-  const [rb, dl] = await Promise.all([redbox.getRedboxConfig(), dhl.getDhlConfig()]);
+  const [rb, dl, tk] = await Promise.all([
+    redbox.getRedboxConfig(),
+    dhl.getDhlConfig(),
+    treek.getTreekConfig(),
+  ]);
   const list: CarrierInfo[] = [];
   if (rb.enabled) list.push({ id: "REDBOX", label: "RedBox" });
   if (dl.enabled) list.push({ id: "DHL", label: "DHL Express" });
+  if (tk.enabled) list.push({ id: "TREEK", label: "Treek" });
   return list;
 }
 
 export async function isCarrierEnabled(carrier: Carrier): Promise<boolean> {
   if (carrier === "DHL") return (await dhl.getDhlConfig()).enabled;
+  if (carrier === "TREEK") return (await treek.getTreekConfig()).enabled;
   return (await redbox.getRedboxConfig()).enabled;
 }
 
 export async function createShipment(carrier: Carrier, req: ShipmentRequest): Promise<NormalizedShipment> {
+  if (carrier === "TREEK") {
+    const config = await treek.getTreekConfig();
+    return treek.createShipment(config, {
+      reference: req.reference,
+      receiverName: req.name,
+      receiverPhone: req.phone,
+      receiverCity: req.city,
+      receiverAddress: req.address,
+      receiverShortAddress: req.postalCode,
+      grandTotal: req.declaredValue,
+      paymentMethod: req.paidOnline ? "paid" : "cod",
+      items: req.items && req.items.length > 0
+        ? req.items
+        : [{ name: `Order ${req.reference}`, quantity: 1, price: Math.round(req.declaredValue) }],
+      weightG: req.weightG,
+    });
+  }
+
   if (carrier === "DHL") {
     const config = await dhl.getDhlConfig();
     const parsed = await dhl.createShipment(config, {
@@ -89,6 +119,10 @@ export async function refreshStatus(carrier: Carrier, carrierId: string): Promis
     const config = await dhl.getDhlConfig();
     return (await dhl.getTrackingStatus(config, carrierId)).status;
   }
+  if (carrier === "TREEK") {
+    const config = await treek.getTreekConfig();
+    return (await treek.getOrderStatus(config, carrierId)).status;
+  }
   const config = await redbox.getRedboxConfig();
   return (await redbox.getShipmentStatus(config, carrierId)).status;
 }
@@ -99,8 +133,13 @@ export async function cancelShipment(carrier: Carrier, carrierId: string): Promi
     // directly. We only mark it cancelled locally.
     return;
   }
+  if (carrier === "TREEK") {
+    const config = await treek.getTreekConfig();
+    await treek.cancelShipment(config, carrierId);
+    return;
+  }
   const config = await redbox.getRedboxConfig();
   await redbox.cancelShipment(config, carrierId);
 }
 
-export { redbox, dhl };
+export { redbox, dhl, treek };

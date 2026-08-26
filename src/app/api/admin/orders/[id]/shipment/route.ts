@@ -4,14 +4,15 @@ import { requireAdmin, unauthorized, notFound, badRequest, serverError } from "@
 import { createShipment, refreshStatus, isCarrierEnabled, type Carrier } from "@/lib/shipping";
 import { RedboxError } from "@/lib/redbox";
 import { DhlError } from "@/lib/dhl";
+import { TreekError } from "@/lib/treek";
 import { SAFE_USER_SELECT } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
-const CARRIERS: Carrier[] = ["REDBOX", "DHL"];
+const CARRIERS: Carrier[] = ["REDBOX", "DHL", "TREEK"];
 
 function carrierError(err: unknown) {
-  if (err instanceof RedboxError || err instanceof DhlError) {
+  if (err instanceof RedboxError || err instanceof DhlError || err instanceof TreekError) {
     return NextResponse.json({ success: false, error: err.message }, { status: 502 });
   }
   return null;
@@ -25,7 +26,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   try {
     const order = await prisma.order.findUnique({
       where: { id: params.id },
-      include: { user: { select: SAFE_USER_SELECT }, shipment: true, payment: true },
+      include: {
+        user: { select: SAFE_USER_SELECT },
+        shipment: true,
+        payment: true,
+        // Treek requires the order line items; other carriers ignore them.
+        items: { include: { product: { select: { name: true, nameAr: true } } } },
+      },
     });
     if (!order) return notFound("الطلب غير موجود");
     if (order.shipment) return badRequest("توجد شحنة مسبقاً لهذا الطلب");
@@ -88,6 +95,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         codAmount: safeCod,
         declaredValue: Number(order.total),
         currency: "SAR",
+        paidOnline,
+        items: order.items.map((it) => ({
+          name: it.product.nameAr || it.product.name,
+          quantity: it.quantity,
+          price: Number(it.price),
+        })),
       });
     } catch (err) {
       // Carrier refused — release the slot so the admin can retry cleanly.

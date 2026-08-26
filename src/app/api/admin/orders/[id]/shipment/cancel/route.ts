@@ -4,6 +4,7 @@ import { requireAdmin, unauthorized, notFound, serverError } from "@/lib/api";
 import { cancelShipment, type Carrier } from "@/lib/shipping";
 import { RedboxError } from "@/lib/redbox";
 import { DhlError } from "@/lib/dhl";
+import { TreekError } from "@/lib/treek";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {
-    if (err instanceof RedboxError || err instanceof DhlError) {
+    if (err instanceof RedboxError || err instanceof DhlError || err instanceof TreekError) {
       return NextResponse.json({ success: false, error: err.message }, { status: 502 });
     }
     return serverError("POST /api/admin/orders/[id]/shipment/cancel", err);
