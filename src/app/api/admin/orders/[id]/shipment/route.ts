@@ -96,6 +96,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         declaredValue: Number(order.total),
         currency: "SAR",
         paidOnline,
+        courier: typeof body.courier === "string" && body.courier ? body.courier : undefined,
         items: order.items.map((it) => ({
           name: it.product.nameAr || it.product.name,
           quantity: it.quantity,

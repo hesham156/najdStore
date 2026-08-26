@@ -65,6 +65,8 @@ const SHIPPING_KEYS: Array<{ key: string; value: string; labelAr: string; type: 
   { key: "treek_packaging_type_id", value: "1",       labelAr: "معرّف نوع التغليف (packaging_type_id)", type: "text", group: "shipping_treek" },
   { key: "treek_default_weight",    value: "1000",    labelAr: "الوزن الافتراضي للطرد (جرام)", type: "text", group: "shipping_treek" },
   { key: "treek_short_address",     value: "",        labelAr: "العنوان الوطني المختصر الافتراضي (Short Address)", type: "text", group: "shipping_treek" },
+  { key: "treek_from_city",         value: "",        labelAr: "مدينة المتجر/المرسِل (لحساب أسعار الموصّلين، مثل: الرياض)", type: "text", group: "shipping_treek" },
+  { key: "treek_courier_map",       value: "",        labelAr: "مطابقة الموصّلين (JSON اختياري: {\"identifier\":\"aramex\"}) — لتجاوز المطابقة التلقائية عند رفض Treek للمعرّف", type: "text", group: "shipping_treek" },
   // ── Transactional email / SMTP (group "email") ──
   { key: "email_enabled",   value: "false", labelAr: "تفعيل إرسال البريد", type: "boolean", group: "email" },
   { key: "smtp_host",       value: "",      labelAr: "SMTP Host (مثل smtp.gmail.com)", type: "text", group: "email" },

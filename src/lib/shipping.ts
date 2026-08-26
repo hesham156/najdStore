@@ -32,6 +32,7 @@ export interface ShipmentRequest {
   items?: Array<{ name: string; quantity: number; price: number }>;
   weightG?: number;
   paidOnline?: boolean;   // Treek payment_method: "paid" vs "cod"
+  courier?: string;       // Treek: courier chosen by the admin from live rates
 }
 
 /** Enabled carriers, in display order. */
@@ -70,6 +71,7 @@ export async function createShipment(carrier: Carrier, req: ShipmentRequest): Pr
         ? req.items
         : [{ name: `Order ${req.reference}`, quantity: 1, price: Math.round(req.declaredValue) }],
       weightG: req.weightG,
+      courier: req.courier,
     });
   }
 

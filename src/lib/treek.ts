@@ -31,6 +31,8 @@ export interface TreekConfig {
   packagingTypeId: number;
   defaultWeightG: number;    // total package weight, in grams
   shortAddress: string;      // fallback Saudi national short address (e.g. "RRRD2929")
+  fromCity: string;          // origin (store) city name — used by the price calculator
+  courierMap: Record<string, string>; // optional identifier → courier overrides
 }
 
 export const TREEK_SETTING_KEYS = [
@@ -44,6 +46,8 @@ export const TREEK_SETTING_KEYS = [
   "treek_packaging_type_id",
   "treek_default_weight",
   "treek_short_address",
+  "treek_from_city",
+  "treek_courier_map",
 ];
 
 export async function getTreekConfig(): Promise<TreekConfig> {
@@ -65,6 +69,8 @@ export async function getTreekConfig(): Promise<TreekConfig> {
     packagingTypeId: parseInt(c["treek_packaging_type_id"] || "1", 10) || 1,
     defaultWeightG: parseInt(c["treek_default_weight"] || "1000", 10) || 1000,
     shortAddress: c["treek_short_address"] || "",
+    fromCity: c["treek_from_city"] || "",
+    courierMap: parseCourierMap(c["treek_courier_map"] || ""),
   };
 }
 
@@ -203,6 +209,7 @@ export interface TreekShipmentInput {
   paymentMethod: "paid" | "cod";
   items: Array<{ name: string; quantity: number; price: number }>;
   weightG?: number;                  // total package weight, grams
+  courier?: string;                  // override the default courier (from the price calculator)
 }
 
 export interface ParsedShipment {
@@ -223,6 +230,49 @@ export function normalizeStatus(status: string | null | undefined): string | nul
   if (s === "returned") return "RETURNED";
   if (s === "pending") return "CREATED";
   return status;
+}
+
+/**
+ * Map a price-calculator `identifier` (e.g. "redbox_point_pickup", "aramex") to
+ * the `courier` value the Create Shipment endpoint accepts. Its documented enum
+ * is: aramex, barq, transcorp, thabit, jt, spl.
+ *
+ * We match by keyword so both bare enums ("aramex") and prefixed identifiers
+ * ("aramex_express") resolve. Unknown identifiers pass through unchanged, so if
+ * Treek does accept the raw identifier the booking still works — and the merchant
+ * can extend this map without code by setting `treek_courier_map` in settings.
+ */
+const COURIER_KEYWORDS: Array<[RegExp, string]> = [
+  [/aramex/, "aramex"],
+  [/barq/, "barq"],
+  [/transcorp/, "transcorp"],
+  [/thabit|thabet|ثابت/, "thabit"],
+  [/\bjt\b|j&t|j_t|jandt|jt_?express/, "jt"],
+  [/\bspl\b|saudi[_ ]?post|splonline|البريد/, "spl"],
+];
+
+export function mapCourierIdentifier(identifier: string | null | undefined, extraMap?: Record<string, string>): string {
+  const id = String(identifier || "").trim();
+  if (!id) return id;
+  const key = id.toLowerCase();
+  // Merchant-provided overrides win (exact identifier → courier).
+  if (extraMap && extraMap[id]) return extraMap[id];
+  if (extraMap && extraMap[key]) return extraMap[key];
+  for (const [re, courier] of COURIER_KEYWORDS) {
+    if (re.test(key)) return courier;
+  }
+  return id; // unknown — send as-is
+}
+
+/** Parse the optional `treek_courier_map` setting (JSON: { identifier: courier }). */
+function parseCourierMap(raw: string): Record<string, string> {
+  if (!raw.trim()) return {};
+  try {
+    const obj = JSON.parse(raw);
+    return obj && typeof obj === "object" ? obj : {};
+  } catch {
+    return {};
+  }
 }
 
 function splitName(full: string): { first: string; last: string } {
@@ -275,9 +325,12 @@ export async function createShipment(config: TreekConfig, input: TreekShipmentIn
   if (!orderId) throw new TreekError("لم يُرجع Treek معرّف الطلب بعد الإنشاء", 502, orderRes);
 
   // Step 2 — book the courier and generate the label.
+  const courier = input.courier
+    ? mapCourierIdentifier(input.courier, config.courierMap)
+    : config.courier;
   const shipmentRes = await treekFetch(config, "/api/shipments", {
     method: "POST",
-    body: { order_id: orderId, courier: config.courier },
+    body: { order_id: orderId, courier },
   });
   const ship = unwrap(shipmentRes);
 
@@ -301,4 +354,57 @@ export async function getOrderStatus(config: TreekConfig, orderId: string): Prom
 /** Cancel the Treek order (which cancels its shipment booking). */
 export async function cancelShipment(config: TreekConfig, orderId: string): Promise<unknown> {
   return treekFetch(config, `/api/orders/${encodeURIComponent(orderId)}/cancel`, { method: "POST", body: {} });
+}
+
+// ── Price calculator ──────────────────────────────────────────────────────────
+
+export interface CalculatedRate {
+  serviceId: number | null;
+  courier: string | null;      // identifier we send back to /api/shipments
+  courierName: string | null;
+  serviceName: string | null;
+  priceSar: number | null;
+  deliveryTime: string | null;
+  logo: string | null;
+}
+
+/**
+ * Live courier prices for a destination, via POST /api/calculate.
+ * Returns the couriers Treek can ship this parcel with, each with its price so
+ * the admin can pick one before booking. Weight is sent in kg (the calculator
+ * uses kg, unlike order creation which uses grams).
+ */
+export async function calculateRates(
+  config: TreekConfig,
+  input: { toCity: string; weightG?: number; length?: number; width?: number; height?: number },
+): Promise<CalculatedRate[]> {
+  const from = config.fromCity.trim();
+  const to = (input.toCity || "").trim();
+  if (!from) throw new TreekError("لم يتم ضبط مدينة المتجر (from_city) في إعدادات Treek", 400, null);
+  if (!to) throw new TreekError("مدينة المستلم مطلوبة لحساب أسعار الشحن", 400, null);
+
+  const weightKg = Math.max(0.1, Math.round(((input.weightG || config.defaultWeightG) / 1000) * 100) / 100);
+  const body = {
+    from_city: from,
+    to_city: to,
+    packages: [{
+      length: input.length || 20,
+      width: input.width || 15,
+      height: input.height || 10,
+      weight: weightKg,
+      packaging_type_id: config.packagingTypeId,
+    }],
+  };
+
+  const data = await treekFetch(config, "/api/calculate", { method: "POST", body });
+  const list: any[] = Array.isArray(unwrap(data)) ? unwrap(data) : [];
+  return list.map((r) => ({
+    serviceId: r?.service_id ?? null,
+    courier: r?.identifier ?? null,
+    courierName: r?.courier_name ?? null,
+    serviceName: r?.service_name ?? null,
+    priceSar: r?.price_sar ?? (r?.price_cents != null ? Number(r.price_cents) / 100 : null),
+    deliveryTime: r?.delivery_time ?? null,
+    logo: r?.logo ?? null,
+  }));
 }

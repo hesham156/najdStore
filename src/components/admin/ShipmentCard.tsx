@@ -38,11 +38,24 @@ const STATUS_STYLE: Record<string, "success" | "danger" | "warning" | "info" | "
 
 interface CarrierInfo { id: string; label: string }
 
+interface TreekRate {
+  serviceId: number | null;
+  courier: string | null;
+  courierName: string | null;
+  serviceName: string | null;
+  priceSar: number | null;
+  deliveryTime: string | null;
+  logo: string | null;
+}
+
 export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: () => void }) {
   const shipment = order.shipment;
   const [loading, setLoading] = useState<string | null>(null);
   const [carriers, setCarriers] = useState<CarrierInfo[]>([]);
   const [carrier, setCarrier] = useState<string>("");
+  const [treekRates, setTreekRates] = useState<TreekRate[] | null>(null);
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [treekCourier, setTreekCourier] = useState<string>("");
   const [form, setForm] = useState({
     shipName: order.shipName || order.user.name || "",
     shipPhone: order.shipPhone || order.user.phone || "",
@@ -52,6 +65,29 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
   });
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Fetch live Treek courier prices when Treek is the selected carrier so the
+  // admin can pick a courier + see its price before booking.
+  useEffect(() => {
+    if (shipment || carrier !== "TREEK") return;
+    setRatesLoading(true);
+    setTreekRates(null);
+    setTreekCourier("");
+    fetch(`/api/admin/orders/${order.id}/treek-rates`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          setTreekRates(d.data);
+          const first = d.data.find((x: TreekRate) => x.courier);
+          if (first) setTreekCourier(first.courier);
+        } else {
+          toast.error(d.error || "تعذّر جلب أسعار Treek");
+          setTreekRates([]);
+        }
+      })
+      .catch(() => setTreekRates([]))
+      .finally(() => setRatesLoading(false));
+  }, [carrier, shipment, order.id]);
 
   useEffect(() => {
     if (shipment) return; // no need to pick a carrier for an existing shipment
@@ -70,12 +106,13 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
     if (!carrier) return toast.error("لا توجد شركة شحن مفعّلة");
     if (!form.shipName.trim()) return toast.error("اسم المستلم مطلوب");
     if (!form.shipPhone.trim()) return toast.error("جوال المستلم مطلوب");
+    if (carrier === "TREEK" && !treekCourier) return toast.error("اختر شركة التوصيل");
     setLoading("create");
     try {
       const res = await fetch(`/api/admin/orders/${order.id}/shipment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, carrier }),
+        body: JSON.stringify({ ...form, carrier, courier: carrier === "TREEK" ? treekCourier : undefined }),
       });
       const data = await res.json();
       const label = carriers.find((c) => c.id === carrier)?.label || carrier;
@@ -206,6 +243,58 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
               <Input label="العنوان الوطني المختصر (Treek)" value={form.shipPostal} onChange={(e) => set("shipPostal", e.target.value)} />
             )}
           </div>
+
+          {/* Treek — live courier prices for this destination */}
+          {carrier === "TREEK" && (
+            <div>
+              <label className="block text-xs font-medium text-fg-subtle mb-1">شركة التوصيل والسعر</label>
+              {ratesLoading ? (
+                <p className="text-[13px] text-fg-muted flex items-center gap-2">
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" /> جارٍ جلب الأسعار من Treek…
+                </p>
+              ) : treekRates && treekRates.length > 0 ? (
+                <div className="space-y-2">
+                  {treekRates.map((r) => {
+                    const active = treekCourier === r.courier;
+                    return (
+                      <button
+                        key={`${r.serviceId}-${r.courier}`}
+                        type="button"
+                        disabled={!r.courier}
+                        onClick={() => r.courier && setTreekCourier(r.courier)}
+                        className={`w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-right transition-colors ${
+                          active
+                            ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                            : "border-line hover:border-primary-300"
+                        } ${!r.courier ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        {r.logo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={r.logo} alt="" className="h-6 w-6 rounded object-contain shrink-0" />
+                        )}
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm font-medium text-fg truncate">{r.courierName || r.courier}</span>
+                          {(r.serviceName || r.deliveryTime) && (
+                            <span className="block text-[11px] text-fg-subtle truncate">
+                              {[r.serviceName, r.deliveryTime].filter(Boolean).join(" · ")}
+                            </span>
+                          )}
+                        </span>
+                        {r.priceSar != null && (
+                          <span className="text-sm font-bold text-fg shrink-0">{Number(r.priceSar).toFixed(2)} ر.س</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-[13px] text-fg-muted">
+                  لا توجد أسعار متاحة. تأكد من ضبط مدينة المتجر ومدينة المستلم، وأن حساب Treek مفعّل.
+                </p>
+              )}
+            </div>
+          )}
+
           <Button size="sm" onClick={create} loading={loading === "create"} fullWidth>
             <PackageCheck className="h-4 w-4" /> إنشاء الشحنة
           </Button>
