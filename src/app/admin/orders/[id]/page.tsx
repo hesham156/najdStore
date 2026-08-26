@@ -467,6 +467,11 @@ export default function AdminOrderDetailPage() {
               );
             })}
           </Section>
+
+          <ShipmentCard
+            order={order as unknown as Parameters<typeof ShipmentCard>[0]["order"]}
+            onChange={loadOrder}
+          />
         </div>
 
         {/* ── Sidebar ── */}
@@ -597,11 +602,6 @@ export default function AdminOrderDetailPage() {
               </dl>
             </Section>
           )}
-
-          <ShipmentCard
-            order={order as unknown as Parameters<typeof ShipmentCard>[0]["order"]}
-            onChange={loadOrder}
-          />
 
           {order.notes && (
             <Section title="ملاحظات العميل" contentClassName="pt-0">
