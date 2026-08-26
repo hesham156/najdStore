@@ -199,8 +199,9 @@ export default function ProductClient({ product, publicSettings, options = [], o
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Image */}
-          <div className="space-y-4">
+          {/* Image — sticks below the navbar so it stays in view while the
+              long info column scrolls past it. */}
+          <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             <div className="relative aspect-square rounded-2xl bg-surface-sunken border border-line overflow-hidden flex items-center justify-center">
               {product.image ? (
                 <Image src={product.image} alt={product.nameAr} fill className="object-contain p-12" unoptimized />
