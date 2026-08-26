@@ -492,8 +492,17 @@ export async function POST(req: NextRequest) {
         ]).catch(() => {});
         if (reservedLines) await restoreStock(reservedLines).catch(() => {});
         reservedLines = null;
+        // Surface Tamara's actual reason (e.g. "total_amount is invalid",
+        // amount below the minimum) so the cause is visible instead of hidden
+        // in the server logs. createTamaraCheckoutSession throws "Tamara: <msg>".
+        const reason = err instanceof Error ? err.message.replace(/^Tamara:\s*/, "") : "";
         return NextResponse.json(
-          { success: false, error: "فشل الاتصال بتمارا. تحقق من البيانات أو اختر طريقة دفع أخرى." },
+          {
+            success: false,
+            error: reason
+              ? `فشل الاتصال بتمارا: ${reason}`
+              : "فشل الاتصال بتمارا. تحقق من البيانات أو اختر طريقة دفع أخرى.",
+          },
           { status: 400 }
         );
       }
