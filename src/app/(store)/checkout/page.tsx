@@ -15,6 +15,9 @@ import {
 import { cn, resolveCityFee, isValidSaudiPhone, normalizeSaudiPhone } from "@/lib/utils";
 import { calculateOrderTotals, vatIncludedIn } from "@/lib/pricing";
 import AdBanner from "@/components/store/AdBanner";
+import { useLocale, useTranslations } from "next-intl";
+import { pickText } from "@/lib/i18n-content";
+import type { Locale } from "@/i18n/config";
 
 /* ─── Types ─── */
 interface BankTransfer { enabled: boolean; accountName: string; bankName: string; accountNumber: string; iban: string }
@@ -26,7 +29,8 @@ interface PaymentMethods { bankTransfer: BankTransfer; paypal: PayPalConfig; tab
 
 /* ─── Copy helper ─── */
 function CopyRow({ label, value }: { label: string; value: string }) {
-  const copy = () => { navigator.clipboard.writeText(value); toast.success(`تم نسخ ${label}`); };
+  const t = useTranslations("checkout");
+  const copy = () => { navigator.clipboard.writeText(value); toast.success(t("copiedLabel", { label })); };
   return (
     <div className="flex items-center justify-between rounded-control border border-info/25 bg-info/10 p-2.5">
       <div>
@@ -95,6 +99,9 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCartStore();
   const { formatAmount } = useCurrency();
+  const t = useTranslations("checkout");
+  const tc = useTranslations("common");
+  const locale = useLocale() as Locale;
 
   const [gateways, setGateways]             = useState<PaymentMethods | null>(null);
   const [gatewaysLoading, setGatewaysLoading] = useState(true);
@@ -154,7 +161,7 @@ export default function CheckoutPage() {
       // Without this a failed settings call rejected unhandled and the screen
       // silently settled on "no payment methods", which reads like a closed
       // shop rather than a temporary fault.
-      .catch(() => toast.error("تعذّر تحميل إعدادات الدفع. حدّث الصفحة."))
+      .catch(() => toast.error(t("loadSettingsError")))
       .finally(() => setGatewaysLoading(false));
   }, []);
 
@@ -203,7 +210,7 @@ export default function CheckoutPage() {
   if (sessionStatus === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-fg-subtle text-sm">جاري التحميل...</div>
+        <div className="animate-pulse text-fg-subtle text-sm">{tc("loading")}</div>
       </div>
     );
   }
@@ -216,9 +223,9 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">🔐</div>
-          <h1 className="text-2xl font-bold text-fg">يجب تسجيل الدخول أولاً</h1>
-          <p className="text-fg-subtle text-sm">سجّل دخولك لإتمام عملية الشراء</p>
-          <Link href="/login?redirect=/checkout"><Button>تسجيل الدخول</Button></Link>
+          <h1 className="text-2xl font-bold text-fg">{t("mustLogin")}</h1>
+          <p className="text-fg-subtle text-sm">{t("mustLoginDesc")}</p>
+          <Link href="/login?redirect=/checkout"><Button>{t("signIn")}</Button></Link>
         </div>
       </div>
     );
@@ -229,8 +236,8 @@ if (items.length === 0) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">🛒</div>
-          <h1 className="text-2xl font-bold text-fg">السلة فارغة</h1>
-          <Link href="/products"><Button>تصفح المنتجات</Button></Link>
+          <h1 className="text-2xl font-bold text-fg">{t("cartEmpty")}</h1>
+          <Link href="/products"><Button>{t("browseProducts")}</Button></Link>
         </div>
       </div>
     );
@@ -246,9 +253,9 @@ if (items.length === 0) {
         body: JSON.stringify({ code: couponCode, total: subtotal }),
       });
       const data = await res.json();
-      if (data.success) { setCoupon(data.data); toast.success(`تم تطبيق الكوبون: ${data.data.code}`); }
-      else toast.error(data.error || "كوبون غير صالح");
-    } catch { toast.error("حدث خطأ. حاول مرة أخرى"); }
+      if (data.success) { setCoupon(data.data); toast.success(t("couponApplied", { code: data.data.code })); }
+      else toast.error(data.error || t("couponInvalid"));
+    } catch { toast.error(t("genericError")); }
     finally { setCouponLoading(false); }
   };
 
@@ -264,20 +271,20 @@ if (items.length === 0) {
   const validateCheckout = (): Record<string, string> => {
     const e: Record<string, string> = {};
 
-    if (!paymentMethod) e.paymentMethod = "اختر طريقة دفع أولاً";
+    if (!paymentMethod) e.paymentMethod = t("selectPayment");
 
     if (!session) {
-      if (!guestName.trim()) e.guestName = "أدخل اسمك الكامل";
+      if (!guestName.trim()) e.guestName = t("enterName");
       if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
-        e.guestEmail = "أدخل بريد إلكتروني صحيح";
+        e.guestEmail = t("enterValidEmail");
       }
     }
 
     if (hasShipping) {
-      if (!shipName.trim()) e.shipName = "أدخل اسم المستلم";
-      if (!isValidSaudiPhone(shipPhone)) e.shipPhone = "أدخل رقم جوال سعودي صحيح (مثال: 0512345678)";
-      if (!shipCity.trim()) e.shipCity = "اختر المدينة";
-      if (shipAddress.trim().length < 8) e.shipAddress = "أدخل العنوان التفصيلي (الحي والشارع)";
+      if (!shipName.trim()) e.shipName = t("enterRecipientName");
+      if (!isValidSaudiPhone(shipPhone)) e.shipPhone = t("enterValidPhone");
+      if (!shipCity.trim()) e.shipCity = t("selectCityError");
+      if (shipAddress.trim().length < 8) e.shipAddress = t("enterAddress");
     }
 
     // The bank-transfer receipt is deliberately NOT required here: the order
@@ -309,7 +316,7 @@ if (items.length === 0) {
           // The receipt is the whole point of a bank transfer. Creating the
           // order without it used to happen silently, leaving the customer
           // certain they had attached proof they had not.
-          toast.error(uploadData?.error || "تعذّر رفع إيصال التحويل. حاول مجدداً.");
+          toast.error(uploadData?.error || t("uploadProofError"));
           return;
         }
         proofImageUrl = uploadData.url;
@@ -360,10 +367,10 @@ if (items.length === 0) {
         toast.error(data.error, { duration: 7000 });
         router.refresh();
       } else {
-        toast.error(data.error || "حدث خطأ في إرسال الطلب");
+        toast.error(data.error || t("submitError"));
       }
     } catch {
-      toast.error("تعذّر الاتصال بالخادم. تحقّق من الإنترنت — لم يُنشأ أي طلب.");
+      toast.error(t("connectionError"));
     }
     finally {
       setLoading(false);
@@ -373,11 +380,11 @@ if (items.length === 0) {
 
   /* Collect enabled methods for rendering */
   const enabledMethods: Array<{ value: string; label: string; desc: string; icon: React.ElementType }> = [];
-  if (gateways?.creditCard?.enabled)   enabledMethods.push({ value: "CREDIT_CARD",   label: "بطاقة مدى / فيزا", desc: "دفع فوري وآمن بالبطاقة",                icon: CreditCard });
-  if (gateways?.bankTransfer.enabled) enabledMethods.push({ value: "BANK_TRANSFER", label: "تحويل بنكي",    desc: "تحويل عبر البنك مع رفع إثبات الدفع",   icon: Landmark });
-  if (gateways?.paypal.enabled)        enabledMethods.push({ value: "PAYPAL",         label: "PayPal",         desc: "بطاقات ائتمانية ودفع دولي",             icon: Wallet  });
-  if (gateways?.tabby.enabled)         enabledMethods.push({ value: "TABBY",          label: "Tabby — تابي",  desc: "4 دفعات بدون فوائد",                    icon: CreditCard });
-  if (gateways?.tamara.enabled)        enabledMethods.push({ value: "TAMARA",         label: "تمارا — Tamara", desc: `${gateways.tamara.installments || 3} دفعات بدون فوائد`, icon: CreditCard });
+  if (gateways?.creditCard?.enabled)   enabledMethods.push({ value: "CREDIT_CARD",   label: t("ccLabel"), desc: t("ccDesc"),                icon: CreditCard });
+  if (gateways?.bankTransfer.enabled) enabledMethods.push({ value: "BANK_TRANSFER", label: t("bankLabel"),    desc: t("bankDesc"),   icon: Landmark });
+  if (gateways?.paypal.enabled)        enabledMethods.push({ value: "PAYPAL",         label: "PayPal",         desc: t("paypalDesc"),             icon: Wallet  });
+  if (gateways?.tabby.enabled)         enabledMethods.push({ value: "TABBY",          label: t("tabbyLabel"),  desc: t("tabbyDesc"),                    icon: CreditCard });
+  if (gateways?.tamara.enabled)        enabledMethods.push({ value: "TAMARA",         label: t("tamaraLabel"), desc: t("tamaraDesc", { count: gateways.tamara.installments || 3 }), icon: CreditCard });
 
   const hasNoMethods = !gatewaysLoading && enabledMethods.length === 0;
 
@@ -385,7 +392,7 @@ if (items.length === 0) {
     <div className="min-h-screen py-8">
       <AdBanner placement="CHECKOUT_TOP" />
       <div className="container-custom max-w-5xl mt-4">
-        <h1 className="text-3xl font-bold text-fg mb-8">إتمام الشراء</h1>
+        <h1 className="text-3xl font-bold text-fg mb-8">{t("title")}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* ── Left: Payment Form ── */}
@@ -395,20 +402,20 @@ if (items.length === 0) {
             {!session && guestCheckoutEnabled && (
               <div className="bg-surface rounded-2xl border border-line p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-bold text-fg text-lg">بياناتك</h2>
+                  <h2 className="font-bold text-fg text-lg">{t("yourInfo")}</h2>
                   <Link href="/login?redirect=/checkout" className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
-                    لديك حساب؟ سجّل دخولك
+                    {t("haveAccount")}
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="الاسم الكامل"
+                    label={t("fullName")}
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
-                    placeholder="محمد أحمد"
+                    placeholder={t("namePlaceholder")}
                   />
                   <Input
-                    label="البريد الإلكتروني"
+                    label={t("email")}
                     type="email"
                     value={guestEmail}
                     onChange={(e) => setGuestEmail(e.target.value)}
@@ -416,14 +423,14 @@ if (items.length === 0) {
                   />
                 </div>
                 <p className="text-xs text-fg-subtle">
-                  📩 سيتم إرسال تفاصيل طلبك على هذا البريد الإلكتروني
+                  {t("emailHint")}
                 </p>
               </div>
             )}
 
             {/* Payment Method Selector */}
             <div className="bg-surface rounded-2xl border border-line p-6">
-              <h2 className="font-bold text-fg text-lg mb-4">طريقة الدفع</h2>
+              <h2 className="font-bold text-fg text-lg mb-4">{t("paymentMethod")}</h2>
 
               {gatewaysLoading ? (
                 <div className="space-y-3 animate-pulse">
@@ -432,7 +439,7 @@ if (items.length === 0) {
               ) : hasNoMethods ? (
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-warning/10 border border-warning/25 text-warning">
                   <AlertCircle className="h-5 w-5 shrink-0" />
-                  <p className="text-sm">لا توجد طرق دفع متاحة حالياً. يرجى التواصل مع الدعم.</p>
+                  <p className="text-sm">{t("noMethodsAvailable")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -447,28 +454,28 @@ if (items.length === 0) {
             {paymentMethod === "BANK_TRANSFER" && gateways?.bankTransfer && (
               <div className="bg-info/10 border border-info/25 rounded-2xl p-5 space-y-3">
                 <h3 className="font-bold text-info flex items-center gap-2">
-                  <Landmark className="h-5 w-5" />بيانات الحساب البنكي
+                  <Landmark className="h-5 w-5" />{t("bankDetails")}
                 </h3>
                 <div className="space-y-2">
                   {gateways.bankTransfer.bankName && (
-                    <CopyRow label="البنك" value={gateways.bankTransfer.bankName} />
+                    <CopyRow label={t("bank")} value={gateways.bankTransfer.bankName} />
                   )}
                   {gateways.bankTransfer.accountName && (
-                    <CopyRow label="اسم المستفيد" value={gateways.bankTransfer.accountName} />
+                    <CopyRow label={t("beneficiary")} value={gateways.bankTransfer.accountName} />
                   )}
                   {gateways.bankTransfer.iban && (
-                    <CopyRow label="رقم الآيبان (IBAN)" value={gateways.bankTransfer.iban} />
+                    <CopyRow label={t("iban")} value={gateways.bankTransfer.iban} />
                   )}
                   {gateways.bankTransfer.accountNumber && (
-                    <CopyRow label="رقم الحساب" value={gateways.bankTransfer.accountNumber} />
+                    <CopyRow label={t("accountNumber")} value={gateways.bankTransfer.accountNumber} />
                   )}
-                  <CopyRow label="المبلغ المطلوب" value={formatAmount(total)} />
+                  <CopyRow label={t("amountDue")} value={formatAmount(total)} />
                 </div>
 
                 <div className="pt-2">
                   <label className="block text-sm font-medium text-info mb-2">
                     <Upload className="inline h-4 w-4 me-1" />
-                    رفع إثبات الدفع (اختياري — يمكنك رفعه لاحقاً)
+                    {t("uploadProof")}
                   </label>
                   <input
                     type="file" accept="image/*,.pdf"
@@ -484,12 +491,12 @@ if (items.length === 0) {
             {paymentMethod === "PAYPAL" && (
               <div className="bg-brand/10 border border-brand/25 rounded-2xl p-5 space-y-2">
                 <h3 className="font-bold text-brand flex items-center gap-2">
-                  <Wallet className="h-5 w-5" />الدفع عبر PayPal
+                  <Wallet className="h-5 w-5" />{t("paypalTitle")}
                 </h3>
                 <p className="text-sm text-brand">
-                  بعد تأكيد الطلب ستُعاد توجيهك لإتمام الدفع عبر PayPal
+                  {t("paypalNotice")}
                   {gateways?.paypal.mode === "sandbox" && (
-                    <span className="ms-2 text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full font-medium">بيئة اختبار</span>
+                    <span className="ms-2 text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full font-medium">{t("testEnv")}</span>
                   )}.
                 </p>
               </div>
@@ -499,17 +506,17 @@ if (items.length === 0) {
             {paymentMethod === "TABBY" && (
               <div className="bg-brand/10 border border-brand/25 rounded-2xl p-5 space-y-2">
                 <h3 className="font-bold text-brand">
-                  Tabby — 4 دفعات بدون فوائد
+                  {t("tabbyTitle")}
                 </h3>
                 <div className="grid grid-cols-4 gap-2 mt-3">
                   {[1, 2, 3, 4].map(n => (
                     <div key={n} className="text-center p-2.5 rounded-xl bg-brand/10">
                       <p className="text-sm font-bold text-brand">{formatAmount(total / 4)}</p>
-                      <p className="text-xs text-brand">دفعة {n}</p>
+                      <p className="text-xs text-brand">{t("installment", { number: n })}</p>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-brand mt-2">سيتم تحويلك لصفحة Tabby لإتمام الطلب.</p>
+                <p className="text-xs text-brand mt-2">{t("tabbyRedirect")}</p>
               </div>
             )}
 
@@ -519,17 +526,17 @@ if (items.length === 0) {
               return (
                 <div className="bg-brand/10 border border-brand/25 rounded-2xl p-5 space-y-2">
                   <h3 className="font-bold text-brand">
-                    تمارا — {n} دفعات بدون فوائد
+                    {t("tamaraTitle", { count: n })}
                   </h3>
                   <div className="grid gap-2 mt-3" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
                     {Array.from({ length: n }, (_, i) => i + 1).map(p => (
                       <div key={p} className="text-center p-2.5 rounded-xl bg-brand/10">
                         <p className="text-sm font-bold text-brand">{formatAmount(total / n)}</p>
-                        <p className="text-xs text-brand">دفعة {p}</p>
+                        <p className="text-xs text-brand">{t("installment", { number: p })}</p>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-brand mt-2">سيتم تحويلك لصفحة تمارا لإتمام الدفع.</p>
+                  <p className="text-xs text-brand mt-2">{t("tamaraRedirect")}</p>
                 </div>
               );
             })()}
@@ -537,80 +544,78 @@ if (items.length === 0) {
             {/* ── Coupon ── */}
             <div className="bg-surface rounded-2xl border border-line p-6">
               <h2 className="font-bold text-fg text-lg mb-4 flex items-center gap-2">
-                <Tag className="h-5 w-5 text-primary-600" />كوبون خصم
+                <Tag className="h-5 w-5 text-primary-600" />{t("coupon")}
               </h2>
               {coupon ? (
                 <div className="flex items-center justify-between bg-success/10 border border-success/25 rounded-xl p-3">
                   <div>
                     <p className="font-bold text-success">{coupon.code}</p>
                     <p className="text-sm text-success">
-                      خصم {coupon.discountType === "PERCENTAGE" ? `${coupon.discountValue}%` : formatAmount(coupon.discountValue)}
+                      {t("discountValue", { value: coupon.discountType === "PERCENTAGE" ? `${coupon.discountValue}%` : formatAmount(coupon.discountValue) })}
                     </p>
                   </div>
-                  <button onClick={() => setCoupon(null)} className="text-danger hover:text-danger text-sm">إزالة</button>
+                  <button onClick={() => setCoupon(null)} className="text-danger hover:text-danger text-sm">{t("remove")}</button>
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="أدخل كود الكوبون" className="flex-1" />
-                  <Button onClick={applyCoupon} loading={couponLoading} variant="outline">تطبيق</Button>
+                  <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder={t("couponPlaceholder")} className="flex-1" />
+                  <Button onClick={applyCoupon} loading={couponLoading} variant="outline">{t("apply")}</Button>
                 </div>
               )}
             </div>
 
             {/* ── Shipping address ── */}
             <div className="bg-surface rounded-2xl border border-line p-6">
-              <h2 className="font-bold text-fg text-lg mb-1">عنوان الشحن</h2>
+              <h2 className="font-bold text-fg text-lg mb-1">{t("shippingAddress")}</h2>
               <p className="text-sm text-fg-subtle mb-4">
-                {session
-                  ? "عبّأنا بياناتك المحفوظة — عدّلها إذا كنت تشحن لشخص آخر."
-                  : "لشحن طلبك عبر شركات التوصيل"}
+                {session ? t("shipHintLoggedIn") : t("shipHintGuest")}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field error={fieldErrors.shipName}>
-                  <input value={shipName} onChange={(e) => setShipName(e.target.value)} placeholder="اسم المستلم" aria-label="اسم المستلم" className="input-base" />
+                  <input value={shipName} onChange={(e) => setShipName(e.target.value)} placeholder={t("recipientName")} aria-label={t("recipientName")} className="input-base" />
                 </Field>
                 <Field error={fieldErrors.shipPhone}>
-                  <input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder="جوال المستلم (05xxxxxxxx)" aria-label="جوال المستلم" className="input-base" inputMode="tel" dir="ltr" />
+                  <input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder={t("recipientPhone")} aria-label={t("recipientPhone")} className="input-base" inputMode="tel" dir="ltr" />
                 </Field>
                 <Field error={fieldErrors.shipCity}>
                   {cityRates.length > 0 ? (
-                    <select value={shipCity} onChange={(e) => setShipCity(e.target.value)} aria-label="المدينة" className="input-base">
-                      <option value="">اختر المدينة…</option>
+                    <select value={shipCity} onChange={(e) => setShipCity(e.target.value)} aria-label={t("city")} className="input-base">
+                      <option value="">{t("selectCityPlaceholder")}</option>
                       {cityRates.map((r) => (
                         <option key={r.city} value={r.city}>
-                          {r.city}{r.cost > 0 ? ` (شحن ${r.cost} ر.س)` : " (شحن مجاني)"}
+                          {r.city} ({r.cost > 0 ? t("shipCost", { cost: r.cost }) : t("freeShip")})
                         </option>
                       ))}
-                      {shipFee > 0 && <option value="مدن أخرى">مدينة أخرى (شحن {shipFee} ر.س)</option>}
+                      {shipFee > 0 && <option value="مدن أخرى">{t("otherCity", { fee: shipFee })}</option>}
                     </select>
                   ) : (
-                    <input value={shipCity} onChange={(e) => setShipCity(e.target.value)} placeholder="المدينة" aria-label="المدينة" className="input-base" />
+                    <input value={shipCity} onChange={(e) => setShipCity(e.target.value)} placeholder={t("city")} aria-label={t("city")} className="input-base" />
                   )}
                 </Field>
                 <Field error={fieldErrors.shipAddress}>
-                  <input value={shipAddress} onChange={(e) => setShipAddress(e.target.value)} placeholder="العنوان التفصيلي" aria-label="العنوان التفصيلي" className="input-base" />
+                  <input value={shipAddress} onChange={(e) => setShipAddress(e.target.value)} placeholder={t("addressDetail")} aria-label={t("addressDetail")} className="input-base" />
                 </Field>
               </div>
             </div>
 
             {/* ── Notes ── */}
             <div className="bg-surface rounded-2xl border border-line p-6">
-              <h2 className="font-bold text-fg text-lg mb-4">ملاحظات (اختياري)</h2>
+              <h2 className="font-bold text-fg text-lg mb-4">{t("notesTitle")}</h2>
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
-                placeholder="أي ملاحظات إضافية للطلب..." rows={3} className="input-base resize-none" />
+                placeholder={t("notesPlaceholder")} rows={3} className="input-base resize-none" />
             </div>
           </div>
 
           {/* ── Right: Order Summary ── */}
           <div className="lg:col-span-2">
             <div className="bg-surface rounded-2xl border border-line p-6 sticky top-20 space-y-4">
-              <h2 className="font-bold text-fg text-lg">ملخص الطلب</h2>
+              <h2 className="font-bold text-fg text-lg">{t("orderSummary")}</h2>
 
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {items.map((item) => (
                   <div key={`${item.id}-${item.variantLabel}`} className="flex justify-between text-sm">
                     <div className="text-fg-muted truncate pe-2">
-                      <span>{item.nameAr} × {item.quantity}</span>
+                      <span>{pickText(locale, item.name, item.nameAr)} × {item.quantity}</span>
                       {item.variantLabel && <span className="block text-xs text-fg-subtle">{item.variantLabel}</span>}
                     </div>
                     <span className="font-semibold text-fg shrink-0">
@@ -622,32 +627,32 @@ if (items.length === 0) {
 
               <div className="border-t border-line pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-fg-muted">المجموع الفرعي</span>
+                  <span className="text-fg-muted">{t("subtotal")}</span>
                   <span className="font-medium">{formatAmount(subtotal)}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-sm text-success">
-                    <span>خصم الكوبون</span>
+                    <span>{t("couponDiscount")}</span>
                     <span>- {formatAmount(discount)}</span>
                   </div>
                 )}
                 {hasShipping && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-fg-muted">الشحن</span>
+                    <span className="text-fg-muted">{t("shipping")}</span>
                     {shippingCost > 0
                       ? <span className="font-medium">{formatAmount(shippingCost)}</span>
-                      : <span className="font-medium text-success">مجاني</span>}
+                      : <span className="font-medium text-success">{t("free")}</span>}
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-lg border-t border-line pt-2 mt-2">
-                  <span className="text-fg">الإجمالي</span>
+                  <span className="text-fg">{t("total")}</span>
                   <span className="text-primary-600 dark:text-primary-400">{formatAmount(total)}</span>
                 </div>
                 {/* Prices already include VAT, so this line explains the total
                     rather than adding to it. */}
                 {vatIncludedIn(total, taxRate) > 0 && (
                   <p className="text-xs text-fg-muted text-start">
-                    شامل ضريبة القيمة المضافة ({taxRate}%): {formatAmount(vatIncludedIn(total, taxRate))}
+                    {t("vatIncluded", { rate: taxRate, amount: formatAmount(vatIncludedIn(total, taxRate)) })}
                   </p>
                 )}
               </div>
@@ -658,12 +663,12 @@ if (items.length === 0) {
                 fullWidth size="lg"
                 disabled={hasNoMethods || !paymentMethod}
               >
-                {hasNoMethods ? "لا توجد طرق دفع" : "تأكيد الطلب"}
+                {hasNoMethods ? t("noPaymentMethods") : t("confirmOrder")}
               </Button>
 
               <p className="text-xs text-center text-fg-subtle">
-                بالمتابعة توافق على{" "}
-                <Link href="/terms" className="text-primary-600 dark:text-primary-400 hover:underline">الشروط والأحكام</Link>
+                {t("agreeTerms")}{" "}
+                <Link href="/terms" className="text-primary-600 dark:text-primary-400 hover:underline">{t("terms")}</Link>
               </p>
             </div>
           </div>

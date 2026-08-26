@@ -5,6 +5,7 @@ import { X, ChevronLeft, ChevronRight, Tag, Megaphone, Percent, CheckCircle, Ale
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { useTranslations } from "next-intl";
 
 interface Announcement {
   id: string;
@@ -25,6 +26,7 @@ const TYPE_ICON: Record<string, React.ElementType> = {
 };
 
 export function AnnouncementBar() {
+  const t = useTranslations("announcement");
   const [items, setItems]       = useState<Announcement[]>([]);
   const [current, setCurrent]   = useState(0);
   const [dismissed, setDismissed] = useState(false);
@@ -60,7 +62,7 @@ export function AnnouncementBar() {
   const copyCoupon = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopied(code);
-    toast.success(`تم نسخ الكود: ${code}`);
+    toast.success(t("codeCopied", { code }));
     setTimeout(() => setCopied(null), 2500);
   };
 
@@ -105,7 +107,7 @@ export function AnnouncementBar() {
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border-2 border-white/40 bg-white/15 hover:bg-white/30 transition-colors text-xs font-bold tracking-wider"
                   >
                     {copied === item.couponCode
-                      ? <><Check className="h-3 w-3" />تم النسخ</>
+                      ? <><Check className="h-3 w-3" />{t("copied")}</>
                       : <><Copy className="h-3 w-3" />{item.couponCode}</>
                     }
                   </button>
@@ -117,7 +119,7 @@ export function AnnouncementBar() {
                     href={item.link}
                     className="inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity"
                   >
-                    اكتشف الآن <ExternalLink className="h-3 w-3" />
+                    {t("discoverNow")} <ExternalLink className="h-3 w-3" />
                   </Link>
                 )}
               </motion.div>

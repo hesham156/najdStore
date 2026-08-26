@@ -4,6 +4,8 @@ import { HomeSections } from "@/components/store/HomeSections";
 import { getActiveCategories, getFeaturedProducts, getRecentProducts } from "@/lib/queries";
 import { getBranding } from "@/lib/settings";
 import { getHomeSections } from "@/lib/home-layout";
+import { getLocale } from "next-intl/server";
+import { isLocale, localeOpenGraph, defaultLocale, type Locale } from "@/i18n/config";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,8 @@ const FALLBACK_KEYWORDS = [
 
 export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getSeoConfig();
+  const locale = (await getLocale()) as Locale;
+  const ogLocale = isLocale(locale) ? localeOpenGraph[locale] : localeOpenGraph[defaultLocale];
 
   // Settings win when set; the hand-written copy above is the floor.
   const title = cfg.title !== cfg.siteName ? cfg.title : FALLBACK_TITLE;
@@ -33,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: cfg.ogDescription || description,
       url: cfg.siteUrl,
       siteName: cfg.siteName,
-      locale: "ar_SA",
+      locale: ogLocale,
       type: "website",
       ...(cfg.ogImage
         ? { images: [{ url: cfg.ogImage, width: 1200, height: 630, alt: cfg.siteName }] }

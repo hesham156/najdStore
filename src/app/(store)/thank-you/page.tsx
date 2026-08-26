@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import confetti from "canvas-confetti";
+import { useTranslations } from "next-intl";
 
 /* ─── Confetti helper ─── */
 function fireConfetti() {
@@ -56,33 +57,16 @@ function Particle({ delay, x, size }: { delay: number; x: number; size: number }
   );
 }
 
-/* ─── Steps timeline ─── */
-const STEPS = [
-  {
-    icon: Mail,
-    color: "bg-info/10 text-info",
-    label: "تأكيد عبر الإيميل",
-    desc: "تم إرسال تفاصيل طلبك إلى بريدك الإلكتروني",
-    done: true,
-  },
-  {
-    icon: Package,
-    color: "bg-warning/10 text-warning",
-    label: "مراجعة الطلب",
-    desc: "يتم مراجعة طلبك والتحقق من الدفع",
-    done: false,
-  },
-  {
-    icon: CheckCircle2,
-    color: "bg-success/10 text-success",
-    label: "التسليم",
-    desc: "ستحصل على بياناتك فوراً عند اكتمال المراجعة",
-    done: false,
-  },
+/* ─── Steps timeline (icons/colors here; copy comes from translations) ─── */
+const STEP_META = [
+  { icon: Mail,         color: "bg-info/10 text-info",       key: "step1", done: true },
+  { icon: Package,      color: "bg-warning/10 text-warning", key: "step2", done: false },
+  { icon: CheckCircle2, color: "bg-success/10 text-success", key: "step3", done: false },
 ];
 
 /* ─── Copy button ─── */
 function CopyButton({ text }: { text: string }) {
+  const t = useTranslations("thankYou");
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(text);
@@ -95,15 +79,23 @@ function CopyButton({ text }: { text: string }) {
       className="flex items-center gap-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-colors"
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-      {copied ? "تم النسخ!" : "نسخ"}
+      {copied ? t("copied") : t("copy")}
     </button>
   );
 }
 
 export default function ThankYouPage() {
+  const t = useTranslations("thankYou");
   const params = useSearchParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const steps = STEP_META.map((m) => ({
+    icon: m.icon,
+    color: m.color,
+    done: m.done,
+    label: t(`${m.key}Label`),
+    desc: t(`${m.key}Desc`),
+  }));
   const orderId  = params.get("order") ?? "";
   const orderNum = params.get("num")   ?? "";
   const firedRef = useRef(false);
@@ -197,10 +189,10 @@ export default function ThankYouPage() {
                 ))}
               </div>
               <h1 className="text-2xl font-black text-fg mb-1">
-                شكراً لك! 🎉
+                {t("title")}
               </h1>
               <p className="text-fg-subtle text-sm leading-relaxed">
-                تم استلام طلبك بنجاح وسيتم معالجته في أقرب وقت
+                {t("subtitle")}
               </p>
             </motion.div>
           </div>
@@ -214,7 +206,7 @@ export default function ThankYouPage() {
               className="mx-6 my-5 flex items-center justify-between gap-4 px-4 py-3.5 rounded-2xl bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800"
             >
               <div>
-                <p className="text-xs text-primary-600 dark:text-primary-400 font-medium">رقم الطلب</p>
+                <p className="text-xs text-primary-600 dark:text-primary-400 font-medium">{t("orderNumber")}</p>
                 <p className="font-black text-primary-800 dark:text-primary-200 text-lg tracking-wide font-mono">
                   #{orderNum}
                 </p>
@@ -231,9 +223,9 @@ export default function ThankYouPage() {
             className="px-6 pb-6 space-y-3"
           >
             <p className="text-xs font-bold text-fg-subtle uppercase tracking-wider mb-4">
-              ما يحدث الآن
+              {t("whatNow")}
             </p>
-            {STEPS.map((step, i) => {
+            {steps.map((step, i) => {
               const Icon = step.icon;
               return (
                 <motion.div
@@ -251,14 +243,14 @@ export default function ThankYouPage() {
                       <p className="text-sm font-semibold text-fg">{step.label}</p>
                       {step.done && (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success/10 text-success">
-                          تم ✓
+                          {t("doneBadge")}
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-fg-subtle mt-0.5">{step.desc}</p>
                   </div>
                   {/* Connector */}
-                  {i < STEPS.length - 1 && (
+                  {i < steps.length - 1 && (
                     <div className="absolute translate-x-[17px] translate-y-9 w-px h-6 bg-surface-sunken" />
                   )}
                 </motion.div>
@@ -270,7 +262,7 @@ export default function ThankYouPage() {
           <div className="mx-6 mb-6 flex items-center gap-2 rounded-control border border-warning/25 bg-warning/10 p-3">
             <Clock className="h-4 w-4 text-warning shrink-0" />
             <p className="text-xs text-warning leading-relaxed">
-              التسليم التلقائي فوري — أو يدوياً خلال <span className="font-bold">1-24 ساعة</span> حسب نوع المنتج
+              {t.rich("deliveryInfo", { b: (chunks) => <span className="font-bold">{chunks}</span> })}
             </p>
           </div>
 
@@ -285,7 +277,7 @@ export default function ThankYouPage() {
               <Link href={`/dashboard/orders/${orderId}`}>
                 <Button fullWidth size="lg" className="gap-2">
                   <Package className="h-4 w-4" />
-                  تتبع طلبك
+                  {t("trackOrder")}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -293,7 +285,7 @@ export default function ThankYouPage() {
               <Link href="/dashboard/orders">
                 <Button fullWidth size="lg" className="gap-2">
                   <Package className="h-4 w-4" />
-                  عرض طلباتي
+                  {t("viewOrders")}
                 </Button>
               </Link>
             )}
@@ -302,13 +294,13 @@ export default function ThankYouPage() {
               <Link href="/products">
                 <Button fullWidth variant="outline" size="md" className="gap-1.5">
                   <ShoppingBag className="h-4 w-4" />
-                  تسوق المزيد
+                  {t("shopMore")}
                 </Button>
               </Link>
               <Link href="/dashboard/tickets">
                 <Button fullWidth variant="outline" size="md" className="gap-1.5">
                   <Headphones className="h-4 w-4" />
-                  الدعم الفني
+                  {t("support")}
                 </Button>
               </Link>
             </div>
@@ -322,9 +314,9 @@ export default function ThankYouPage() {
           transition={{ delay: 1.2 }}
           className="text-center text-xs text-fg-subtle mt-5"
         >
-          هل واجهت مشكلة؟{" "}
+          {t("hadProblem")}{" "}
           <Link href="/contact" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
-            تواصل معنا
+            {t("contactUs")}
           </Link>
         </motion.p>
       </motion.div>

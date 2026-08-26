@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/store/AnimatedSection";
+import { useTranslations } from "next-intl";
 
 interface Announcement {
   id: string;
@@ -21,27 +22,28 @@ interface Announcement {
 // Same five types as the admin announcements screen, and the same five tones,
 // so what the merchant picks there is what the customer sees here.
 // `fill` carries a white icon, hence the fixed `-solid` step.
-const TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string; fill: string; border: string }> = {
-  COUPON:  { icon: Tag,      label: "كوبون خصم",  fill: "bg-brand-solid",   border: "border-brand/25" },
-  SALE:    { icon: Percent,  label: "عرض خاص",    fill: "bg-danger-solid",  border: "border-danger/25" },
-  INFO:    { icon: Megaphone,label: "إعلان",       fill: "bg-info-solid",    border: "border-info/25" },
-  SUCCESS: { icon: Zap,      label: "خبر سار",    fill: "bg-success-solid", border: "border-success/25" },
-  WARNING: { icon: Clock,    label: "عرض محدود",  fill: "bg-warning-solid", border: "border-warning/25" },
+const TYPE_CONFIG: Record<string, { icon: React.ElementType; labelKey: string; fill: string; border: string }> = {
+  COUPON:  { icon: Tag,      labelKey: "typeCoupon",  fill: "bg-brand-solid",   border: "border-brand/25" },
+  SALE:    { icon: Percent,  labelKey: "typeSale",    fill: "bg-danger-solid",  border: "border-danger/25" },
+  INFO:    { icon: Megaphone,labelKey: "typeInfo",     fill: "bg-info-solid",    border: "border-info/25" },
+  SUCCESS: { icon: Zap,      labelKey: "typeSuccess", fill: "bg-success-solid", border: "border-success/25" },
+  WARNING: { icon: Clock,    labelKey: "typeWarning", fill: "bg-warning-solid", border: "border-warning/25" },
 };
 
 function CountdownBadge({ expiresAt }: { expiresAt: string }) {
+  const t = useTranslations("promo");
   const [remaining, setRemaining] = useState("");
 
   useEffect(() => {
     const calc = () => {
       const diff = new Date(expiresAt).getTime() - Date.now();
-      if (diff <= 0) { setRemaining("انتهى العرض"); return; }
+      if (diff <= 0) { setRemaining(t("offerEnded")); return; }
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
       if (h > 24) {
         const d = Math.floor(h / 24);
-        setRemaining(`ينتهي خلال ${d} يوم`);
+        setRemaining(t("endsInDays", { days: d }));
       } else {
         setRemaining(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`);
       }
@@ -49,7 +51,7 @@ function CountdownBadge({ expiresAt }: { expiresAt: string }) {
     calc();
     const id = setInterval(calc, 1000);
     return () => clearInterval(id);
-  }, [expiresAt]);
+  }, [expiresAt, t]);
 
   return (
     <span className="inline-flex items-center gap-1 text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-black/10 dark:bg-white/10">
@@ -59,6 +61,7 @@ function CountdownBadge({ expiresAt }: { expiresAt: string }) {
 }
 
 export function PromoSection() {
+  const t = useTranslations("promo");
   const [items, setItems] = useState<Announcement[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -74,7 +77,7 @@ export function PromoSection() {
   const copyCoupon = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopied(code);
-    toast.success(`تم نسخ الكوبون: ${code} 🎉`);
+    toast.success(t("couponCopied", { code }));
     setTimeout(() => setCopied(null), 3000);
   };
 
@@ -84,10 +87,10 @@ export function PromoSection() {
         <AnimatedSection className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-bold mb-3">
             <Zap className="h-4 w-4" />
-            عروض حصرية
+            {t("exclusiveOffers")}
           </div>
-          <h2 className="text-2xl font-black text-fg">الإعلانات والعروض</h2>
-          <p className="text-fg-subtle mt-2 text-sm">استفد من أفضل العروض والكوبونات المتاحة</p>
+          <h2 className="text-2xl font-black text-fg">{t("title")}</h2>
+          <p className="text-fg-subtle mt-2 text-sm">{t("subtitle")}</p>
         </AnimatedSection>
 
         <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -112,7 +115,7 @@ export function PromoSection() {
                         <Icon className="h-5 w-5 text-white" />
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-xs font-bold text-white ${cfg.fill}`}>
-                        {cfg.label}
+                        {t(cfg.labelKey)}
                       </span>
                     </div>
 
@@ -136,8 +139,8 @@ export function PromoSection() {
                             : "bg-surface-sunken text-fg-muted group-hover:bg-primary-100 dark:group-hover:bg-primary-900/40 group-hover:text-primary-700"
                         }`}>
                           {copied === item.couponCode
-                            ? <><Check className="h-3 w-3" />تم النسخ</>
-                            : <><Copy className="h-3 w-3" />انسخ</>
+                            ? <><Check className="h-3 w-3" />{t("copied")}</>
+                            : <><Copy className="h-3 w-3" />{t("copy")}</>
                           }
                         </span>
                       </button>
@@ -151,7 +154,7 @@ export function PromoSection() {
                           href={item.link}
                           className={`ms-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 ${cfg.fill}`}
                         >
-                          اكتشف الآن <ExternalLink className="h-3.5 w-3.5" />
+                          {t("discoverNow")} <ExternalLink className="h-3.5 w-3.5" />
                         </Link>
                       )}
                     </div>

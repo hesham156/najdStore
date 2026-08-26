@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { SiteLogo } from "@/components/ui/site-logo";
 import { Wrench, Clock, Mail } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-export function MaintenancePage() {
+export async function MaintenancePage() {
+  const t = await getTranslations("maintenance");
   return (
     <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center px-4 relative overflow-hidden">
 
@@ -39,24 +41,24 @@ export function MaintenancePage() {
         </div>
 
         <h1 className="text-4xl font-black text-white mb-3">
-          تحت الصيانة
+          {t("title")}
         </h1>
         <p className="text-white/50 text-lg leading-relaxed mb-8">
-          نقوم حالياً بتحديث المنصة لتقديم تجربة أفضل لك.
-          <br />سنعود قريباً!
+          {t("line1")}
+          <br />{t("line2")}
         </p>
 
         {/* Status cards */}
         <div className="grid grid-cols-2 gap-3 w-full mb-8">
           <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col items-center gap-2">
             <Clock className="h-5 w-5 text-warning" />
-            <p className="text-xs text-white/50">العودة المتوقعة</p>
-            <p className="text-sm font-bold text-white">قريباً</p>
+            <p className="text-xs text-white/50">{t("expectedReturn")}</p>
+            <p className="text-sm font-bold text-white">{t("soon")}</p>
           </div>
           <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col items-center gap-2">
             <Mail className="h-5 w-5 text-info" />
-            <p className="text-xs text-white/50">للتواصل</p>
-            <p className="text-sm font-bold text-white">راسلنا</p>
+            <p className="text-xs text-white/50">{t("contact")}</p>
+            <p className="text-sm font-bold text-white">{t("contactUs")}</p>
           </div>
         </div>
 
@@ -64,7 +66,7 @@ export function MaintenancePage() {
           href="/login"
           className="text-xs text-white/20 hover:text-white/40 transition-colors"
         >
-          دخول الإدارة
+          {t("adminLogin")}
         </Link>
       </div>
     </div>

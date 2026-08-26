@@ -11,6 +11,9 @@ import { Badge } from "@/components/ui/Badge";
 import toast from "react-hot-toast";
 import type { ProductWithCategory } from "@/types";
 import { cn } from "@/lib/utils";
+import { useLocale, useTranslations } from "next-intl";
+import { pickText, pickList } from "@/lib/i18n-content";
+import type { Locale } from "@/i18n/config";
 
 interface ProductCardProps {
   product: ProductWithCategory;
@@ -21,6 +24,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const { addItem } = useCartStore();
   const { formatAmount } = useCurrency();
   const reduced = useReducedMotion();
+  const t = useTranslations("product");
+  const locale = useLocale() as Locale;
+
+  // Resolve the shopper-facing text from the product's bilingual columns.
+  const displayName = pickText(locale, product.name, product.nameAr);
+  const displayCategory = pickText(locale, product.category.name, product.category.nameAr);
+  const displayFeatures = pickList(locale, product.features, product.featuresAr);
 
   const price = typeof product.price === "string" ? parseFloat(product.price) : product.price;
   const comparePrice = product.comparePrice
@@ -47,7 +57,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       quantity: 1,
       slug: product.slug,
     });
-    toast.success(`تم إضافة ${product.nameAr} إلى السلة`);
+    toast.success(t("addedToCart", { name: displayName }));
   };
 
   return (
@@ -67,7 +77,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           {product.isFeatured && (
             <Badge variant="default" className="text-xs">
               <Star className="h-3 w-3" />
-              مميز
+              {t("featured")}
             </Badge>
           )}
           {discount > 0 && (
@@ -85,9 +95,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
             dot
           >
             {product.deliveryMethod === "AUTOMATIC" ? (
-              <><Zap className="h-3 w-3" />تسليم فوري</>
+              <><Zap className="h-3 w-3" />{t("instantDelivery")}</>
             ) : (
-              <><Clock className="h-3 w-3" />يدوي</>
+              <><Clock className="h-3 w-3" />{t("manualDelivery")}</>
             )}
           </Badge>
         </div>
@@ -102,7 +112,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             >
               <Image
                 src={product.image}
-                alt={product.nameAr}
+                alt={displayName}
                 fill
                 className="object-contain p-6"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -126,15 +136,15 @@ export function ProductCard({ product, className }: ProductCardProps) {
         {/* Content */}
         <div className="p-4">
           <p className="text-xs font-medium text-primary-600 dark:text-primary-400 mb-1">
-            {product.category.nameAr}
+            {displayCategory}
           </p>
           <h3 className="font-bold text-fg mb-2 line-clamp-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
-            {product.nameAr}
+            {displayName}
           </h3>
 
-          {product.features.length > 0 && (
+          {displayFeatures.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
-              {product.features.slice(0, 3).map((feature) => (
+              {displayFeatures.slice(0, 3).map((feature) => (
                 <span
                   key={feature}
                   className="text-xs px-2 py-0.5 rounded-full bg-surface-sunken text-fg-muted"
@@ -160,7 +170,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <motion.div whileTap={reduced ? {} : { scale: 0.93 }}>
               <Button size="sm" onClick={handleAddToCart} className="gap-1.5">
                 <ShoppingCart className="h-4 w-4" />
-                أضف
+                {t("addShort")}
               </Button>
             </motion.div>
           </div>
@@ -171,7 +181,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <div className="px-4 pb-3 flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 text-warning" />
             <p className="text-xs text-warning font-medium">
-              متبقي {product.stockCount} فقط!
+              {t("onlyLeft", { count: product.stockCount })}
             </p>
           </div>
         )}
@@ -180,7 +190,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         {tracksStock && product.stockCount === 0 && (
           <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-fg/60 backdrop-blur-[1px]">
             <span className="rounded-control bg-fg px-4 py-2 text-sm font-bold text-canvas">
-              نفذ المخزون
+              {t("soldOut")}
             </span>
           </div>
         )}

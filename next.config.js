@@ -1,3 +1,8 @@
+const createNextIntlPlugin = require("next-intl/plugin");
+
+// Point the plugin at our request config (cookie-based locale, no URL segment).
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -69,4 +74,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withNextIntl(nextConfig);

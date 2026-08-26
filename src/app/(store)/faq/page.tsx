@@ -3,72 +3,14 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
-const faqs = [
-  {
-    category: "الطلبات والتسليم",
-    items: [
-      {
-        q: "كيف يتم تسليم الطلبات؟",
-        a: "بعد تأكيد الدفع، يتم تسليم المنتج تلقائياً في حال كان التسليم فورياً. ستظهر التفاصيل مباشرةً في صفحة تفاصيل الطلب بلوحة التحكم الخاصة بك. في حالة التسليم اليدوي، يتم التسليم خلال 1-24 ساعة.",
-      },
-      {
-        q: "ما المدة الزمنية لمراجعة الدفع؟",
-        a: "يتم مراجعة إثبات الدفع خلال 1-6 ساعات في أوقات العمل. بعد الموافقة يُسلَّم المنتج فوراً.",
-      },
-      {
-        q: "هل يمكنني إلغاء طلبي؟",
-        a: "يمكن إلغاء الطلب قبل مراجعة الدفع. بعد تسليم المنتج، لا يمكن الإلغاء.",
-      },
-    ],
-  },
-  {
-    category: "الدفع",
-    items: [
-      {
-        q: "ما طرق الدفع المتاحة؟",
-        a: "نقبل التحويل البنكي، والعملات الرقمية (Bitcoin, USDT)، وPayPal.",
-      },
-      {
-        q: "ماذا أفعل بعد التحويل البنكي؟",
-        a: "بعد إتمام التحويل، ارفع صورة من إيصال الدفع في صفحة الطلب. سيتم مراجعته وتأكيده خلال ساعات.",
-      },
-      {
-        q: "هل هناك رسوم إضافية على الدفع؟",
-        a: "لا توجد رسوم إضافية. المبلغ الظاهر في الموقع هو ما تدفعه فعلياً.",
-      },
-    ],
-  },
-  {
-    category: "المنتجات والجودة",
-    items: [
-      {
-        q: "هل المنتجات أصلية؟",
-        a: "نعم، جميع منتجاتنا أصلية 100% ومضمونة الجودة.",
-      },
-      {
-        q: "ماذا أفعل إذا واجهت مشكلة في المنتج؟",
-        a: "افتح تذكرة دعم فني فوراً مع ذكر رقم طلبك. سيتم حل المشكلة أو استبدال المنتج خلال ساعات.",
-      },
-      {
-        q: "هل تفاصيل المنتج دقيقة؟",
-        a: "نعم، نحرص على عرض تفاصيل دقيقة لكل منتج. تحقق دائماً من صفحة تفاصيل المنتج قبل الشراء.",
-      },
-    ],
-  },
-  {
-    category: "الدعم والاسترداد",
-    items: [
-      {
-        q: "هل يمكنني الحصول على استرداد؟",
-        a: "نعم، في حالة المنتجات المعيبة أو غير الصالحة يتم الاسترداد الكامل. راجع سياسة الاسترداد للتفاصيل.",
-      },
-      {
-        q: "كيف أتواصل مع الدعم؟",
-        a: "يمكنك فتح تذكرة دعم من لوحة التحكم، أو التواصل معنا عبر البريد الإلكتروني support@store.com",
-      },
-    ],
-  },
+// Structure only; the copy lives in the `faqPage` message namespace.
+const FAQ_META = [
+  { cat: "cat1", count: 3 },
+  { cat: "cat2", count: 3 },
+  { cat: "cat3", count: 3 },
+  { cat: "cat4", count: 2 },
 ];
 
 function FAQItem({ q, a }: { q: string; a: string }) {
@@ -92,12 +34,21 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function FAQPage() {
+  const t = useTranslations("faqPage");
+  const faqs = FAQ_META.map((section) => ({
+    category: t(section.cat),
+    items: Array.from({ length: section.count }, (_, i) => ({
+      q: t(`${section.cat}q${i + 1}`),
+      a: t(`${section.cat}a${i + 1}`),
+    })),
+  }));
+
   return (
     <div className="min-h-screen py-12">
       <div className="container-custom max-w-3xl">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-black text-fg mb-3">الأسئلة الشائعة</h1>
-          <p className="text-fg-subtle text-lg">إجابات على أكثر الأسئلة شيوعاً</p>
+          <h1 className="text-4xl font-black text-fg mb-3">{t("title")}</h1>
+          <p className="text-fg-subtle text-lg">{t("subtitle")}</p>
         </div>
 
         <div className="space-y-8">
@@ -119,9 +70,9 @@ export default function FAQPage() {
         </div>
 
         <div className="mt-12 text-center bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-2xl p-8">
-          <h3 className="font-bold text-fg text-lg mb-2">لم تجد إجابتك؟</h3>
-          <p className="text-fg-muted mb-4">تواصل مع فريق الدعم الفني</p>
-          <a href="/contact" className="btn-primary inline-flex">تواصل معنا</a>
+          <h3 className="font-bold text-fg text-lg mb-2">{t("notFoundTitle")}</h3>
+          <p className="text-fg-muted mb-4">{t("notFoundDesc")}</p>
+          <a href="/contact" className="btn-primary inline-flex">{t("contactUs")}</a>
         </div>
       </div>
     </div>

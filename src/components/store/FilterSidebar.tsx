@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import { SlidersHorizontal, ChevronDown, ChevronUp, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { pickText } from "@/lib/i18n-content";
+import type { Locale } from "@/i18n/config";
 
 interface Category {
   id: string;
   slug: string;
+  name: string;
   nameAr: string;
   icon?: string | null;
 }
@@ -17,6 +21,16 @@ interface FilterSidebarProps {
 
 export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations("filter");
+  const tc = useTranslations("common");
+  const locale = useLocale() as Locale;
+
+  const sortOptions = [
+    { value: "", label: t("sortBest") },
+    { value: "newest", label: t("sortNewest") },
+    { value: "price_asc", label: t("sortPriceAsc") },
+    { value: "price_desc", label: t("sortPriceDesc") },
+  ];
 
   /**
    * Every filter link carries the OTHER active filters forward.
@@ -46,7 +60,7 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
       >
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-fg-subtle" />
-          <h3 className="font-bold text-fg">التصفية</h3>
+          <h3 className="font-bold text-fg">{t("title")}</h3>
         </div>
         <span className="lg:hidden text-fg-subtle">
           {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -60,8 +74,8 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
             type="search"
             name="search"
             defaultValue={searchParams.search}
-            placeholder="ابحث عن منتج..."
-            aria-label="ابحث عن منتج"
+            placeholder={tc("searchPlaceholder")}
+            aria-label={tc("search")}
             className="input-base text-sm"
           />
           {searchParams.category && (
@@ -71,7 +85,7 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
             <input type="hidden" name="sort" value={searchParams.sort} />
           )}
           <button type="submit" className="btn-primary w-full mt-2 text-sm py-2">
-            بحث
+            {t("searchButton")}
           </button>
         </form>
 
@@ -81,13 +95,13 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
             className="mb-5 flex items-center justify-center gap-1.5 rounded-xl border border-line px-3 py-2 text-sm text-fg-muted transition-colors hover:border-primary-300 hover:text-primary-600 dark:hover:text-primary-400"
           >
             <X className="h-3.5 w-3.5" />
-            مسح كل الفلاتر
+            {t("clearFilters")}
           </a>
         )}
 
         {/* Category Filter */}
         <div className="mb-5">
-          <p className="text-sm font-semibold text-fg-muted mb-2">الفئة</p>
+          <p className="text-sm font-semibold text-fg-muted mb-2">{t("category")}</p>
           <div className="space-y-1">
             <a
               href={hrefWith({ category: undefined })}
@@ -97,7 +111,7 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
                   : "text-fg-muted hover:bg-surface-sunken"
               }`}
             >
-              جميع الفئات
+              {t("allCategories")}
             </a>
             {categories.map((cat) => (
               <a
@@ -110,7 +124,7 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
                 }`}
               >
                 <span>{cat.icon}</span>
-                {cat.nameAr}
+                {pickText(locale, cat.name, cat.nameAr)}
               </a>
             ))}
           </div>
@@ -118,14 +132,9 @@ export function FilterSidebar({ categories, searchParams }: FilterSidebarProps) 
 
         {/* Sort */}
         <div>
-          <p className="text-sm font-semibold text-fg-muted mb-2">الترتيب</p>
+          <p className="text-sm font-semibold text-fg-muted mb-2">{t("sort")}</p>
           <div className="space-y-1">
-            {[
-              { value: "", label: "الأفضل مطابقةً" },
-              { value: "newest", label: "الأحدث" },
-              { value: "price_asc", label: "السعر: الأقل أولاً" },
-              { value: "price_desc", label: "السعر: الأعلى أولاً" },
-            ].map((opt) => (
+            {sortOptions.map((opt) => (
               <a
                 key={opt.value}
                 href={hrefWith({ sort: opt.value || undefined })}

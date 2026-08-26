@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   endsAt: string;
@@ -12,7 +13,9 @@ function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-export function FlashSaleTimer({ endsAt, label = "⚡ ينتهي العرض خلال" }: Props) {
+export function FlashSaleTimer({ endsAt, label }: Props) {
+  const t = useTranslations("flashSale");
+  const labelText = label || t("endsIn");
   const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
   const [expired, setExpired] = useState(false);
 
@@ -39,7 +42,7 @@ export function FlashSaleTimer({ endsAt, label = "⚡ ينتهي العرض خل
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-danger/10 border border-danger/25">
       <Clock className="h-4 w-4 text-danger shrink-0 animate-pulse" />
-      <span className="text-sm text-danger font-medium">{label}</span>
+      <span className="text-sm text-danger font-medium">{labelText}</span>
       <div className="flex items-center gap-1 font-mono font-black text-danger text-sm">
         {timeLeft.h > 0 && (
           <>

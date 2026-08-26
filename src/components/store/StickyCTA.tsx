@@ -5,6 +5,7 @@ import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface Props {
   productName: string;
@@ -16,6 +17,7 @@ interface Props {
 
 export function StickyCTA({ productName, price, variantLabel, onAddToCart, anchorRef }: Props) {
   const { formatAmount } = useCurrency();
+  const t = useTranslations("stickyCta");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function StickyCTA({ productName, price, variantLabel, onAddToCart, ancho
       </p>
       <Button onClick={onAddToCart} size="md" className="shrink-0 gap-1.5">
         <ShoppingCart className="h-4 w-4" />
-        أضف للسلة
+        {t("addToCart")}
       </Button>
     </div>
   );

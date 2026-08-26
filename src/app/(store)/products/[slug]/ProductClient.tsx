@@ -19,6 +19,9 @@ import { StickyCTA } from "@/components/store/StickyCTA";
 import toast from "react-hot-toast";
 import DOMPurify from "isomorphic-dompurify";
 import type { ProductWithCategory, ProductVariant, ProductOptionData, MatrixVariant } from "@/types";
+import { useLocale, useTranslations } from "next-intl";
+import { pickText, pickList } from "@/lib/i18n-content";
+import type { Locale } from "@/i18n/config";
 
 interface PublicSettings {
   tabby_enabled?: boolean;
@@ -50,6 +53,16 @@ interface Props {
 
 export default function ProductClient({ product, publicSettings, options = [], optionVariants = [], bundleProducts = [], bundleDiscount = null }: Props) {
   const { formatAmount } = useCurrency();
+  const t = useTranslations("productPage");
+  const tn = useTranslations("nav");
+  const tp = useTranslations("product");
+  const th = useTranslations("home");
+  const tcart = useTranslations("cart");
+  const locale = useLocale() as Locale;
+  const displayName = pickText(locale, product.name, product.nameAr);
+  const displayCategory = pickText(locale, product.category.name, product.category.nameAr);
+  const displayDescription = pickText(locale, product.description, product.descriptionAr);
+  const displayFeatures = pickList(locale, product.features, product.featuresAr);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
@@ -153,7 +166,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
 
   const handleAddToCart = () => {
     if (selectionIncomplete) {
-      toast.error("اختر كل الخيارات أولاً");
+      toast.error(t("selectAllOptions"));
       return;
     }
     addItem({
@@ -171,7 +184,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
     const label = hasOptions
       ? (selectionLabel ? ` (${selectionLabel})` : "")
       : (selectedVariant ? ` (${selectedVariant.label})` : "");
-    toast.success(`تم إضافة ${product.nameAr}${label} إلى السلة`);
+    toast.success(t("addedToast", { name: `${displayName}${label}` }));
     setTimeout(() => setAdded(false), 3000);
 
     // Trigger upsell modal after adding to cart
@@ -196,7 +209,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
           slug: upsell.offerProduct.slug,
           variantLabel: upsellLabel,
         });
-        toast.success(`تم إضافة ${upsell.offerProduct.nameAr} إلى السلة 🎉`);
+        toast.success(tcart("addedCelebrate", { name: upsell.offerProduct.nameAr }));
       },
     });
   };
@@ -227,7 +240,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
   const handleAddBundle = () => {
     const chosen = bundleProducts.filter((p) => bundleSelected.has(p.id));
     if (chosen.length === 0) {
-      toast.error("اختر منتجاً واحداً على الأقل");
+      toast.error(t("selectOneProduct"));
       return;
     }
     // Spread the discount across the chosen items so the cart subtotal (a plain
@@ -245,10 +258,10 @@ export default function ProductClient({ product, publicSettings, options = [], o
         image: p.image || undefined,
         quantity: 1,
         slug: p.slug,
-        variantLabel: bundleDiscountAmount > 0 ? "ضمن حزمة كمّل طلبك" : undefined,
+        variantLabel: bundleDiscountAmount > 0 ? t("bundleLabel") : undefined,
       });
     });
-    toast.success(`تم إضافة ${chosen.length} منتج إلى السلة 🎉`);
+    toast.success(t("bundleAdded", { count: chosen.length }));
   };
 
   return (
@@ -256,13 +269,13 @@ export default function ProductClient({ product, publicSettings, options = [], o
       <div className="container-custom">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-fg-subtle mb-8">
-          <Link href="/" className="hover:text-primary-600 dark:hover:text-primary-400">الرئيسية</Link>
+          <Link href="/" className="hover:text-primary-600 dark:hover:text-primary-400">{tn("home")}</Link>
           <ArrowRight className="h-4 w-4" />
-          <Link href="/products" className="hover:text-primary-600 dark:hover:text-primary-400">المنتجات</Link>
+          <Link href="/products" className="hover:text-primary-600 dark:hover:text-primary-400">{tn("products")}</Link>
           <ArrowRight className="h-4 w-4" />
-          <Link href={`/categories/${product.category.slug}`} className="hover:text-primary-600 dark:hover:text-primary-400">{product.category.nameAr}</Link>
+          <Link href={`/categories/${product.category.slug}`} className="hover:text-primary-600 dark:hover:text-primary-400">{displayCategory}</Link>
           <ArrowRight className="h-4 w-4" />
-          <span className="text-fg font-medium">{product.nameAr}</span>
+          <span className="text-fg font-medium">{displayName}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -271,13 +284,13 @@ export default function ProductClient({ product, publicSettings, options = [], o
           <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             <div className="relative aspect-square rounded-2xl bg-surface-sunken border border-line overflow-hidden flex items-center justify-center">
               {product.image ? (
-                <Image src={product.image} alt={product.nameAr} fill className="object-contain p-12" unoptimized />
+                <Image src={product.image} alt={displayName} fill className="object-contain p-12" unoptimized />
               ) : (
                 <span className="text-8xl">{product.category.icon || "📦"}</span>
               )}
               {discount > 0 && (
                 <div className="absolute top-4 start-4">
-                  <Badge variant="danger" className="text-base font-bold px-3 py-1">-{discount}% خصم</Badge>
+                  <Badge variant="danger" className="text-base font-bold px-3 py-1">-{discount}% {t("discountOff")}</Badge>
                 </div>
               )}
             </div>
@@ -291,62 +304,46 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline mb-2"
               >
                 <span>{product.category.icon}</span>
-                {product.category.nameAr}
+                {displayCategory}
               </Link>
-              <h1 className="text-3xl font-black text-fg">{product.nameAr}</h1>
+              <h1 className="text-3xl font-black text-fg">{displayName}</h1>
 
               {/* Delivery badge */}
               <div className="flex items-center gap-2 mt-3">
                 <Badge variant={product.deliveryMethod === "AUTOMATIC" ? "success" : "warning"} dot>
                   {product.deliveryMethod === "AUTOMATIC" ? (
-                    <><Zap className="h-3 w-3" />تسليم فوري تلقائي</>
+                    <><Zap className="h-3 w-3" />{t("deliveryAuto")}</>
                   ) : (
-                    <><Clock className="h-3 w-3" />تسليم يدوي (1-24 ساعة)</>
+                    <><Clock className="h-3 w-3" />{t("deliveryManual")}</>
                   )}
                 </Badge>
                 {product.isFeatured && (
-                  <Badge variant="default" dot><Star className="h-3 w-3" />مميز</Badge>
+                  <Badge variant="default" dot><Star className="h-3 w-3" />{tp("featured")}</Badge>
                 )}
               </div>
             </div>
 
             {/* Description — renders sanitized HTML (e.g. imported from Salla) or plain text */}
-            {product.descriptionAr && (
-              /<[a-z][\s\S]*>/i.test(product.descriptionAr) ? (
+            {displayDescription && (
+              /<[a-z][\s\S]*>/i.test(displayDescription) ? (
                 <div
                   className="prose prose-sm dark:prose-invert max-w-none text-fg-muted prose-headings:text-fg dark:prose-headings:text-white prose-strong:text-fg dark:prose-strong:text-white prose-a:text-primary-600"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.descriptionAr) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(displayDescription) }}
                 />
               ) : (
-                <p className="text-fg-muted leading-relaxed whitespace-pre-line">{product.descriptionAr}</p>
+                <p className="text-fg-muted leading-relaxed whitespace-pre-line">{displayDescription}</p>
               )
             )}
 
             {/* Features */}
-            {product.featuresAr && product.featuresAr.length > 0 && (
+            {displayFeatures.length > 0 && (
               <div className="bg-surface-sunken rounded-2xl p-5">
                 <h3 className="font-bold text-fg mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4 text-primary-600" />
-                  ما يتضمنه المنتج
+                  {t("whatIncluded")}
                 </h3>
                 <ul className="space-y-2">
-                  {product.featuresAr.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-fg-muted">
-                      <Check className="h-4 w-4 text-success shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {(!product.featuresAr || product.featuresAr.length === 0) && product.features && product.features.length > 0 && (
-              <div className="bg-surface-sunken rounded-2xl p-5">
-                <h3 className="font-bold text-fg mb-3 flex items-center gap-2">
-                  <Package className="h-4 w-4 text-primary-600" />
-                  ما يتضمنه المنتج
-                </h3>
-                <ul className="space-y-2">
-                  {product.features.map((feature) => (
+                  {displayFeatures.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-fg-muted">
                       <Check className="h-4 w-4 text-success shrink-0" />
                       {feature}
@@ -377,12 +374,12 @@ export default function ProductClient({ product, publicSettings, options = [], o
                             : "border-line",
                         )}
                       >
-                        <option value="" disabled>اختر</option>
+                        <option value="" disabled>{t("selectPlaceholder")}</option>
                         {opt.values.map((val) => {
                           const available = isValueAvailable(opt.id, val.id);
                           return (
                             <option key={val.id} value={val.id} disabled={!available}>
-                              {val.labelAr}{!available ? " — غير متاح" : ""}
+                              {val.labelAr}{!available ? ` — ${t("notAvailable")}` : ""}
                             </option>
                           );
                         })}
@@ -392,7 +389,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
                   </div>
                 ))}
                 {selectionIncomplete && (
-                  <p className="text-xs text-warning">اختر كل الخيارات لعرض السعر النهائي.</p>
+                  <p className="text-xs text-warning">{t("selectAllForPrice")}</p>
                 )}
               </div>
             )}
@@ -400,7 +397,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
             {/* Variants selector (legacy tag-based) */}
             {hasVariants && (
               <div className="space-y-3">
-                <p className="text-sm font-semibold text-fg-muted">اختر أحد الخيارات</p>
+                <p className="text-sm font-semibold text-fg-muted">{t("chooseOption")}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {variants.map((v) => {
                     const isSelected = selectedVariant?.label === v.label;
@@ -469,7 +466,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
                   />
                 </div>
                 <span className="text-xs font-bold text-danger shrink-0">
-                  🔥 متبقي 3 فقط!
+                  {t("scarcity", { count: 3 })}
                 </span>
               </div>
             )}
@@ -478,7 +475,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
             <div className="flex items-end gap-4">
               <div>
                 {hasOptions && !resolvedVariant && (
-                  <p className="text-xs text-fg-subtle mb-0.5">ابتداءً من</p>
+                  <p className="text-xs text-fg-subtle mb-0.5">{t("startingFrom")}</p>
                 )}
                 <p className="text-4xl font-black text-fg transition-all duration-200">
                   {formatAmount(activePrice)}
@@ -489,7 +486,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
               </div>
               {discount > 0 && (
                 <div className="mb-1 px-3 py-1 bg-danger/10 text-danger rounded-xl font-bold text-sm">
-                  وفر {formatAmount(activeComparePrice! - activePrice)}
+                  {t("save", { amount: formatAmount(activeComparePrice! - activePrice) })}
                 </div>
               )}
             </div>
@@ -506,7 +503,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
             {/* Quantity & Add to Cart */}
             <div className="space-y-3" ref={ctaRef}>
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-fg-muted">الكمية:</span>
+                <span className="text-sm font-medium text-fg-muted">{t("quantityLabel")}</span>
                 <div className="flex items-center gap-2 bg-surface-sunken rounded-xl p-1">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -529,14 +526,14 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 disabled={(hasVariants && !selectedVariant) || selectionIncomplete}
               >
                 {added ? (
-                  <><Check className="h-5 w-5" />تم الإضافة إلى السلة</>
+                  <><Check className="h-5 w-5" />{t("addedToCart")}</>
                 ) : (
                   <><ShoppingCart className="h-5 w-5" />
                     {selectionIncomplete
-                      ? "اختر الخيارات أولاً"
+                      ? t("chooseOptionsFirst")
                       : hasVariants && selectedVariant
-                      ? `أضف (${selectedVariant.label}) إلى السلة`
-                      : "أضف إلى السلة"
+                      ? t("addVariant", { label: selectedVariant.label })
+                      : t("addToCart")
                     }
                   </>
                 )}
@@ -544,7 +541,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
 
               <Link href="/checkout">
                 <Button fullWidth size="lg" variant="outline" className="text-base">
-                  اشتر الآن
+                  {t("buyNow")}
                 </Button>
               </Link>
             </div>
@@ -552,8 +549,8 @@ export default function ProductClient({ product, publicSettings, options = [], o
             {/* كمّل طلبك — complementary products, right under the CTA */}
             {bundleProducts.length > 0 && (
               <div className="rounded-2xl border border-line bg-surface-sunken/40 p-4">
-                <h2 className="text-base font-black text-fg">كمّل طلبك</h2>
-                <p className="mb-3 text-xs text-fg-muted">اكتشف ما يشتريه العملاء مع هذا المنتج.</p>
+                <h2 className="text-base font-black text-fg">{t("completeOrder")}</h2>
+                <p className="mb-3 text-xs text-fg-muted">{t("completeOrderDesc")}</p>
 
                 <div className="divide-y divide-line">
                   {bundleProducts.map((bp) => {
@@ -564,7 +561,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
                           type="button"
                           onClick={() => toggleBundle(bp.id)}
                           aria-pressed={checked}
-                          aria-label={checked ? `إزالة ${bp.nameAr}` : `إضافة ${bp.nameAr}`}
+                          aria-label={checked ? t("removeItem", { name: bp.nameAr }) : t("addItem", { name: bp.nameAr })}
                           className={cn(
                             "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
                             checked
@@ -598,7 +595,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 {bundleDiscountAmount > 0 && bundleSelected.size > 0 && (
                   <div className="mt-3 flex items-center justify-between rounded-xl bg-success/10 px-3 py-2">
                     <span className="text-[13px] font-medium text-success">
-                      وفّر {formatAmount(bundleDiscountAmount)} عند الشراء معًا
+                      {t("saveWhenTogether", { amount: formatAmount(bundleDiscountAmount) })}
                     </span>
                     <span className="text-[13px] text-fg-subtle line-through">{formatAmount(bundleTotal)}</span>
                   </div>
@@ -612,7 +609,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
                   disabled={bundleSelected.size === 0}
                 >
                   <ShoppingCart className="h-5 w-5" />
-                  اشترِها معًا بـ {formatAmount(bundleFinal)}
+                  {t("buyTogether", { amount: formatAmount(bundleFinal) })}
                 </Button>
               </div>
             )}
@@ -620,9 +617,9 @@ export default function ProductClient({ product, publicSettings, options = [], o
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: "🔒", label: "دفع آمن" },
-                { icon: "✅", label: "منتجات أصلية" },
-                { icon: "🎧", label: "دعم 24/7" },
+                { icon: "🔒", label: t("trustSecure") },
+                { icon: "✅", label: t("trustOriginal") },
+                { icon: "🎧", label: t("trustSupport") },
               ].map((badge) => (
                 <div key={badge.label} className="flex flex-col items-center gap-1 p-3 rounded-xl bg-surface-sunken text-center">
                   <span className="text-xl">{badge.icon}</span>
@@ -642,15 +639,15 @@ export default function ProductClient({ product, publicSettings, options = [], o
 
         {/* FAQ */}
         <div className="mt-16 border-t border-line pt-12">
-          <h2 className="text-xl font-black text-fg mb-6">الأسئلة الشائعة</h2>
+          <h2 className="text-xl font-black text-fg mb-6">{t("faqTitle")}</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {[
-              { q: "كيف أستلم طلبي بعد الدفع؟", a: "بعد تأكيد الدفع تصلك تفاصيل طلبك مباشرة في صفحة الطلب وعبر البريد الإلكتروني. التسليم التلقائي فوري، واليدوي خلال 1-24 ساعة." },
-              { q: "هل يمكنني الاسترداد إذا واجهت مشكلة؟", a: "نعم، نضمن جودة جميع منتجاتنا. إذا واجهت أي مشكلة افتح تذكرة دعم فني وسنحلها أو نسترد مبلغك." },
-              { q: "هل تفاصيل المنتج دقيقة؟", a: "نعم، جميع التفاصيل مذكورة في قسم المميزات أعلاه. للمزيد تواصل مع الدعم." },
-              { q: "هل يمكنني الشراء مرة أخرى لاحقاً؟", a: "بالطبع، يمكنك شراء نفس المنتج مرة أخرى في أي وقت بنفس السعر أو باستخدام كوبون خصم." },
-              { q: "ما طرق الدفع المتاحة؟", a: "نقبل التحويل البنكي، بطاقات الائتمان، والعملات المشفرة. جميع طرق الدفع آمنة ومشفرة." },
-              { q: "كم يستغرق التوصيل؟", a: product.deliveryMethod === "AUTOMATIC" ? "التسليم فوري تلقائي — ستحصل على بياناتك مباشرة بعد تأكيد الدفع." : "التسليم يدوي ويستغرق من 1 إلى 24 ساعة بعد تأكيد الدفع." },
+              { q: t("faq.q1"), a: t("faq.a1") },
+              { q: t("faq.q2"), a: t("faq.a2") },
+              { q: t("faq.q3"), a: t("faq.a3") },
+              { q: t("faq.q4"), a: t("faq.a4") },
+              { q: t("faq.q5"), a: t("faq.a5") },
+              { q: t("faq.q6"), a: product.deliveryMethod === "AUTOMATIC" ? t("faq.a6Auto") : t("faq.a6Manual") },
             ].map((item, i) => (
               <div key={i} className="rounded-2xl border border-line overflow-hidden">
                 <button
@@ -676,9 +673,9 @@ export default function ProductClient({ product, publicSettings, options = [], o
         {related.length > 0 && (
           <div className="mt-16 border-t border-line pt-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-black text-fg">منتجات من نفس الفئة</h2>
+              <h2 className="text-xl font-black text-fg">{t("relatedTitle")}</h2>
               <Link href={`/categories/${product.category.slug}`} className="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1 font-medium">
-                عرض الكل <ArrowRight className="h-4 w-4" />
+                {th("viewAll")} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -691,21 +688,21 @@ export default function ProductClient({ product, publicSettings, options = [], o
                     <div className="rounded-2xl border border-line bg-surface overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-700 transition-all">
                       <div className="relative aspect-video bg-surface-sunken flex items-center justify-center overflow-hidden">
                         {rp.image
-                          ? <Image src={rp.image} alt={rp.nameAr} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300" unoptimized />
+                          ? <Image src={rp.image} alt={pickText(locale, rp.name, rp.nameAr)} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-300" unoptimized />
                           : <span className="text-4xl">{rp.category?.icon || "📦"}</span>}
                         {rpDiscount > 0 && (
                           <span className="absolute top-2 start-2 bg-danger text-white text-xs font-bold px-2 py-0.5 rounded-lg">-{rpDiscount}%</span>
                         )}
                       </div>
                       <div className="p-4">
-                        <p className="text-xs text-primary-600 dark:text-primary-400 font-medium mb-1">{rp.category?.nameAr}</p>
-                        <h3 className="font-bold text-fg text-sm line-clamp-1 group-hover:text-primary-600 transition-colors">{rp.nameAr}</h3>
+                        <p className="text-xs text-primary-600 dark:text-primary-400 font-medium mb-1">{rp.category ? pickText(locale, rp.category.name, rp.category.nameAr) : ""}</p>
+                        <h3 className="font-bold text-fg text-sm line-clamp-1 group-hover:text-primary-600 transition-colors">{pickText(locale, rp.name, rp.nameAr)}</h3>
                         <div className="flex items-center justify-between mt-3">
                           <div>
                             <p className="font-black text-fg">{formatAmount(rpPrice)}</p>
                             {rpCompare && <p className="text-xs text-fg-subtle line-through">{formatAmount(rpCompare)}</p>}
                           </div>
-                          <span className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-lg font-medium">أضف للسلة</span>
+                          <span className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-lg font-medium">{t("addToCartShort")}</span>
                         </div>
                       </div>
                     </div>
@@ -719,7 +716,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
         {/* Sticky CTA */}
         {conversion.sticky_cta_enabled && (
           <StickyCTA
-            productName={product.nameAr}
+            productName={displayName}
             price={activePrice}
             variantLabel={selectedVariant?.label}
             onAddToCart={handleAddToCart}

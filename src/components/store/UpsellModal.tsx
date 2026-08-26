@@ -13,6 +13,7 @@ import { X, Zap, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useTranslations } from "next-intl";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -81,6 +82,8 @@ export function UpsellModal({
   onDismiss,
 }: UpsellModalProps) {
   const { formatAmount } = useCurrency();
+  const t = useTranslations("upsell");
+  const tc = useTranslations("common");
   const [upsell, setUpsell] = useState<UpsellProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
@@ -133,7 +136,7 @@ export function UpsellModal({
         className="fixed inset-0 z-[9998] flex items-end sm:items-center justify-center"
         role="dialog"
         aria-modal="true"
-        aria-label="عرض خاص"
+        aria-label={t("specialOffer")}
       >
         {/* Backdrop */}
         <motion.div
@@ -162,7 +165,7 @@ export function UpsellModal({
           <button
             onClick={onDismiss}
             className="absolute top-3 end-3 z-10 p-1.5 rounded-full bg-surface-sunken hover:bg-surface-hover transition-colors"
-            aria-label="إغلاق"
+            aria-label={tc("close")}
           >
             <X className="h-4 w-4 text-fg-subtle" />
           </button>
@@ -174,7 +177,7 @@ export function UpsellModal({
             </div>
             <div>
               <p className="font-bold text-fg text-sm leading-tight">
-                {upsell.headlineAr || "💡 قد يعجبك أيضاً"}
+                {upsell.headlineAr || t("youMightLike")}
               </p>
               {upsell.descriptionAr && (
                 <p className="text-xs text-fg-subtle mt-0.5 line-clamp-1">
@@ -226,8 +229,8 @@ export function UpsellModal({
                 {hasDiscount && upsell.discountType && upsell.discountValue && (
                   <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-danger/10 text-danger text-xs font-bold">
                     {upsell.discountType === "PERCENTAGE"
-                      ? `وفّر ${upsell.discountValue}%`
-                      : `خصم ${formatAmount(upsell.discountValue)}`}
+                      ? t("savePercent", { value: upsell.discountValue })
+                      : t("discountAmount", { amount: formatAmount(upsell.discountValue) })}
                   </span>
                 )}
               </div>
@@ -236,7 +239,7 @@ export function UpsellModal({
             {/* Variant selector */}
             {variants.length > 1 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-fg-muted">اختر الخيار:</p>
+                <p className="text-xs font-semibold text-fg-muted">{t("chooseOption")}</p>
                 <div className="flex flex-wrap gap-2">
                   {variants.map((v, i) => (
                     <button
@@ -269,13 +272,13 @@ export function UpsellModal({
                 className="gap-2"
               >
                 <ShoppingCart className="h-5 w-5" />
-                أضف للسلة
+                {t("addToCart")}
               </Button>
               <button
                 onClick={onDismiss}
                 className="text-sm text-fg-subtle hover:text-fg-muted transition-colors py-1 font-medium"
               >
-                لا شكراً، تخطّ هذا العرض
+                {t("noThanks")}
               </button>
             </div>
           </div>

@@ -5,9 +5,12 @@ import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export function CurrencySelector() {
   const { currency, setCurrency } = useCurrency();
+  const t = useTranslations("currencySelector");
+  const tc = useTranslations("currencyNames");
   const [open, setOpen] = useState(false);
 
   return (
@@ -15,7 +18,7 @@ export function CurrencySelector() {
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-fg-muted hover:bg-surface-sunken transition-colors"
-        aria-label="اختر العملة"
+        aria-label={t("select")}
       >
         <span className="text-xs font-bold">{currency.symbol}</span>
         <span className="hidden sm:inline text-xs">{currency.code}</span>
@@ -47,7 +50,7 @@ export function CurrencySelector() {
                         : "text-fg-muted hover:bg-surface-sunken"
                     )}
                   >
-                    <span>{c.nameAr}</span>
+                    <span>{tc(c.code)}</span>
                     <span className="text-xs font-bold text-fg-subtle">{c.symbol}</span>
                   </button>
                 ))}

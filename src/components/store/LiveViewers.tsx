@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Eye } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   min: number;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function LiveViewers({ min, max }: Props) {
+  const t = useTranslations("liveViewers");
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function LiveViewers({ min, max }: Props) {
       </span>
       <Eye className="h-3.5 w-3.5" />
       <span>
-        <strong className="text-fg-muted">{count}</strong> شخص يشاهد هذا المنتج الآن
+        <strong className="text-fg-muted">{count}</strong> {t("suffix")}
       </span>
     </div>
   );

@@ -6,8 +6,10 @@ import Link from "next/link";
 import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import { formatDistanceToNow, format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
 import { Clock, Eye, Calendar, Tag, ChevronLeft, User } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
+import { isLocale, localeHtmlLang, defaultLocale, type Locale } from "@/i18n/config";
 
 export const revalidate = 60;
 
@@ -36,7 +38,8 @@ async function getRelated(postId: string, categoryId: string | null) {
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = await getPost(params.slug);
-  if (!post) return { title: "مقال غير موجود" };
+  const tm = await getTranslations("blog");
+  if (!post) return { title: tm("postNotFound") };
 
   const title = post.metaTitleAr || post.titleAr;
   const description = post.metaDescriptionAr || post.excerptAr || "";
@@ -100,6 +103,13 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     getRelated(post.id, post.categoryId),
   ]);
 
+  const t = await getTranslations("blog");
+  const tn = await getTranslations("nav");
+  const locale = (await getLocale()) as Locale;
+  const dateLocale = locale === "ar" ? ar : enUS;
+  const numLocale = locale === "ar" ? "ar" : "en";
+  const htmlLang = isLocale(locale) ? localeHtmlLang[locale] : localeHtmlLang[defaultLocale];
+
   const htmlContent = DOMPurify.sanitize(await marked(post.contentAr, { renderer }));
   const headings = extractHeadings(post.contentAr);
   const cfg = await getSeoConfig();
@@ -120,7 +130,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     mainEntityOfPage: { "@type": "WebPage", "@id": `${siteUrl}/blog/${post.slug}` },
     wordCount: post.contentAr.split(/\s+/).length,
     timeRequired: `PT${post.readingTime}M`,
-    inLanguage: "ar",
+    inLanguage: htmlLang,
     ...(post.category && { articleSection: post.category.nameAr }),
     ...(post.tags.length > 0 && { keywords: post.tags.join(", ") }),
   };
@@ -129,14 +139,14 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="min-h-screen bg-surface" dir="rtl">
+      <div className="min-h-screen bg-surface">
         {/* Breadcrumb */}
         <div className="border-b border-line bg-surface-sunken">
           <div className="container-custom py-3">
             <nav className="flex items-center gap-2 text-sm text-fg-subtle">
-              <Link href="/" className="hover:text-primary-600 transition-colors">الرئيسية</Link>
+              <Link href="/" className="hover:text-primary-600 transition-colors">{tn("home")}</Link>
               <ChevronLeft className="h-3.5 w-3.5" />
-              <Link href="/blog" className="hover:text-primary-600 transition-colors">المدونة</Link>
+              <Link href="/blog" className="hover:text-primary-600 transition-colors">{tn("blog")}</Link>
               {post.category && (
                 <>
                   <ChevronLeft className="h-3.5 w-3.5" />
@@ -184,16 +194,16 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                     <User className="h-4 w-4" /> {post.author.name}
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <Clock className="h-4 w-4" /> {post.readingTime} دقائق قراءة
+                    <Clock className="h-4 w-4" /> {t("minutesRead", { count: post.readingTime })}
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <Eye className="h-4 w-4" /> {post.viewCount.toLocaleString("ar")} مشاهدة
+                    <Eye className="h-4 w-4" /> {post.viewCount.toLocaleString(numLocale)} {t("views")}
                   </span>
                   {post.publishedAt && (
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
                       <time dateTime={post.publishedAt.toISOString()}>
-                        {format(new Date(post.publishedAt), "d MMMM yyyy", { locale: ar })}
+                        {format(new Date(post.publishedAt), "d MMMM yyyy", { locale: dateLocale })}
                       </time>
                     </span>
                   )}
@@ -226,7 +236,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
               {/* Table of contents */}
               {headings.length > 0 && (
                 <div className="bg-surface-sunken rounded-2xl p-5 border border-line sticky top-24">
-                  <h3 className="font-bold text-fg mb-3 text-sm">محتويات المقال</h3>
+                  <h3 className="font-bold text-fg mb-3 text-sm">{t("toc")}</h3>
                   <nav className="space-y-1.5">
                     {headings.map((h) => (
                       <a
@@ -247,7 +257,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           {/* Related posts */}
           {related.length > 0 && (
             <div className="mt-14 pt-10 border-t border-line">
-              <h2 className="text-xl font-black text-fg mb-6">مقالات ذات صلة</h2>
+              <h2 className="text-xl font-black text-fg mb-6">{t("relatedPosts")}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {related.map((rp) => (
                   <Link key={rp.id} href={`/blog/${rp.slug}`} className="group">
@@ -264,7 +274,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
                       <div className="p-4">
                         <h3 className="font-bold text-fg group-hover:text-primary-600 transition-colors line-clamp-2 text-sm">{rp.titleAr}</h3>
                         <p className="text-xs text-fg-subtle mt-2 flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {rp.readingTime} دقيقة
+                          <Clock className="h-3 w-3" /> {t("minRead", { count: rp.readingTime })}
                         </p>
                       </div>
                     </div>

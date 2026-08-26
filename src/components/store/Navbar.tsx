@@ -11,14 +11,16 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { CurrencySelector } from "@/components/store/CurrencySelector";
+import { LanguageSwitcher } from "@/components/store/LanguageSwitcher";
+import { useTranslations } from "next-intl";
 
 const navLinks = [
-  { href: "/",         label: "الرئيسية" },
-  { href: "/products", label: "المنتجات" },
-  { href: "/blog",     label: "المدونة" },
-  { href: "/faq",      label: "الأسئلة الشائعة" },
-  { href: "/contact",  label: "اتصل بنا" },
-];
+  { href: "/",         key: "home" },
+  { href: "/products", key: "products" },
+  { href: "/blog",     key: "blog" },
+  { href: "/faq",      key: "faq" },
+  { href: "/contact",  key: "contact" },
+] as const;
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -27,6 +29,7 @@ export function Navbar() {
   // fills in — one source, rather than a prop for the name and a context for
   // the logo that could drift apart.
   const { siteName, tagline } = useBranding();
+  const t = useTranslations();
   const { data: session } = useSession();
   const { getTotalItems, toggleCart, clearCart } = useCartStore();
   const [isMenuOpen, setIsMenuOpen]   = useState(false);
@@ -82,7 +85,7 @@ export function Navbar() {
                 href={link.href}
                 className="relative whitespace-nowrap px-2.5 py-2 text-sm font-medium text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 rounded-lg hover:bg-surface-sunken transition-colors"
               >
-                {link.label}
+                {t(`nav.${link.key}`)}
               </Link>
             ))}
           </div>
@@ -100,8 +103,8 @@ export function Navbar() {
               <input
                 type="search"
                 name="search"
-                placeholder="ابحث عن منتج…"
-                aria-label="ابحث عن منتج"
+                placeholder={t("common.searchPlaceholder")}
+                aria-label={t("common.search")}
                 className="w-full rounded-xl border border-line bg-surface-sunken py-2 ps-9 pe-3 text-sm text-fg placeholder:text-fg-subtle focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
               />
             </div>
@@ -109,6 +112,7 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <CurrencySelector />
             {/* Compact: one cycling button instead of three inline icons, which
                 were crowding the header next to the currency, cart and account. */}
@@ -119,7 +123,7 @@ export function Navbar() {
               onClick={toggleCart}
               className="relative p-2.5 rounded-xl text-fg-muted hover:bg-surface-sunken transition-colors"
               whileTap={reduced ? {} : { scale: 0.9 }}
-              aria-label="سلة التسوق"
+              aria-label={t("navbar.cart")}
             >
               <ShoppingCart className="h-5 w-5" />
               <AnimatePresence>
@@ -177,14 +181,14 @@ export function Navbar() {
                         </div>
                         <div className="py-1">
                           <Link href="/dashboard" className="flex items-center gap-3 px-4 py-2.5 text-sm text-fg-muted hover:bg-surface-sunken" onClick={() => setIsUserMenuOpen(false)}>
-                            <LayoutDashboard className="h-4 w-4" />لوحة التحكم
+                            <LayoutDashboard className="h-4 w-4" />{t("navbar.dashboard")}
                           </Link>
                           <Link href="/dashboard/notifications" className="flex items-center gap-3 px-4 py-2.5 text-sm text-fg-muted hover:bg-surface-sunken" onClick={() => setIsUserMenuOpen(false)}>
-                            <Bell className="h-4 w-4" />الإشعارات
+                            <Bell className="h-4 w-4" />{t("navbar.notifications")}
                           </Link>
                           {(session.user.role === "ADMIN" || session.user.role === "STAFF") && (
                             <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20" onClick={() => setIsUserMenuOpen(false)}>
-                              <Shield className="h-4 w-4" />لوحة الإدارة
+                              <Shield className="h-4 w-4" />{t("navbar.adminPanel")}
                             </Link>
                           )}
                           <hr className="my-1 border-line" />
@@ -192,7 +196,7 @@ export function Navbar() {
                               key, so without this the next person to sign in on
                               this browser inherits the previous user's basket. */}
                           <button onClick={() => { clearCart(); signOut({ callbackUrl: "/" }); }} className="flex items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger/10 w-full">
-                            <LogOut className="h-4 w-4" />تسجيل الخروج
+                            <LogOut className="h-4 w-4" />{t("navbar.signOut")}
                           </button>
                         </div>
                       </motion.div>
@@ -203,11 +207,11 @@ export function Navbar() {
             ) : (
               <div className="hidden sm:flex items-center gap-2">
                 <Link href="/login" className="px-4 py-2 text-sm font-medium text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                  تسجيل الدخول
+                  {t("navbar.signIn")}
                 </Link>
                 <motion.div whileTap={reduced ? {} : { scale: 0.96 }}>
                   <Link href="/register" className="btn-primary text-sm px-4 py-2">
-                    إنشاء حساب
+                    {t("navbar.register")}
                   </Link>
                 </motion.div>
               </div>
@@ -218,7 +222,7 @@ export function Navbar() {
               className="lg:hidden p-2.5 rounded-xl text-fg-muted hover:bg-surface-sunken"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               whileTap={reduced ? {} : { scale: 0.9 }}
-              aria-label="القائمة"
+              aria-label={t("common.menu")}
             >
               <span
                 className="block transition-transform duration-150"
@@ -246,8 +250,8 @@ export function Navbar() {
                   <input
                     type="search"
                     name="search"
-                    placeholder="ابحث عن منتج…"
-                    aria-label="ابحث عن منتج"
+                    placeholder={t("common.searchPlaceholder")}
+                    aria-label={t("common.search")}
                     className="w-full rounded-xl border border-line bg-surface-sunken py-2.5 ps-9 pe-3 text-sm text-fg placeholder:text-fg-subtle focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
                   />
                 </form>
@@ -263,7 +267,7 @@ export function Navbar() {
                       className="block px-3 py-2.5 text-sm font-medium text-fg-muted rounded-xl hover:bg-surface-sunken transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      {link.label}
+                      {t(`nav.${link.key}`)}
                     </Link>
                   </motion.div>
                 ))}
@@ -275,10 +279,10 @@ export function Navbar() {
                     transition={{ delay: 0.2, duration: 0.25 }}
                   >
                     <Link href="/login" className="flex-1 text-center px-4 py-2 text-sm font-medium border border-line rounded-xl">
-                      تسجيل الدخول
+                      {t("navbar.signIn")}
                     </Link>
                     <Link href="/register" className="flex-1 text-center btn-primary text-sm">
-                      إنشاء حساب
+                      {t("navbar.register")}
                     </Link>
                   </motion.div>
                 )}

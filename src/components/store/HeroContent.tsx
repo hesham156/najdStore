@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Zap } from "lucide-react";
 import { SiteLogo } from "@/components/ui/site-logo";
+import { useTranslations } from "next-intl";
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -15,20 +16,27 @@ export interface HeroContentProps {
   stats?: Array<{ label: string; value: string }>;
 }
 
-const DEFAULT_STATS = [
-  { label: "عميل راضٍ",  value: "+5000" },
-  { label: "منتج متاح",  value: "+50"   },
-  { label: "طلب مكتمل", value: "+10K"  },
-];
-
 export default function HeroContent({
-  badge = "تسليم سريع وجودة موثوقة",
-  title = "كل ما تحتاجه في مكان واحد",
-  titleHighlight = "بأفضل الأسعار وأعلى جودة",
-  subtitle = "متجرك الموثوق لأفضل المنتجات والخدمات بأسعار مناسبة وتجربة شراء سلسة.",
-  stats = DEFAULT_STATS,
+  badge,
+  title,
+  titleHighlight,
+  subtitle,
+  stats,
 }: HeroContentProps) {
   const reduced = useReducedMotion();
+  const t = useTranslations("hero");
+
+  // Props win when the merchant has filled in the hero settings; otherwise the
+  // translated defaults render in the active language.
+  const badgeText = badge || t("badge");
+  const titleText = title || t("title");
+  const titleHighlightText = titleHighlight || t("titleHighlight");
+  const subtitleText = subtitle || t("subtitle");
+  const statList = stats ?? [
+    { label: t("statCustomers"), value: "+5000" },
+    { label: t("statProducts"), value: "+50" },
+    { label: t("statOrders"), value: "+10K" },
+  ];
 
   const container = {
     hidden: {},
@@ -145,7 +153,7 @@ export default function HeroContent({
         <motion.div variants={item}>
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm text-white/80 border border-white/15">
             <Zap className="h-3.5 w-3.5 text-warning shrink-0" />
-            {badge}
+            {badgeText}
           </span>
         </motion.div>
 
@@ -154,10 +162,10 @@ export default function HeroContent({
           variants={item}
           className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight"
         >
-          {title}
+          {titleText}
           <br />
           <span className="mt-2 bg-gradient-to-l from-primary-300 via-primary-200 to-white bg-clip-text text-transparent">
-            {titleHighlight}
+            {titleHighlightText}
           </span>
         </motion.h1>
 
@@ -166,7 +174,7 @@ export default function HeroContent({
           variants={item}
           className="text-lg text-white/60 max-w-xl mx-auto leading-relaxed"
         >
-          {subtitle}
+          {subtitleText}
         </motion.p>
 
         {/* CTAs */}
@@ -183,7 +191,7 @@ export default function HeroContent({
               href="/products"
               className="flex items-center justify-center gap-2 bg-white text-primary-700 font-bold px-8 py-3.5 rounded-full hover:bg-surface-sunken transition-all shadow-xl shadow-black/30 text-base w-full sm:w-auto"
             >
-              تصفح المنتجات
+              {t("browseProducts")}
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </motion.div>
@@ -197,7 +205,7 @@ export default function HeroContent({
               href="/register"
               className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white font-semibold px-8 py-3.5 rounded-full border border-white/20 hover:bg-white/20 transition-all text-base w-full sm:w-auto"
             >
-              إنشاء حساب مجاني
+              {t("freeAccount")}
             </Link>
           </motion.div>
         </motion.div>
@@ -207,7 +215,7 @@ export default function HeroContent({
           variants={item}
           className="flex items-center justify-center gap-10 pt-2"
         >
-          {stats.map((stat, i) => (
+          {statList.map((stat, i) => (
             <motion.div
               key={stat.label}
               className="text-center"

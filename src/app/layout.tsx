@@ -13,6 +13,9 @@ import { Suspense } from "react";
 import { getSeoConfig, organizationJsonLd, webSiteJsonLd } from "@/lib/seo";
 import { BrandingProvider, DEFAULT_BRANDING } from "@/components/providers/BrandingProvider";
 import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
+import { getDirection, isLocale, localeHtmlLang, localeOpenGraph, defaultLocale } from "@/i18n/config";
 
 // Load font via Next.js optimizer — bundled locally, zero external round-trip
 // Only the weights the UI actually uses are loaded. 300 (font-light) and 800
@@ -33,6 +36,8 @@ const cairo = Cairo({
  */
 export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getSeoConfig();
+  const locale = await getLocale();
+  const ogLocale = isLocale(locale) ? localeOpenGraph[locale] : localeOpenGraph[defaultLocale];
 
   const verification: Record<string, string> = {};
   if (cfg.googleVerification) verification.google = cfg.googleVerification;
@@ -61,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
       : { index: false, follow: false },
     openGraph: {
       type: "website",
-      locale: "ar_SA",
+      locale: ogLocale,
       url: cfg.siteUrl,
       siteName: cfg.siteName,
       title: cfg.ogTitle,
@@ -86,6 +91,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cfg = await getSeoConfig();
 
+  // Locale + its matching text direction drive the <html> attributes, and the
+  // messages feed every Client Component through NextIntlClientProvider.
+  const locale = await getLocale();
+  const messages = await getMessages();
+  const dir = getDirection(locale);
+  const htmlLang = isLocale(locale) ? localeHtmlLang[locale] : localeHtmlLang[defaultLocale];
+
   // Read once here and share via context: `SiteLogo` appears in eight places
   // across both server and client trees.
   const brandingKeys = {
@@ -104,7 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning className={cairo.variable}>
+    <html lang={htmlLang} dir={dir} suppressHydrationWarning className={cairo.variable}>
       <head>
         <meta name="theme-color" content="#7c3aed" />
         <meta name="color-scheme" content="light dark" />
@@ -114,6 +126,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body style={{ fontFamily: "var(--font-cairo), 'Cairo', sans-serif" }}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
         <SessionProvider>
           <BrandingProvider
             value={{
@@ -147,7 +160,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 duration: 4000,
                 style: {
                   fontFamily: "var(--font-cairo), 'Cairo', sans-serif",
-                  direction: "rtl",
+                  direction: dir,
                   borderRadius: "12px",
                   maxWidth: "92vw",
                 },
@@ -158,6 +171,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </ThemeProvider>
           </BrandingProvider>
         </SessionProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { ProductCard } from "@/components/store/ProductCard";
 import type { BannerSlide } from "@/lib/home-layout";
 import type { ProductWithCategory } from "@/types";
+import { useTranslations } from "next-intl";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -31,6 +32,7 @@ export function ProductSlider({
   products: ProductWithCategory[];
   speed?: number;
 }) {
+  const t = useTranslations();
   if (!products.length) return null;
 
   // A half has to be at least as wide as the widest viewport, otherwise the
@@ -47,11 +49,11 @@ export function ProductSlider({
       <div className="container-custom">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-fg">{title || "منتجات"}</h2>
+            <h2 className="text-2xl font-bold text-fg">{title || t("home.products")}</h2>
             {subtitle && <p className="text-fg-subtle mt-1 text-sm">{subtitle}</p>}
           </div>
           <Link href="/products" className="flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:gap-2 transition-all font-medium">
-            عرض الكل <ChevronLeft className="h-4 w-4" />
+            {t("home.viewAll")} <ChevronLeft className="h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -86,6 +88,7 @@ export function BannerSlider({
   autoplay?: boolean;
   interval?: number;
 }) {
+  const t = useTranslations();
   const reduced = useReducedMotion();
   const [index, setIndex] = useState(0);
   const count = slides.length;
@@ -124,7 +127,7 @@ export function BannerSlider({
                 <button
                   key={i}
                   onClick={() => setIndex(i)}
-                  aria-label={`الشريحة ${i + 1}`}
+                  aria-label={t("home.slide", { number: i + 1 })}
                   className={`h-2 rounded-full transition-all ${i === index ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"}`}
                 />
               ))}

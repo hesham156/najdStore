@@ -2,21 +2,25 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
 import { Clock, Eye, ChevronLeft } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
 
 // Rendered on demand — the database is not available at build time
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "المدونة — مقالات ونصائح حول المنتجات والخدمات",
-  description: "اقرأ أحدث المقالات والنصائح حول المنتجات والخدمات، أدوات الذكاء الاصطناعي، خدمات البث، والبرمجيات.",
-  openGraph: {
-    type: "website",
-    title: "المدونة",
-    description: "مقالات ونصائح حول المنتجات والخدمات",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("blog");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDesc"),
+    openGraph: {
+      type: "website",
+      title: t("ogTitle"),
+      description: t("ogDesc"),
+    },
+  };
+}
 
 export const revalidate = 60;
 
@@ -53,6 +57,11 @@ async function getCategories() {
 }
 
 export default async function BlogPage({ searchParams }: { searchParams: { category?: string } }) {
+  const t = await getTranslations("blog");
+  const tc = await getTranslations("common");
+  const locale = await getLocale();
+  const dateLocale = locale === "ar" ? ar : enUS;
+  const numLocale = locale === "ar" ? "ar" : "en";
   const [posts, categories] = await Promise.all([
     getPosts(searchParams.category),
     getCategories(),
@@ -62,13 +71,13 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
   const rest = posts.slice(1);
 
   return (
-    <div className="min-h-screen bg-surface" dir="rtl">
+    <div className="min-h-screen bg-surface">
       {/* Hero */}
       <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 border-b border-line py-14">
         <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-fg mb-4">المدونة</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-fg mb-4">{t("title")}</h1>
           <p className="text-lg text-fg-subtle max-w-xl mx-auto">
-            نصائح ومقالات حول المنتجات والخدمات، الذكاء الاصطناعي، وخدمات البث
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -83,7 +92,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
                 !searchParams.category ? "bg-primary-600 text-white" : "bg-surface-sunken text-fg-muted hover:bg-surface-hover"
               }`}
             >
-              الكل
+              {tc("all")}
             </Link>
             {categories.map((cat) => (
               <Link
@@ -105,7 +114,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
 
         {posts.length === 0 ? (
           <div className="py-20 text-center text-fg-subtle">
-            <p className="text-lg">لا توجد مقالات بعد</p>
+            <p className="text-lg">{t("noPosts")}</p>
           </div>
         ) : (
           <>
@@ -131,10 +140,10 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
                       <p className="text-fg-subtle line-clamp-3 mb-4">{featured.excerptAr}</p>
                     )}
                     <div className="flex items-center gap-4 text-xs text-fg-subtle">
-                      <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {featured.readingTime} دقيقة</span>
-                      <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {featured.viewCount.toLocaleString("ar")}</span>
+                      <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {t("minRead", { count: featured.readingTime })}</span>
+                      <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {featured.viewCount.toLocaleString(numLocale)}</span>
                       {featured.publishedAt && (
-                        <span>{formatDistanceToNow(new Date(featured.publishedAt), { addSuffix: true, locale: ar })}</span>
+                        <span>{formatDistanceToNow(new Date(featured.publishedAt), { addSuffix: true, locale: dateLocale })}</span>
                       )}
                     </div>
                   </div>
@@ -169,9 +178,9 @@ export default async function BlogPage({ searchParams }: { searchParams: { categ
                         <p className="text-sm text-fg-subtle line-clamp-2 flex-1 mb-4">{post.excerptAr}</p>
                       )}
                       <div className="flex items-center justify-between text-xs text-fg-subtle pt-3 border-t border-line">
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {post.readingTime} دقيقة</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {t("minRead", { count: post.readingTime })}</span>
                         <span className="flex items-center gap-1 text-primary-500">
-                          اقرأ المزيد <ChevronLeft className="h-3 w-3" />
+                          {t("readMore")} <ChevronLeft className="h-3 w-3" />
                         </span>
                       </div>
                     </div>

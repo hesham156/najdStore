@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { CartProgressBar } from "@/components/store/CartProgressBar";
 import { useConversion } from "@/context/ConversionContext";
+import { useLocale, useTranslations } from "next-intl";
+import { pickText } from "@/lib/i18n-content";
+import type { Locale } from "@/i18n/config";
 
 export function CartSidebar() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getTotalPrice, clearCart, addItem } = useCartStore();
@@ -20,6 +23,8 @@ export function CartSidebar() {
   const router = useRouter();
   const total = getTotalPrice();
   const conversion = useConversion();
+  const t = useTranslations("cart");
+  const locale = useLocale() as Locale;
 
   function CartProgressBarWrapper({ total }: { total: number }) {
     if (!conversion.cart_progress_enabled) return null;
@@ -57,7 +62,7 @@ export function CartSidebar() {
           slug: upsell.offerProduct.slug,
           variantLabel: upsellLabel,
         });
-        toast.success(`تم إضافة ${upsell.offerProduct.nameAr} إلى السلة 🎉`);
+        toast.success(t("addedCelebrate", { name: upsell.offerProduct.nameAr }));
       },
     });
   };
@@ -84,7 +89,7 @@ export function CartSidebar() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-line">
           <div className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5 text-primary-600" />
-            <h2 className="font-bold text-fg text-lg">سلة الشراء</h2>
+            <h2 className="font-bold text-fg text-lg">{t("cartTitle")}</h2>
             {items.length > 0 && (
               <span className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-bold px-2 py-0.5 rounded-full">
                 {items.length}
@@ -97,7 +102,7 @@ export function CartSidebar() {
                 onClick={clearCart}
                 className="text-xs text-danger hover:text-danger hover:underline"
               >
-                مسح الكل
+                {t("clearAll")}
               </button>
             )}
             <button
@@ -117,11 +122,11 @@ export function CartSidebar() {
                 <ShoppingBag className="h-10 w-10 text-fg-subtle" />
               </div>
               <div>
-                <p className="font-semibold text-fg-muted">السلة فارغة</p>
-                <p className="text-sm text-fg-subtle mt-1">أضف منتجات لتظهر هنا</p>
+                <p className="font-semibold text-fg-muted">{t("empty")}</p>
+                <p className="text-sm text-fg-subtle mt-1">{t("emptyHint")}</p>
               </div>
               <Button onClick={closeCart} variant="outline" size="sm">
-                <Link href="/products">تصفح المنتجات</Link>
+                <Link href="/products">{t("browseProducts")}</Link>
               </Button>
             </div>
           ) : (
@@ -135,7 +140,7 @@ export function CartSidebar() {
                   {item.image ? (
                     <Image
                       src={item.image}
-                      alt={item.nameAr}
+                      alt={pickText(locale, item.name, item.nameAr)}
                       width={64}
                       height={64}
                       className="object-contain p-1"
@@ -149,7 +154,7 @@ export function CartSidebar() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-fg text-sm truncate">
-                    {item.nameAr}
+                    {pickText(locale, item.name, item.nameAr)}
                   </p>
                   {item.variantLabel && (
                     <p className="text-xs text-fg-muted truncate">{item.variantLabel}</p>
@@ -162,7 +167,7 @@ export function CartSidebar() {
                   <div className="flex items-center gap-2 mt-1.5">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantLabel)}
-                      aria-label="إنقاص الكمية"
+                      aria-label={t("decreaseQty")}
                       className="w-6 h-6 rounded-full bg-surface border border-line flex items-center justify-center hover:bg-surface-hover transition-colors"
                     >
                       <Minus className="h-3 w-3" />
@@ -170,7 +175,7 @@ export function CartSidebar() {
                     <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantLabel)}
-                      aria-label="زيادة الكمية"
+                      aria-label={t("increaseQty")}
                       className="w-6 h-6 rounded-full bg-surface border border-line flex items-center justify-center hover:bg-surface-hover transition-colors"
                     >
                       <Plus className="h-3 w-3" />
@@ -181,7 +186,7 @@ export function CartSidebar() {
                 {/* Delete */}
                 <button
                   onClick={() => removeItem(item.id, item.variantLabel)}
-                  aria-label={`حذف ${item.nameAr} من السلة`}
+                  aria-label={t("removeItemAria", { name: pickText(locale, item.name, item.nameAr) })}
                   className="p-1.5 text-fg-subtle hover:text-danger hover:bg-danger/10 rounded-lg transition-colors shrink-0"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -197,17 +202,17 @@ export function CartSidebar() {
             <CartProgressBarWrapper total={total} />
             <div className="px-6 pb-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-fg-muted font-medium">الإجمالي</span>
+                <span className="text-fg-muted font-medium">{t("total")}</span>
                 <span className="text-xl font-bold text-fg">
                   {formatAmount(total)}
                 </span>
               </div>
               <Button fullWidth size="lg" className="text-base" onClick={handleCheckout}>
-                إتمام الشراء
+                {t("checkout")}
               </Button>
               <Link href="/cart" onClick={closeCart}>
                 <Button fullWidth variant="outline" size="md">
-                  عرض السلة
+                  {t("viewCart")}
                 </Button>
               </Link>
             </div>

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X } from "lucide-react";
 import { useConversion } from "@/context/ConversionContext";
 import { useCartStore } from "@/store/cart";
+import { useTranslations } from "next-intl";
 
 const PRODUCTS = [
   "Adobe Creative Cloud",
@@ -17,20 +18,12 @@ const PRODUCTS = [
   "Figma Pro",
 ];
 
-const TIMES = [
-  "منذ لحظات",
-  "منذ دقيقة",
-  "منذ دقيقتين",
-  "منذ 3 دقائق",
-  "منذ 5 دقائق",
-  "منذ 8 دقائق",
-];
-
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 export function LiveActivityToast() {
+  const t = useTranslations("liveActivity");
   const settings = useConversion();
   // Hidden while the cart drawer is open so it never sits over the checkout CTA.
   const cartOpen = useCartStore((s) => s.isOpen);
@@ -43,16 +36,17 @@ export function LiveActivityToast() {
   const cities = settings.live_activity_cities.split(",").map((s) => s.trim()).filter(Boolean);
 
   const showNext = useCallback(() => {
+    const times = t.raw("times") as string[];
     setItem({
       name: pick(names),
       city: pick(cities),
       product: pick(PRODUCTS),
-      time: pick(TIMES),
+      time: pick(times),
     });
     setVisible(true);
     if (hideRef.current) clearTimeout(hideRef.current);
     hideRef.current = setTimeout(() => setVisible(false), 5000);
-  }, [names, cities]);
+  }, [names, cities, t]);
 
   useEffect(() => {
     if (!settings.live_activity_enabled) return;
@@ -90,10 +84,10 @@ export function LiveActivityToast() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-fg truncate">
-                {item.name} من {item.city}
+                {t("from", { name: item.name, city: item.city })}
               </p>
               <p className="text-xs text-fg-subtle truncate">
-                اشترى {item.product} · {item.time}
+                {t("bought", { product: item.product, time: item.time })}
               </p>
             </div>
             {/* Pulse dot */}

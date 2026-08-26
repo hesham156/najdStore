@@ -7,6 +7,7 @@ import { X, Copy, Check, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
+import { useTranslations } from "next-intl";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -78,13 +79,16 @@ interface PopupModalProps {
 
 function PopupModal({ popup, onClose }: PopupModalProps) {
   const router = useRouter();
+  const t = useTranslations("popup");
+  const tc = useTranslations("common");
+  const ta = useTranslations("announcement");
   const [copied, setCopied] = useState(false);
 
   const handleCopyCoupon = () => {
     if (!popup.couponCode) return;
     navigator.clipboard.writeText(popup.couponCode).then(() => {
       setCopied(true);
-      toast.success(`تم نسخ الكود: ${popup.couponCode}`);
+      toast.success(ta("codeCopied", { code: popup.couponCode }));
       setTimeout(() => setCopied(false), 2500);
     });
   };
@@ -126,7 +130,7 @@ function PopupModal({ popup, onClose }: PopupModalProps) {
         <button
           onClick={onClose}
           className="absolute top-3 end-3 z-20 p-1.5 rounded-full bg-black/10 hover:bg-black/20 transition-colors"
-          aria-label="إغلاق"
+          aria-label={tc("close")}
         >
           <X className="h-4 w-4" style={{ color: popup.textColor }} />
         </button>
@@ -173,12 +177,12 @@ function PopupModal({ popup, onClose }: PopupModalProps) {
               <button
                 onClick={handleCopyCoupon}
                 className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
-                aria-label="نسخ الكود"
+                aria-label={t("copyCode")}
               >
                 {copied ? (
-                  <><Check className="h-3.5 w-3.5" />تم النسخ</>
+                  <><Check className="h-3.5 w-3.5" />{t("copied")}</>
                 ) : (
-                  <><Copy className="h-3.5 w-3.5" />نسخ</>
+                  <><Copy className="h-3.5 w-3.5" />{t("copy")}</>
                 )}
               </button>
             </div>

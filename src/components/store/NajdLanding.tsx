@@ -3,6 +3,12 @@ import { NajdPortfolio } from "@/components/store/NajdPortfolio";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "@/components/store/AnimatedSection";
 import { renderNajdBlockHtml, type NajdBlockConfig } from "@/lib/najd-blocks";
 import type { ProductWithCategory } from "@/types";
+import { getTranslations } from "next-intl/server";
+
+// Translator scoped to the `najd` namespace. `t.raw` returns message values
+// untouched — required here because the copy carries inline HTML (<span>, <br>)
+// that plain `t()` would try to parse as rich-text tags.
+type NajdT = Awaited<ReturnType<typeof getTranslations>>;
 
 const ROOT_ID = "najd-landing-block";
 const WHATSAPP_URL = "https://wa.me/966573999056";
@@ -275,55 +281,55 @@ export const NAJD_CSS = `
   @media (min-width: 1024px) { #${ROOT_ID} .najd-slider-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 `;
 
-const SERVICES_HTML = `
+const servicesHtml = (t: NajdT) => `
   <section class="najd-services">
     <div class="najd-services-top-line"></div>
     <div class="najd-container">
       <div class="najd-section-header">
-        <h2 class="najd-section-label">ماذا نقدم؟</h2>
-        <div class="najd-section-title">خدماتنا <span>المتميزة</span></div>
+        <h2 class="najd-section-label">${t.raw("servicesLabel")}</h2>
+        <div class="najd-section-title">${t.raw("servicesTitle")}</div>
         <div class="najd-divider"></div>
-        <p class="najd-section-desc">نحن في نجد برنت نؤمن بأن كل تفصيلة صغيرة تصنع فارقاً كبيراً، لذا نقدم خدماتنا بدقة متناهية وشغف بالإبداع.</p>
+        <p class="najd-section-desc">${t.raw("servicesDesc")}</p>
       </div>
       <div class="najd-services-grid">
         <div class="najd-service-card najd-glass box-1">
           <div class="najd-service-icon" style="color:#ec205f;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg></div>
-          <h3>الطباعة الاوفست</h3>
-          <p>حلول طباعة احترافية للكميات الكبيرة بجودة ثابتة وألوان دقيقة، مثالية للبراندات اللي تبحث عن الفخامة والتكلفة المناسبة مع الحفاظ على أعلى مستوى من التفاصيل.</p>
+          <h3>${t.raw("s1Title")}</h3>
+          <p>${t.raw("s1Desc")}</p>
         </div>
         <div class="najd-service-card najd-glass box-2">
           <div class="najd-service-icon" style="color:#244da0;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg></div>
-          <h3>الطباعة الديجيتال</h3>
-          <p>طباعة سريعة ومرنة تناسب المشاريع العاجلة والكميات الصغيرة، بألوان حيوية وجودة عالية بدون تعقيد — الحل المثالي لإنجاز شغلك في وقت قياسي.</p>
+          <h3>${t.raw("s2Title")}</h3>
+          <p>${t.raw("s2Desc")}</p>
         </div>
         <div class="najd-service-card najd-glass box-3">
           <div class="najd-service-icon" style="color:#ffffff;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg></div>
-          <h3>الاندور</h3>
-          <p>نصمم وننفذ جميع أعمال الطباعة الداخلية مثل اللوحات، الاستيكرات، والديكورات، بشكل يعزز هوية مشروعك داخل المكان ويعطي تجربة بصرية احترافية.</p>
+          <h3>${t.raw("s3Title")}</h3>
+          <p>${t.raw("s3Desc")}</p>
         </div>
         <div class="najd-service-card najd-glass box-4">
           <div class="najd-service-icon" style="color:#ec205f;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-          <h3>الاوت دور</h3>
-          <p>حلول طباعة خارجية قوية تتحمل العوامل الجوية، من البنرات واللوحات الإعلانية إلى تغليف السيارات، بجودة عالية تضمن وضوح رسالتك في كل مكان.</p>
+          <h3>${t.raw("s4Title")}</h3>
+          <p>${t.raw("s4Desc")}</p>
         </div>
       </div>
       <div class="najd-cta-box najd-glass">
-        <h4>هل لديك مشروع طباعة خاص؟</h4>
-        <p>تحدث مع خبراء الطباعة لدينا اليوم للحصول على استشارة مجانية وعرض سعر مخصص لمشروعك القادم.</p>
-        <a href="${WHATSAPP_URL}" class="najd-cta-btn najd-btn-primary">استشارة مجانية</a>
+        <h4>${t.raw("servicesCtaTitle")}</h4>
+        <p>${t.raw("servicesCtaDesc")}</p>
+        <a href="${WHATSAPP_URL}" class="najd-cta-btn najd-btn-primary">${t.raw("servicesCtaBtn")}</a>
       </div>
     </div>
   </section>
 `;
 
-const STICKERS_HTML = `
+const stickersHtml = (t: NajdT) => `
   <section class="najd-stickers">
     <div class="najd-container">
       <div class="najd-stickers-head">
         <div class="najd-stickers-head-content">
           <h2 class="najd-stickers-label">Sticker Universe</h2>
-          <h3 class="najd-stickers-title">عالم <span class="najd-gradient-text accent">الملصقات</span></h3>
-          <p class="najd-stickers-desc">استيكرات نجد ليست مجرد ورق لاصق، إنها واجهة علامتك التجارية على كافة الأسطح. مقاومة، دقيقة، وبخيارات لا حصر لها.</p>
+          <h3 class="najd-stickers-title">${t.raw("stickersTitle")}</h3>
+          <p class="najd-stickers-desc">${t.raw("stickersDesc")}</p>
         </div>
       </div>
       <div class="najd-stickers-grid">
@@ -331,8 +337,8 @@ const STICKERS_HTML = `
           <div class="najd-sticker-body najd-glass">
             <div class="najd-sticker-icon">✨</div>
             <h4 class="najd-sticker-title">Glossy</h4>
-            <p class="najd-sticker-sub" style="color:#ec205f;">الاستيكر اللامع</p>
-            <p class="najd-sticker-text">يتميز بلمعان قوي يعزز من وضوح الألوان، مثالي للملصقات الدعائية.</p>
+            <p class="najd-sticker-sub" style="color:#ec205f;">${t.raw("st1Sub")}</p>
+            <p class="najd-sticker-text">${t.raw("st1Text")}</p>
             <div class="najd-sticker-tags"><span class="najd-sticker-tag">High Shine</span></div>
           </div>
         </div>
@@ -341,8 +347,8 @@ const STICKERS_HTML = `
           <div class="najd-sticker-body najd-glass" style="background:linear-gradient(to bottom right, rgba(255,255,255,.03), transparent);">
             <div class="najd-sticker-icon">🌑</div>
             <h4 class="najd-sticker-title">Matte</h4>
-            <p class="najd-sticker-sub" style="color:#244da0;">الاستيكر المطفي</p>
-            <p class="najd-sticker-text">لمسة مخملية فاخرة بدون انعكاسات ضوئية. يمنح شعارك طابعاً كلاسيكياً.</p>
+            <p class="najd-sticker-sub" style="color:#244da0;">${t.raw("st2Sub")}</p>
+            <p class="najd-sticker-text">${t.raw("st2Text")}</p>
             <div class="najd-sticker-tags"><span class="najd-sticker-tag">No Glare</span></div>
           </div>
         </div>
@@ -351,8 +357,8 @@ const STICKERS_HTML = `
           <div class="najd-sticker-body najd-glass">
             <div class="najd-sticker-icon">🫥</div>
             <h4 class="najd-sticker-title">Transparent</h4>
-            <p class="najd-sticker-sub" style="color:rgba(255,255,255,.5);">الاستيكر الشفاف</p>
-            <p class="najd-sticker-text">يختفي تماماً ليظهر التصميم وكأنه مطبوع مباشرة على السطح.</p>
+            <p class="najd-sticker-sub" style="color:rgba(255,255,255,.5);">${t.raw("st3Sub")}</p>
+            <p class="najd-sticker-text">${t.raw("st3Text")}</p>
             <div class="najd-sticker-tags"><span class="najd-sticker-tag">Invisible</span></div>
           </div>
         </div>
@@ -361,8 +367,8 @@ const STICKERS_HTML = `
           <div class="najd-sticker-body najd-glass" style="background:linear-gradient(to bottom left, rgba(236,32,95,.05), transparent);">
             <div class="najd-sticker-icon">🛡️</div>
             <h4 class="najd-sticker-title">Heavy Duty</h4>
-            <p class="najd-sticker-sub" style="color:#f97316;">المقاوم للعوامل</p>
-            <p class="najd-sticker-text">استيكرات فينيل جبارة مقاومة للماء، الشمس، والحرارة العالية.</p>
+            <p class="najd-sticker-sub" style="color:#f97316;">${t.raw("st4Sub")}</p>
+            <p class="najd-sticker-text">${t.raw("st4Text")}</p>
             <div class="najd-sticker-tags"><span class="najd-sticker-tag">Weatherproof</span></div>
           </div>
         </div>
@@ -371,90 +377,90 @@ const STICKERS_HTML = `
   </section>
 `;
 
-const SMALL_QUANTITIES_HTML = `
+const smallQuantitiesHtml = (t: NajdT) => `
   <section class="najd-small-quantities">
     <div class="najd-small-blur-1"></div>
     <div class="najd-small-blur-2"></div>
     <div class="najd-container">
       <div class="najd-small-header">
-        <h2 class="najd-small-label">مرونة بلا حدود</h2>
-        <h3 class="najd-small-title">حلول نجد للمشاريع <span>الناشئة</span></h3>
-        <p class="najd-small-desc">لا تحتاج لطلب الآلاف لتبدأ. نحن نوفر لك جودة المصانع الكبرى في كميات تبدأ من 50 حبة فقط لتجربة منتجك في السوق بكل سهولة.</p>
+        <h2 class="najd-small-label">${t.raw("smallLabel")}</h2>
+        <h3 class="najd-small-title">${t.raw("smallTitle")}</h3>
+        <p class="najd-small-desc">${t.raw("smallDesc")}</p>
       </div>
       <div class="najd-small-grid">
         <div class="najd-small-card najd-glass">
           <div class="najd-small-orb" style="background:rgba(236,32,95,.10);"></div>
           <div class="najd-small-icon">📦</div>
-          <h4>كميات مرنة</h4>
-          <p>ابدأ بـ 50 أو 100 حبة من صناديق التغليف أو المطبوعات الورقية دون الحاجة لميزانيات ضخمة.</p>
-          <span class="najd-startup-badge" style="background:rgba(236,32,95,.10); color:#ec205f; border-color:rgba(236,32,95,.20);">مثالي للمتاجر الجديدة</span>
+          <h4>${t.raw("sq1Title")}</h4>
+          <p>${t.raw("sq1Desc")}</p>
+          <span class="najd-startup-badge" style="background:rgba(236,32,95,.10); color:#ec205f; border-color:rgba(236,32,95,.20);">${t.raw("sq1Badge")}</span>
         </div>
         <div class="najd-small-card najd-glass">
           <div class="najd-small-orb" style="background:rgba(36,77,160,.10);"></div>
           <div class="najd-small-icon">✨</div>
-          <h4>جودة فاخرة</h4>
-          <p>نستخدم تقنيات طباعة ديجيتال متطورة تعطي نتائج تضاهي طباعة الأوفست في دقة الألوان والتفاصيل.</p>
-          <span class="najd-startup-badge" style="background:rgba(36,77,160,.10); color:#244da0; border-color:rgba(36,77,160,.20);">ألوان نابضة بالحياة</span>
+          <h4>${t.raw("sq2Title")}</h4>
+          <p>${t.raw("sq2Desc")}</p>
+          <span class="najd-startup-badge" style="background:rgba(36,77,160,.10); color:#244da0; border-color:rgba(36,77,160,.20);">${t.raw("sq2Badge")}</span>
         </div>
         <div class="najd-small-card najd-glass">
           <div class="najd-small-orb" style="background:rgba(255,255,255,.05);"></div>
           <div class="najd-small-icon">🚀</div>
-          <h4>سرعة البرق</h4>
-          <p>نحن نعلم أن وقتك من ذهب؛ لذا نسلم طلبات الكميات الصغيرة خلال 3 إلى 5 أيام عمل فقط.</p>
-          <span class="najd-startup-badge" style="background:rgba(255,255,255,.10); color:#fff; border-color:rgba(255,255,255,.20);">توصيل سريع</span>
+          <h4>${t.raw("sq3Title")}</h4>
+          <p>${t.raw("sq3Desc")}</p>
+          <span class="najd-startup-badge" style="background:rgba(255,255,255,.10); color:#fff; border-color:rgba(255,255,255,.20);">${t.raw("sq3Badge")}</span>
         </div>
       </div>
       <div class="najd-small-highlight">
         <div class="najd-small-highlight-wrap">
           <div class="najd-small-highlight-icon">💡</div>
           <div>
-            <h4>هل أنت صاحب مشروع منزلي أو متجر إلكتروني؟</h4>
-            <p>احصل على عينات تجريبية مجانية لمنتجك قبل البدء في الطلب الفعلي.</p>
+            <h4>${t.raw("smallHighlightTitle")}</h4>
+            <p>${t.raw("smallHighlightDesc")}</p>
           </div>
         </div>
-        <a href="${WHATSAPP_URL}" class="najd-small-highlight-btn najd-btn-primary">تواصل مع مستشار المشاريع</a>
+        <a href="${WHATSAPP_URL}" class="najd-small-highlight-btn najd-btn-primary">${t.raw("smallHighlightBtn")}</a>
       </div>
     </div>
   </section>
 `;
 
-const WHY_HTML = `
+const whyHtml = (t: NajdT) => `
   <section class="najd-why-us">
     <div class="najd-container">
       <div class="najd-why-wrap">
         <div class="najd-why-content">
           <div class="najd-why-head">
-            <h2 class="najd-section-label najd-why-label">لماذا نحن؟</h2>
-            <h3 class="najd-why-title">سر تميزنا في <span>نجد برنت</span></h3>
-            <p class="najd-section-desc">نحن لا نقوم بمجرد الطباعة، بل نصنع تجربة بصرية متكاملة تعزز من قيمة علامتك التجارية في السوق وتجذب جمهورك المستهدف من النظرة الأولى.</p>
+            <h2 class="najd-section-label najd-why-label">${t.raw("whyLabel")}</h2>
+            <h3 class="najd-why-title">${t.raw("whyTitle")}</h3>
+            <p class="najd-section-desc">${t.raw("whyDesc")}</p>
           </div>
           <div class="najd-features-grid">
             <div class="najd-feature-box najd-glass">
               <div class="najd-feature-icon" style="color:#ec205f;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
-              <h4>ضمان الجودة</h4>
-              <p>نستخدم أفضل أنواع الورق والأحبار العالمية لضمان نتائج مبهرة تدوم طويلاً.</p>
+              <h4>${t.raw("w1Title")}</h4>
+              <p>${t.raw("w1Desc")}</p>
             </div>
             <div class="najd-feature-box najd-glass">
               <div class="najd-feature-icon" style="color:#244da0;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-              <h4>سرعة التنفيذ</h4>
-              <p>نحترم مواعيدك بدقة، مع توفير خيارات الطباعة المستعجلة للتسليم في نفس اليوم.</p>
+              <h4>${t.raw("w2Title")}</h4>
+              <p>${t.raw("w2Desc")}</p>
             </div>
             <div class="najd-feature-box najd-glass">
               <div class="najd-feature-icon" style="color:#ffffff;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a2 2 0 11-4 0V4zM18 8a2 2 0 114 0v1a2 2 0 11-4 0V8zM11 13a2 2 0 114 0v1a2 2 0 11-4 0v-1zM18 17a2 2 0 114 0v1a2 2 0 11-4 0v-1zM5 8a2 2 0 114 0v1a2 2 0 11-4 0V8zM5 17a2 2 0 114 0v1a2 2 0 11-4 0v-1z"/></svg></div>
-              <h4>أحدث التقنيات</h4>
-              <p>نمتلك أسطولاً من ماكينات الطباعة الألمانية واليابانية الأكثر تطوراً في المنطقة.</p>
+              <h4>${t.raw("w3Title")}</h4>
+              <p>${t.raw("w3Desc")}</p>
             </div>
             <div class="najd-feature-box najd-glass">
               <div class="najd-feature-icon" style="color:#ec205f;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
-              <h4>أسعار تنافسية</h4>
-              <p>نقدم موازنة مثالية بين أعلى مستويات الجودة وأفضل الأسعار المدروسة.</p>
+              <h4>${t.raw("w4Title")}</h4>
+              <p>${t.raw("w4Desc")}</p>
             </div>
           </div>
         </div>
         <div class="najd-why-visual">
           <div class="najd-partners-card najd-glass">
             <div class="najd-partners-glow"></div>
-            <h4 class="najd-partners-title">شركاء <span>النجاح</span></h4>
+            <h4 class="najd-partners-title">${t.raw("partnersTitle")}</h4>
             <div class="najd-partners-grid">
               <div class="najd-partner-item">BRAND_A</div>
               <div class="najd-partner-item">BRAND_B</div>
@@ -467,8 +473,8 @@ const WHY_HTML = `
               <div class="najd-testimonial-wrap">
                 <div class="najd-quote-badge">"</div>
                 <div>
-                  <p class="najd-testimonial-text">"نجد برنت حولت فكرة مشروعنا إلى حقيقة من خلال التغليف الاستثنائي الذي أبهر عملاءنا."</p>
-                  <p class="najd-testimonial-author">مدير التسويق - شركة ريادة</p>
+                  <p class="najd-testimonial-text">${t.raw("testimonialText")}</p>
+                  <p class="najd-testimonial-author">${t.raw("testimonialAuthor")}</p>
                 </div>
               </div>
             </div>
@@ -479,22 +485,22 @@ const WHY_HTML = `
   </section>
 `;
 
-const DIGITAL_HTML = `
+const digitalHtml = (t: NajdT) => `
   <section class="najd-digital-print">
     <div class="najd-container">
       <div class="najd-digital-wrap">
         <div class="najd-digital-visual">
           <div class="najd-digital-image-wrap">
-            <div class="najd-digital-image-card najd-glass"><img src="https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?auto=format&fit=crop&w=800&q=80" alt="الطباعة الديجيتال"></div>
+            <div class="najd-digital-image-card najd-glass"><img src="https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?auto=format&fit=crop&w=800&q=80" alt="${t.raw("digitalAlt")}"></div>
             <div class="najd-fast-badge"><span>FAST</span></div>
           </div>
         </div>
         <div class="najd-digital-content">
-          <h2 class="najd-digital-title">الطباعة الديجيتال <br><span>بسرعة الضوء</span></h2>
-          <p class="najd-digital-desc">نحن نستخدم أحدث ماكينات الطباعة الرقمية في العالم لضمان استلام طلبك في زمن قياسي وبأعلى دقة ألوان ممكنة. مثالية للكميات الصغيرة والمتوسطة والمشاريع العاجلة.</p>
+          <h2 class="najd-digital-title">${t.raw("digitalTitle")}</h2>
+          <p class="najd-digital-desc">${t.raw("digitalDesc")}</p>
           <div class="najd-digital-points" style="margin-top:32px;">
-            <div class="najd-digital-point blue"><div class="najd-digital-iconbox" style="background:rgba(36,77,160,.2);">⚡</div><span>تسليم خلال 24 ساعة</span></div>
-            <div class="najd-digital-point pink"><div class="najd-digital-iconbox" style="background:rgba(236,32,95,.2);">🎯</div><span>دقة ألوان 100%</span></div>
+            <div class="najd-digital-point blue"><div class="najd-digital-iconbox" style="background:rgba(36,77,160,.2);">⚡</div><span>${t.raw("digitalPoint1")}</span></div>
+            <div class="najd-digital-point pink"><div class="najd-digital-iconbox" style="background:rgba(236,32,95,.2);">🎯</div><span>${t.raw("digitalPoint2")}</span></div>
           </div>
         </div>
       </div>
@@ -502,43 +508,43 @@ const DIGITAL_HTML = `
   </section>
 `;
 
-const LARGE_HTML = `
+const largeHtml = (t: NajdT) => `
   <section class="najd-large-format">
     <div class="najd-large-bg-shape"></div>
     <div class="najd-container">
       <div class="najd-large-header">
-        <h2 class="najd-large-label">الطباعة العريضة والدعائية</h2>
-        <h3 class="najd-large-title">حلول الـ <span style="color:#ec205f;">إندور والأوت دور</span></h3>
+        <h2 class="najd-large-label">${t.raw("largeLabel")}</h2>
+        <h3 class="najd-large-title">${t.raw("largeTitle")}</h3>
         <div class="najd-large-divider"></div>
       </div>
       <div class="najd-large-grid">
         <div class="najd-io-card">
-          <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="طباعة داخلية" class="najd-io-img">
+          <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="${t.raw("ioInAlt")}" class="najd-io-img">
           <div class="najd-io-overlay"></div>
           <div class="najd-io-body">
-            <div class="najd-io-tag" style="background:#244da0;">Indoor | داخلي</div>
-            <h4 class="najd-io-title">دقة بصرية مذهلة</h4>
-            <p class="najd-io-desc">نقدم طباعة الإندور عالية الدقة للبوسترات، الرول أب، وورق الجدران المخصص، مع ألوان حيوية تخطف الأنظار في المساحات القريبة.</p>
+            <div class="najd-io-tag" style="background:#244da0;">${t.raw("ioInTag")}</div>
+            <h4 class="najd-io-title">${t.raw("ioInTitle")}</h4>
+            <p class="najd-io-desc">${t.raw("ioInDesc")}</p>
             <ul class="najd-io-list"><li>Roll Up</li><li>Pop Up</li><li>Vinyl Wall</li></ul>
           </div>
         </div>
         <div class="najd-io-card">
-          <img src="https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="طباعة خارجية" class="najd-io-img">
+          <img src="https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="${t.raw("ioOutAlt")}" class="najd-io-img">
           <div class="najd-io-overlay"></div>
           <div class="najd-io-body">
-            <div class="najd-io-tag" style="background:#ec205f;">Outdoor | خارجي</div>
-            <h4 class="najd-io-title">متانة تقاوم العوامل</h4>
-            <p class="najd-io-desc">طباعة الأوت دور مخصصة للوحات البنرات واليوني بول والملصقات الضخمة، مصممة لتحمل حرارة الشمس القوية والرياح والأمطار لضمان بقاء إعلانك مشرقاً.</p>
+            <div class="najd-io-tag" style="background:#ec205f;">${t.raw("ioOutTag")}</div>
+            <h4 class="najd-io-title">${t.raw("ioOutTitle")}</h4>
+            <p class="najd-io-desc">${t.raw("ioOutDesc")}</p>
             <ul class="najd-io-list"><li>Flex Banner</li><li>Mesh</li><li>3D Signs</li></ul>
           </div>
         </div>
       </div>
       <div class="najd-large-cta-box najd-glass">
         <div>
-          <h4>هل تحتاج للوحات إعلانية لمشروعك؟</h4>
-          <p>نحن نوفر خدمات القياس، التصميم، والتركيب لجميع أنواع المطبوعات العريضة.</p>
+          <h4>${t.raw("largeCtaTitle")}</h4>
+          <p>${t.raw("largeCtaDesc")}</p>
         </div>
-        <a href="${WHATSAPP_URL}" class="najd-large-cta najd-btn-primary">احصل على استشارة</a>
+        <a href="${WHATSAPP_URL}" class="najd-large-cta najd-btn-primary">${t.raw("largeCtaBtn")}</a>
       </div>
     </div>
   </section>
@@ -565,7 +571,8 @@ function ProductSlider({ title, subtitle, products }: { title: string; subtitle?
   );
 }
 
-export function NajdLanding({ featured, recent, hero }: { featured: ProductWithCategory[]; recent: ProductWithCategory[]; hero?: NajdBlockConfig }) {
+export async function NajdLanding({ featured, recent, hero }: { featured: ProductWithCategory[]; recent: ProductWithCategory[]; hero?: NajdBlockConfig }) {
+  const t = await getTranslations("najd");
   return (
     <div id={ROOT_ID}>
       <style dangerouslySetInnerHTML={{ __html: NAJD_CSS }} />
@@ -575,23 +582,23 @@ export function NajdLanding({ featured, recent, hero }: { featured: ProductWithC
       </AnimatedSection>
 
       <AnimatedSection>
-        <div dangerouslySetInnerHTML={{ __html: SERVICES_HTML }} />
+        <div dangerouslySetInnerHTML={{ __html: servicesHtml(t) }} />
       </AnimatedSection>
 
       <AnimatedSection>
-        <ProductSlider title="أحدث منتجاتنا" subtitle="اكتشف أحدث أعمالنا في الطباعة والتغليف الفاخر" products={featured} />
+        <ProductSlider title={t("sliderFeaturedTitle")} subtitle={t("sliderFeaturedSubtitle")} products={featured} />
       </AnimatedSection>
 
       <AnimatedSection>
-        <div dangerouslySetInnerHTML={{ __html: STICKERS_HTML }} />
+        <div dangerouslySetInnerHTML={{ __html: stickersHtml(t) }} />
       </AnimatedSection>
 
       <AnimatedSection>
-        <ProductSlider title="أحدث الملصقات" products={recent} />
+        <ProductSlider title={t("sliderRecentTitle")} products={recent} />
       </AnimatedSection>
 
       <AnimatedSection>
-        <div dangerouslySetInnerHTML={{ __html: SMALL_QUANTITIES_HTML }} />
+        <div dangerouslySetInnerHTML={{ __html: smallQuantitiesHtml(t) }} />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -599,15 +606,15 @@ export function NajdLanding({ featured, recent, hero }: { featured: ProductWithC
       </AnimatedSection>
 
       <AnimatedSection>
-        <div dangerouslySetInnerHTML={{ __html: WHY_HTML }} />
+        <div dangerouslySetInnerHTML={{ __html: whyHtml(t) }} />
       </AnimatedSection>
 
       <AnimatedSection direction="right">
-        <div dangerouslySetInnerHTML={{ __html: DIGITAL_HTML }} />
+        <div dangerouslySetInnerHTML={{ __html: digitalHtml(t) }} />
       </AnimatedSection>
 
       <AnimatedSection>
-        <div dangerouslySetInnerHTML={{ __html: LARGE_HTML }} />
+        <div dangerouslySetInnerHTML={{ __html: largeHtml(t) }} />
       </AnimatedSection>
     </div>
   );

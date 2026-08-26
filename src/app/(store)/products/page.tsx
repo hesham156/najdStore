@@ -4,6 +4,8 @@ import { ProductCard } from "@/components/store/ProductCard";
 import { FilterSidebar } from "@/components/store/FilterSidebar";
 import type { ProductWithCategory } from "@/types";
 import type { Metadata } from "next";
+import { getLocale, getTranslations } from "next-intl/server";
+import { isLocale, localeOpenGraph, defaultLocale, type Locale } from "@/i18n/config";
 
 
 // Rendered on demand — the database is not available at build time
@@ -12,12 +14,15 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
   const cfg = await getSeoConfig();
   const { siteUrl } = cfg;
+  const locale = (await getLocale()) as Locale;
+  const t = await getTranslations("productsPage");
+  const ogLocale = isLocale(locale) ? localeOpenGraph[locale] : localeOpenGraph[defaultLocale];
   const title = searchParams.search
-    ? `نتائج البحث عن "${searchParams.search}" | جميع المنتجات`
+    ? t("metaSearchResults", { query: searchParams.search })
     : searchParams.category
-    ? `تصفح فئة ${searchParams.category}`
-    : "جميع المنتجات بأفضل الأسعار";
-  const description = "تصفح مجموعة واسعة من المنتجات والخدمات بأسعار تنافسية وتسليم سريع";
+    ? t("metaCategory", { category: searchParams.category })
+    : t("metaAll");
+  const description = t("metaDesc");
   return {
     title,
     description,
@@ -25,7 +30,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
       title,
       description,
       url: `${siteUrl}/products`,
-      locale: "ar_SA",
+      locale: ogLocale,
       images: [{ url: cfg.ogImage, width: 1200, height: 630, alt: title }],
     },
     alternates: { canonical: `${siteUrl}/products` },
@@ -95,6 +100,7 @@ async function getProducts(params: SearchParams) {
 }
 
 export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
+  const t = await getTranslations("productsPage");
   const [{ products, total, page, perPage }, categories] = await Promise.all([
     getProducts(searchParams),
     prisma.category.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
@@ -107,8 +113,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
       <div className="container-custom">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-fg">جميع المنتجات</h1>
-          <p className="text-fg-muted mt-1">{total} منتج متاح</p>
+          <h1 className="text-3xl font-bold text-fg">{t("title")}</h1>
+          <p className="text-fg-muted mt-1">{t("countAvailable", { count: total })}</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -120,12 +126,12 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="text-6xl mb-4">🔍</div>
                 <h3 className="text-xl font-bold text-fg mb-2">
-                  {searchParams.search ? `لا نتائج لـ "${searchParams.search}"` : "لم يتم العثور على منتجات"}
+                  {searchParams.search ? t("noResultsFor", { query: searchParams.search }) : t("notFound")}
                 </h3>
-                <p className="text-fg-muted">جرب تغيير معايير البحث أو الفئة</p>
+                <p className="text-fg-muted">{t("tryDifferent")}</p>
                 {(searchParams.search || searchParams.category || searchParams.sort) && (
                   <a href="/products" className="btn-primary mt-5 text-sm px-5 py-2.5">
-                    عرض كل المنتجات
+                    {t("showAll")}
                   </a>
                 )}
               </div>

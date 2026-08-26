@@ -2,6 +2,7 @@
 
 import { Gift, Check } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useTranslations } from "next-intl";
 
 interface Props {
   currentTotal: number;
@@ -12,6 +13,7 @@ interface Props {
 
 export function CartProgressBar({ currentTotal, target, reward, coupon }: Props) {
   const { formatAmount } = useCurrency();
+  const t = useTranslations("cartProgress");
   const progress = Math.min(100, (currentTotal / target) * 100);
   const remaining = Math.max(0, target - currentTotal);
   const achieved = remaining === 0;
@@ -29,11 +31,11 @@ export function CartProgressBar({ currentTotal, target, reward, coupon }: Props)
         {achieved ? (
           <div>
             <p className="text-xs font-bold text-success">
-              🎉 مبروك! حصلت على {reward}
+              {t("congrats", { reward })}
             </p>
             {coupon && (
               <p className="text-xs text-success mt-0.5">
-                كود الخصم:{" "}
+                {t("discountCode")}{" "}
                 <span className="font-mono font-bold bg-success/10 px-1.5 py-0.5 rounded">
                   {coupon}
                 </span>
@@ -42,10 +44,11 @@ export function CartProgressBar({ currentTotal, target, reward, coupon }: Props)
           </div>
         ) : (
           <p className="text-xs font-medium text-primary-700 dark:text-primary-300 leading-relaxed">
-            أضف{" "}
-            <span className="font-bold">{formatAmount(remaining)}</span>{" "}
-            للحصول على{" "}
-            <span className="font-bold">{reward}</span>
+            {t.rich("addMore", {
+              amount: formatAmount(remaining),
+              reward,
+              b: (chunks) => <span className="font-bold">{chunks}</span>,
+            })}
           </p>
         )}
       </div>

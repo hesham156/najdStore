@@ -3,15 +3,18 @@ import { Mail, Phone, MapPin, Twitter, Instagram, Youtube } from "lucide-react";
 import { SiteLogo } from "@/components/ui/site-logo";
 import { getActiveCategories } from "@/lib/queries";
 import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
+import { getLocale, getTranslations } from "next-intl/server";
+import { pickText } from "@/lib/i18n-content";
+import type { Locale } from "@/i18n/config";
 
 const quickLinks = [
-  { href: "/", label: "الرئيسية" },
-  { href: "/products", label: "جميع المنتجات" },
-  { href: "/blog", label: "المدونة" },
-  { href: "/faq", label: "الأسئلة الشائعة" },
-  { href: "/contact", label: "اتصل بنا" },
-  { href: "/terms", label: "الشروط والأحكام" },
-];
+  { href: "/", key: "nav.home" },
+  { href: "/products", key: "footer.allProducts" },
+  { href: "/blog", key: "nav.blog" },
+  { href: "/faq", key: "nav.faq" },
+  { href: "/contact", key: "nav.contact" },
+  { href: "/terms", key: "footer.terms" },
+] as const;
 
 /** Declared once so the fallback cannot drift from the query that uses it. */
 const FOOTER_DEFAULTS = {
@@ -27,19 +30,21 @@ const FOOTER_DEFAULTS = {
 };
 
 export async function Footer() {
+  const locale = (await getLocale()) as Locale;
+  const t = await getTranslations();
   const [allCategories, s] = await Promise.all([
     getActiveCategories().catch(() => []),
     getSettings(FOOTER_DEFAULTS).catch(() => FOOTER_DEFAULTS),
   ]);
 
-  const categories = (allCategories as Array<{ slug: string; nameAr: string }>)
+  const categories = (allCategories as Array<{ slug: string; name: string; nameAr: string }>)
     .slice(0, 6)
-    .map((c) => ({ href: `/categories/${c.slug}`, label: c.nameAr }));
+    .map((c) => ({ href: `/categories/${c.slug}`, label: pickText(locale, c.name, c.nameAr) }));
 
   const socials = [
-    { icon: Twitter, href: s.social_twitter, label: "تويتر" },
-    { icon: Instagram, href: s.social_instagram, label: "انستجرام" },
-    { icon: Youtube, href: s.social_youtube, label: "يوتيوب" },
+    { icon: Twitter, href: s.social_twitter, label: t("footer.twitter") },
+    { icon: Instagram, href: s.social_instagram, label: t("footer.instagram") },
+    { icon: Youtube, href: s.social_youtube, label: t("footer.youtube") },
   ].filter((x) => x.href.trim());
 
   return (
@@ -81,10 +86,10 @@ export async function Footer() {
 
           {/* Categories */}
           <div>
-            <h3 className="font-bold text-fg mb-4">الفئات</h3>
+            <h3 className="font-bold text-fg mb-4">{t("footer.categories")}</h3>
             <ul className="space-y-2">
               {categories.length === 0 && (
-                <li><Link href="/products" className="text-sm text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 transition-colors">جميع المنتجات</Link></li>
+                <li><Link href="/products" className="text-sm text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t("footer.allProducts")}</Link></li>
               )}
               {categories.map((cat) => (
                 <li key={cat.href}>
@@ -101,7 +106,7 @@ export async function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-bold text-fg mb-4">روابط سريعة</h3>
+            <h3 className="font-bold text-fg mb-4">{t("footer.quickLinks")}</h3>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
@@ -109,7 +114,7 @@ export async function Footer() {
                     href={link.href}
                     className="text-sm text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   >
-                    {link.label}
+                    {t(link.key)}
                   </Link>
                 </li>
               ))}
@@ -118,7 +123,7 @@ export async function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-bold text-fg mb-4">تواصل معنا</h3>
+            <h3 className="font-bold text-fg mb-4">{t("footer.contactUs")}</h3>
             <ul className="space-y-3">
               {/* Actionable on a phone: tapping the number should dial it. */}
               <li className="text-sm">
@@ -135,14 +140,14 @@ export async function Footer() {
               </li>
               <li className="flex items-center gap-3 text-sm text-fg-muted">
                 <MapPin className="h-4 w-4 text-primary-400 shrink-0" />
-                المملكة العربية السعودية
+                {t("footer.location")}
               </li>
             </ul>
 
             <div className="mt-4 p-3 rounded-xl bg-surface border border-line">
-              <p className="text-xs text-fg font-semibold mb-1">ساعات الدعم</p>
-              <p className="text-xs text-fg-muted">السبت - الخميس: 9 ص - 11 م</p>
-              <p className="text-xs text-fg-muted">الجمعة: 2 م - 11 م</p>
+              <p className="text-xs text-fg font-semibold mb-1">{t("footer.supportHours")}</p>
+              <p className="text-xs text-fg-muted">{t("footer.hoursWeekdays")}</p>
+              <p className="text-xs text-fg-muted">{t("footer.hoursFriday")}</p>
             </div>
           </div>
         </div>
@@ -151,14 +156,14 @@ export async function Footer() {
       <div className="border-t border-line">
         <div className="container-custom py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-fg-muted">
-            © {new Date().getFullYear()} {s.site_name}. جميع الحقوق محفوظة.
+            © {new Date().getFullYear()} {s.site_name}. {t("footer.rights")}.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="text-xs text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-              الشروط والأحكام
+              {t("footer.terms")}
             </Link>
             <Link href="/terms#refund" className="text-xs text-fg-muted hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-              سياسة الاسترداد
+              {t("footer.refundPolicy")}
             </Link>
           </div>
         </div>

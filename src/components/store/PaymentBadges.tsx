@@ -1,6 +1,7 @@
 "use client";
 
 import { useCurrency } from "@/context/CurrencyContext";
+import { useTranslations } from "next-intl";
 
 interface PaymentBadgesProps {
   price: number;
@@ -36,6 +37,7 @@ export function PaymentBadges({
   tamaraInstallments = 3,
 }: PaymentBadgesProps) {
   const { formatAmount } = useCurrency();
+  const t = useTranslations("payment");
   if (!tabbyEnabled && !tamaraEnabled) return null;
 
   const tabbyInstallmentPrice = price / tabbyInstallments;
@@ -44,7 +46,7 @@ export function PaymentBadges({
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-fg-subtle uppercase tracking-wide">
-        خيارات التقسيط
+        {t("installmentOptions")}
       </p>
       <div className="flex flex-col sm:flex-row gap-2">
         {/* ── Tabby ── */}
@@ -53,10 +55,10 @@ export function PaymentBadges({
             <TabbyLogo className="h-5 w-auto shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-bold text-fg leading-tight">
-                {tabbyInstallments} دفعات ×{" "}
+                {t("installmentPlan", { count: tabbyInstallments })}{" "}
                 <span className="text-[#2eaa94]">{formatAmount(tabbyInstallmentPrice)}</span>
               </p>
-              <p className="text-xs text-fg-subtle">بدون فوائد • بدون رسوم</p>
+              <p className="text-xs text-fg-subtle">{t("noInterest")}</p>
             </div>
             <span className="ms-auto text-[10px] font-semibold text-[#3DBDA7] bg-[#3DBDA7]/10 dark:bg-[#3DBDA7]/20 px-2 py-0.5 rounded-full shrink-0">
               0%
@@ -70,10 +72,10 @@ export function PaymentBadges({
             <TamaraLogo className="h-5 w-auto shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-bold text-fg leading-tight">
-                {tamaraInstallments} دفعات ×{" "}
+                {t("installmentPlan", { count: tamaraInstallments })}{" "}
                 <span className="text-[#9b6dc0]">{formatAmount(tamaraInstallmentPrice)}</span>
               </p>
-              <p className="text-xs text-fg-subtle">بدون فوائد • بدون رسوم</p>
+              <p className="text-xs text-fg-subtle">{t("noInterest")}</p>
             </div>
             <span className="ms-auto text-[10px] font-semibold text-[#BC98D5] bg-[#BC98D5]/10 dark:bg-[#BC98D5]/20 px-2 py-0.5 rounded-full shrink-0">
               0%

@@ -8,6 +8,11 @@ import { ProductSlider, BannerSlider, Marquee } from "@/components/store/HomeAni
 import type { HomeSection } from "@/lib/home-layout";
 import { isNajdType, renderNajdBlockHtml } from "@/lib/najd-blocks";
 import type { ProductWithCategory } from "@/types";
+import { getLocale, getTranslations } from "next-intl/server";
+import { pickText } from "@/lib/i18n-content";
+import type { Locale } from "@/i18n/config";
+
+type T = Awaited<ReturnType<typeof getTranslations>>;
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -16,7 +21,7 @@ import type { ProductWithCategory } from "@/types";
 const NAJD_SCOPED_CSS = NAJD_CSS.replace(/#najd-landing-block/g, ".najd-scope");
 
 interface Category {
-  id: string; nameAr: string; slug: string; icon?: string | null; color?: string | null;
+  id: string; name: string; nameAr: string; slug: string; icon?: string | null; color?: string | null;
   _count: { products: number };
 }
 
@@ -27,18 +32,18 @@ export interface HomeData {
   branding: Record<string, string>;
 }
 
-function ProductGrid({ title, subtitle, products }: { title?: string; subtitle?: string; products: ProductWithCategory[] }) {
+function ProductGrid({ title, subtitle, products, t }: { title?: string; subtitle?: string; products: ProductWithCategory[]; t: T }) {
   if (!products.length) return null;
   return (
     <section className="py-16 bg-surface-sunken">
       <div className="container-custom">
         <AnimatedSection className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-fg">{title || "منتجات"}</h2>
+            <h2 className="text-2xl font-bold text-fg">{title || t("home.products")}</h2>
             {subtitle && <p className="text-fg-subtle mt-1 text-sm">{subtitle}</p>}
           </div>
           <Link href="/products" className="flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:gap-2 transition-all font-medium">
-            عرض الكل <ChevronLeft className="h-4 w-4" />
+            {t("home.viewAll")} <ChevronLeft className="h-4 w-4" />
           </Link>
         </AnimatedSection>
         <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -51,7 +56,7 @@ function ProductGrid({ title, subtitle, products }: { title?: string; subtitle?:
   );
 }
 
-function renderSection(s: HomeSection, data: HomeData) {
+function renderSection(s: HomeSection, data: HomeData, t: T, locale: Locale) {
   switch (s.type) {
     case "landing":
       return <NajdLanding featured={data.featured} recent={data.recent} hero={s.najd} />;
@@ -79,11 +84,11 @@ function renderSection(s: HomeSection, data: HomeData) {
           <div className="container-custom">
             <AnimatedSection className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-fg">{s.title || "الفئات"}</h2>
+                <h2 className="text-2xl font-bold text-fg">{s.title || t("home.categories")}</h2>
                 {s.subtitle && <p className="text-fg-subtle mt-1 text-sm">{s.subtitle}</p>}
               </div>
               <Link href="/products" className="flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:gap-2 transition-all font-medium">
-                عرض الكل <ChevronLeft className="h-4 w-4" />
+                {t("home.viewAll")} <ChevronLeft className="h-4 w-4" />
               </Link>
             </AnimatedSection>
             <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -94,8 +99,8 @@ function renderSection(s: HomeSection, data: HomeData) {
                       {cat.icon}
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{cat.nameAr}</p>
-                      <p className="text-xs text-fg-subtle mt-0.5">{cat._count.products} منتج</p>
+                      <p className="text-sm font-semibold text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{pickText(locale, cat.name, cat.nameAr)}</p>
+                      <p className="text-xs text-fg-subtle mt-0.5">{t("home.productCount", { count: cat._count.products })}</p>
                     </div>
                   </Link>
                 </StaggerItem>
@@ -106,10 +111,10 @@ function renderSection(s: HomeSection, data: HomeData) {
       );
 
     case "featured":
-      return <ProductGrid title={s.title || "المنتجات المميزة"} subtitle={s.subtitle} products={data.featured.slice(0, s.limit || 8)} />;
+      return <ProductGrid title={s.title || t("home.featuredProducts")} subtitle={s.subtitle} products={data.featured.slice(0, s.limit || 8)} t={t} />;
 
     case "recent":
-      return <ProductGrid title={s.title || "أحدث المنتجات"} subtitle={s.subtitle} products={data.recent.slice(0, s.limit || 8)} />;
+      return <ProductGrid title={s.title || t("home.recentProducts")} subtitle={s.subtitle} products={data.recent.slice(0, s.limit || 8)} t={t} />;
 
     case "banner":
       if (!s.image) return null;
@@ -127,7 +132,7 @@ function renderSection(s: HomeSection, data: HomeData) {
 
     case "product_slider": {
       const src = s.source === "recent" ? data.recent : data.featured;
-      return <ProductSlider title={s.title || "منتجات مختارة"} subtitle={s.subtitle} products={src.slice(0, s.limit || 12)} speed={s.speed} />;
+      return <ProductSlider title={s.title || t("home.selectedProducts")} subtitle={s.subtitle} products={src.slice(0, s.limit || 12)} speed={s.speed} />;
     }
 
     case "banner_slider":
@@ -166,14 +171,16 @@ function renderSection(s: HomeSection, data: HomeData) {
   }
 }
 
-export function HomeSections({ sections, data }: { sections: HomeSection[]; data: HomeData }) {
+export async function HomeSections({ sections, data }: { sections: HomeSection[]; data: HomeData }) {
+  const t = await getTranslations();
+  const locale = (await getLocale()) as Locale;
   const active = sections.filter((s) => s.enabled);
   const hasNajdBlock = active.some((s) => isNajdType(s.type));
   return (
     <>
       {hasNajdBlock && <style dangerouslySetInnerHTML={{ __html: NAJD_SCOPED_CSS }} />}
       {active.map((s) => (
-        <div key={s.id}>{renderSection(s, data)}</div>
+        <div key={s.id}>{renderSection(s, data, t, locale)}</div>
       ))}
     </>
   );
