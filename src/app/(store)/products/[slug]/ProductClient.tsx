@@ -549,6 +549,74 @@ export default function ProductClient({ product, publicSettings, options = [], o
               </Link>
             </div>
 
+            {/* كمّل طلبك — complementary products, right under the CTA */}
+            {bundleProducts.length > 0 && (
+              <div className="rounded-2xl border border-line bg-surface-sunken/40 p-4">
+                <h2 className="text-base font-black text-fg">كمّل طلبك</h2>
+                <p className="mb-3 text-xs text-fg-muted">اكتشف ما يشتريه العملاء مع هذا المنتج.</p>
+
+                <div className="divide-y divide-line">
+                  {bundleProducts.map((bp) => {
+                    const checked = bundleSelected.has(bp.id);
+                    return (
+                      <div key={bp.id} className="flex items-center gap-3 py-2.5">
+                        <button
+                          type="button"
+                          onClick={() => toggleBundle(bp.id)}
+                          aria-pressed={checked}
+                          aria-label={checked ? `إزالة ${bp.nameAr}` : `إضافة ${bp.nameAr}`}
+                          className={cn(
+                            "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
+                            checked
+                              ? "border-primary-600 bg-primary-600 text-white"
+                              : "border-line hover:border-primary-400",
+                          )}
+                        >
+                          {checked && <Check className="h-4 w-4" />}
+                        </button>
+
+                        <Link href={`/products/${bp.slug}`} className="min-w-0 flex-1 group">
+                          <span className="line-clamp-2 text-sm font-medium text-fg group-hover:text-primary-600 transition-colors">
+                            {bp.nameAr}
+                          </span>
+                        </Link>
+
+                        <span className="shrink-0 font-bold text-fg tnum">{formatAmount(bp.price)}</span>
+
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface">
+                          {bp.image ? (
+                            <Image src={bp.image} alt={bp.nameAr} width={44} height={44} className="h-full w-full object-contain p-1" unoptimized />
+                          ) : (
+                            <span className="text-2xl">{bp.icon || "📦"}</span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {bundleDiscountAmount > 0 && bundleSelected.size > 0 && (
+                  <div className="mt-3 flex items-center justify-between rounded-xl bg-success/10 px-3 py-2">
+                    <span className="text-[13px] font-medium text-success">
+                      وفّر {formatAmount(bundleDiscountAmount)} عند الشراء معًا
+                    </span>
+                    <span className="text-[13px] text-fg-subtle line-through">{formatAmount(bundleTotal)}</span>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleAddBundle}
+                  fullWidth
+                  size="lg"
+                  className="mt-3 text-base"
+                  disabled={bundleSelected.size === 0}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  اشترِها معًا بـ {formatAmount(bundleFinal)}
+                </Button>
+              </div>
+            )}
+
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -572,83 +640,10 @@ export default function ProductClient({ product, publicSettings, options = [], o
           </div>
         </div>
 
-        {/* كمّل طلبك — complementary products */}
-        {bundleProducts.length > 0 && (
-          <div className="mt-16 border-t border-line pt-12">
-            <h2 className="text-xl font-black text-fg mb-1">كمّل طلبك</h2>
-            <p className="text-sm text-fg-muted mb-6">اكتشف ما يشتريه العملاء مع هذا المنتج.</p>
-
-            <div className="max-w-2xl rounded-2xl border border-line bg-surface p-4 sm:p-5">
-              <div className="divide-y divide-line">
-                {bundleProducts.map((bp) => {
-                  const checked = bundleSelected.has(bp.id);
-                  return (
-                    <div key={bp.id} className="flex items-center gap-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleBundle(bp.id)}
-                        aria-pressed={checked}
-                        aria-label={checked ? `إزالة ${bp.nameAr}` : `إضافة ${bp.nameAr}`}
-                        className={cn(
-                          "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
-                          checked
-                            ? "border-primary-600 bg-primary-600 text-white"
-                            : "border-line hover:border-primary-400",
-                        )}
-                      >
-                        {checked && <Check className="h-4 w-4" />}
-                      </button>
-
-                      <Link
-                        href={`/products/${bp.slug}`}
-                        className="flex min-w-0 flex-1 items-center gap-3 group"
-                      >
-                        <span className="min-w-0 flex-1 text-sm font-medium text-fg group-hover:text-primary-600 transition-colors">
-                          {bp.nameAr}
-                        </span>
-                      </Link>
-
-                      <span className="shrink-0 font-bold text-fg tnum">{formatAmount(bp.price)}</span>
-
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface-sunken">
-                        {bp.image ? (
-                          <Image src={bp.image} alt={bp.nameAr} width={48} height={48} className="h-full w-full object-contain p-1" unoptimized />
-                        ) : (
-                          <span className="text-2xl">{bp.icon || "📦"}</span>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {bundleDiscountAmount > 0 && bundleSelected.size > 0 && (
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-success/10 px-4 py-2.5">
-                  <span className="text-sm font-medium text-success">
-                    وفّر {formatAmount(bundleDiscountAmount)} عند الشراء معًا
-                  </span>
-                  <span className="text-sm text-fg-subtle line-through">{formatAmount(bundleTotal)}</span>
-                </div>
-              )}
-
-              <Button
-                onClick={handleAddBundle}
-                fullWidth
-                size="lg"
-                className="mt-3 text-base"
-                disabled={bundleSelected.size === 0}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                اشترِها معًا بـ {formatAmount(bundleFinal)}
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* FAQ */}
         <div className="mt-16 border-t border-line pt-12">
           <h2 className="text-xl font-black text-fg mb-6">الأسئلة الشائعة</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 max-w-4xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {[
               { q: "كيف أستلم طلبي بعد الدفع؟", a: "بعد تأكيد الدفع تصلك تفاصيل طلبك مباشرة في صفحة الطلب وعبر البريد الإلكتروني. التسليم التلقائي فوري، واليدوي خلال 1-24 ساعة." },
               { q: "هل يمكنني الاسترداد إذا واجهت مشكلة؟", a: "نعم، نضمن جودة جميع منتجاتنا. إذا واجهت أي مشكلة افتح تذكرة دعم فني وسنحلها أو نسترد مبلغك." },
