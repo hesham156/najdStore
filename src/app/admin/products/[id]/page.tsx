@@ -34,6 +34,7 @@ import {
   type ProductCategory,
   type Variant,
 } from "@/components/admin/product-form";
+import { BundlePicker } from "@/components/admin/BundlePicker";
 import { cn } from "@/lib/utils";
 
 interface StockItem {
@@ -62,6 +63,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
+  const [bundleIds, setBundleIds] = useState<string[]>([]);
 
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [newStockData, setNewStockData] = useState("");
@@ -128,6 +130,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             const parts = t.split(":");
             return { label: parts[1] || "", price: parts[2] || "", comparePrice: parts[3] || "" };
           })
+      );
+
+      setBundleIds(
+        tags.filter((t) => t.startsWith("bundle:")).map((t) => t.slice("bundle:".length)).filter(Boolean)
       );
 
       setForm({
@@ -255,6 +261,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       if (form.seoTitle.trim()) seoTags.push(`seo_title:${form.seoTitle.trim()}`);
       if (form.seoDescription.trim()) seoTags.push(`seo_desc:${form.seoDescription.trim()}`);
       if (form.seoKeywords.trim()) seoTags.push(`seo_kw:${form.seoKeywords.trim()}`);
+      const bundleTags = bundleIds.filter((id) => id !== params.id).map((id) => `bundle:${id}`);
 
       const basePrice = variants.length > 0 ? parseFloat(variants[0].price) : parseFloat(form.price);
 
@@ -269,7 +276,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           stockCount: parseInt(form.stockCount) || 0,
           features: form.features.split("\n").filter(Boolean),
           featuresAr: form.featuresAr.split("\n").filter(Boolean),
-          tags: [...variantTags, ...seoTags],
+          tags: [...variantTags, ...seoTags, ...bundleTags],
         }),
       });
       const data = await res.json();
@@ -622,6 +629,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                     hint="عدد القطع المتاحة للبيع."
                   />
                 )}
+              </Section>
+
+              <Section
+                title="كمّل طلبك (منتجات مكمّلة)"
+                description="منتجات تُعرض في صفحة هذا المنتج ضمن قسم «كمّل طلبك» ليضيفها العميل بضغطة."
+                contentClassName="space-y-4 pt-0"
+              >
+                <BundlePicker value={bundleIds} onChange={setBundleIds} excludeId={params.id} />
               </Section>
             </TabPanel>
           </form>

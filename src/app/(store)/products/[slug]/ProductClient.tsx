@@ -27,15 +27,26 @@ interface PublicSettings {
   tamara_installments?: string;
 }
 
+interface BundleProduct {
+  id: string;
+  nameAr: string;
+  slug: string;
+  price: number;
+  image: string | null;
+  icon: string | null;
+}
+
 interface Props {
   product: ProductWithCategory & { variants?: ProductVariant[] };
   publicSettings: PublicSettings;
   /* Multi-option (matrix pricing) — when present, replaces the legacy tag-variant grid */
   options?: ProductOptionData[];
   optionVariants?: MatrixVariant[];
+  /* "كمّل طلبك" — complementary products chosen by the merchant */
+  bundleProducts?: BundleProduct[];
 }
 
-export default function ProductClient({ product, publicSettings, options = [], optionVariants = [] }: Props) {
+export default function ProductClient({ product, publicSettings, options = [], optionVariants = [], bundleProducts = [] }: Props) {
   const { formatAmount } = useCurrency();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -81,6 +92,10 @@ export default function ProductClient({ product, publicSettings, options = [], o
   );
   const [related, setRelated] = useState<ProductWithCategory[]>([]);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  // "كمّل طلبك" — all complementary products start checked, like the reference.
+  const [bundleSelected, setBundleSelected] = useState<Set<string>>(
+    () => new Set(bundleProducts.map((p) => p.id)),
+  );
   const { addItem } = useCartStore();
   const { showUpsell } = useUpsell();
   const conversion = useConversion();
@@ -182,6 +197,38 @@ export default function ProductClient({ product, publicSettings, options = [], o
         toast.success(`تم إضافة ${upsell.offerProduct.nameAr} إلى السلة 🎉`);
       },
     });
+  };
+
+  const toggleBundle = (id: string) =>
+    setBundleSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+
+  const bundleTotal = useMemo(
+    () => bundleProducts.filter((p) => bundleSelected.has(p.id)).reduce((sum, p) => sum + p.price, 0),
+    [bundleProducts, bundleSelected],
+  );
+
+  const handleAddBundle = () => {
+    const chosen = bundleProducts.filter((p) => bundleSelected.has(p.id));
+    if (chosen.length === 0) {
+      toast.error("اختر منتجاً واحداً على الأقل");
+      return;
+    }
+    chosen.forEach((p) => {
+      addItem({
+        id: p.id,
+        name: p.nameAr,
+        nameAr: p.nameAr,
+        price: p.price,
+        image: p.image || undefined,
+        quantity: 1,
+        slug: p.slug,
+      });
+    });
+    toast.success(`تم إضافة ${chosen.length} منتج إلى السلة 🎉`);
   };
 
   return (
@@ -504,6 +551,70 @@ export default function ProductClient({ product, publicSettings, options = [], o
             )}
           </div>
         </div>
+
+        {/* كمّل طلبك — complementary products */}
+        {bundleProducts.length > 0 && (
+          <div className="mt-16 border-t border-line pt-12">
+            <h2 className="text-xl font-black text-fg mb-1">كمّل طلبك</h2>
+            <p className="text-sm text-fg-muted mb-6">اكتشف ما يشتريه العملاء مع هذا المنتج.</p>
+
+            <div className="max-w-2xl rounded-2xl border border-line bg-surface p-4 sm:p-5">
+              <div className="divide-y divide-line">
+                {bundleProducts.map((bp) => {
+                  const checked = bundleSelected.has(bp.id);
+                  return (
+                    <div key={bp.id} className="flex items-center gap-3 py-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleBundle(bp.id)}
+                        aria-pressed={checked}
+                        aria-label={checked ? `إزالة ${bp.nameAr}` : `إضافة ${bp.nameAr}`}
+                        className={cn(
+                          "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
+                          checked
+                            ? "border-primary-600 bg-primary-600 text-white"
+                            : "border-line hover:border-primary-400",
+                        )}
+                      >
+                        {checked && <Check className="h-4 w-4" />}
+                      </button>
+
+                      <Link
+                        href={`/products/${bp.slug}`}
+                        className="flex min-w-0 flex-1 items-center gap-3 group"
+                      >
+                        <span className="min-w-0 flex-1 text-sm font-medium text-fg group-hover:text-primary-600 transition-colors">
+                          {bp.nameAr}
+                        </span>
+                      </Link>
+
+                      <span className="shrink-0 font-bold text-fg tnum">{formatAmount(bp.price)}</span>
+
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface-sunken">
+                        {bp.image ? (
+                          <Image src={bp.image} alt={bp.nameAr} width={48} height={48} className="h-full w-full object-contain p-1" unoptimized />
+                        ) : (
+                          <span className="text-2xl">{bp.icon || "📦"}</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Button
+                onClick={handleAddBundle}
+                fullWidth
+                size="lg"
+                className="mt-4 text-base"
+                disabled={bundleSelected.size === 0}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                اشترِها معًا بـ {formatAmount(bundleTotal)}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* FAQ */}
         <div className="mt-16 border-t border-line pt-12">

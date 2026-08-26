@@ -18,6 +18,7 @@ import {
   type ProductCategory,
   type Variant,
 } from "@/components/admin/product-form";
+import { BundlePicker } from "@/components/admin/BundlePicker";
 
 const TABS = [
   { value: "general", label: "المعلومات الأساسية", icon: <Info /> },
@@ -33,6 +34,7 @@ export default function NewProductPage() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
+  const [bundleIds, setBundleIds] = useState<string[]>([]);
   const [form, setForm] = useState({
     nameAr: "",
     name: "",
@@ -99,6 +101,7 @@ export default function NewProductPage() {
       const variantTags = variants.map(
         (v) => `variant:${v.label.trim()}:${parseFloat(v.price)}${v.comparePrice ? `:${parseFloat(v.comparePrice)}` : ""}`
       );
+      const bundleTags = bundleIds.map((id) => `bundle:${id}`);
       const basePrice = variants.length > 0 ? parseFloat(variants[0].price) : parseFloat(form.price);
       const res = await fetch("/api/admin/products", {
         method: "POST",
@@ -110,7 +113,7 @@ export default function NewProductPage() {
           sortOrder: parseInt(form.sortOrder),
           featuresAr: form.featuresAr.split("\n").filter(Boolean),
           features: form.features.split("\n").filter(Boolean),
-          tags: variantTags,
+          tags: [...variantTags, ...bundleTags],
         }),
       });
       const data = await res.json();
@@ -293,6 +296,14 @@ export default function NewProductPage() {
                   onChange={(e) => set("sortOrder", e.target.value)}
                   hint="الأرقام الأصغر تظهر أولاً."
                 />
+              </Section>
+
+              <Section
+                title="كمّل طلبك (منتجات مكمّلة)"
+                description="منتجات تُعرض في صفحة هذا المنتج ضمن قسم «كمّل طلبك» ليضيفها العميل بضغطة."
+                contentClassName="space-y-4 pt-0"
+              >
+                <BundlePicker value={bundleIds} onChange={setBundleIds} />
               </Section>
             </TabPanel>
           </form>

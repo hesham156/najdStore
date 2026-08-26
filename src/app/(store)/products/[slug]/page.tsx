@@ -38,6 +38,33 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
   if (!productRaw) notFound();
 
+  // "كمّل طلبك" — complementary products the merchant picked, stored as
+  // `bundle:<id>` tags on this product. Fetch them (active only) and keep the
+  // merchant's chosen order.
+  const bundleIds = ((productRaw.tags || []) as string[])
+    .filter((t) => t.startsWith("bundle:"))
+    .map((t) => t.slice("bundle:".length))
+    .filter((id) => id && id !== productRaw.id);
+
+  let bundleProducts: Array<{ id: string; nameAr: string; slug: string; price: number; image: string | null; icon: string | null }> = [];
+  if (bundleIds.length > 0) {
+    const rows = await prisma.product.findMany({
+      where: { id: { in: bundleIds }, isActive: true, isDeleted: false },
+      include: { category: { select: { icon: true } } },
+    });
+    const order = new Map(bundleIds.map((id, i) => [id, i]));
+    bundleProducts = rows
+      .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+      .map((p) => ({
+        id: p.id,
+        nameAr: p.nameAr,
+        slug: p.slug,
+        price: parseFloat(String(p.price)),
+        image: p.image,
+        icon: p.category?.icon ?? null,
+      }));
+  }
+
   const product = serializeData(productRaw) as unknown as ProductWithCategory & { variants?: any[] };
 
   // Matrix options + variants
@@ -76,7 +103,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
   return (
     <>
-      <ProductClient product={product} publicSettings={publicSettings} options={optionsData} optionVariants={optionVariants} />
+      <ProductClient product={product} publicSettings={publicSettings} options={optionsData} optionVariants={optionVariants} bundleProducts={bundleProducts} />
     </>
   );
 }
