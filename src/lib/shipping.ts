@@ -31,8 +31,8 @@ export interface ShipmentRequest {
   // and DHL callers are unaffected.
   items?: Array<{ name: string; quantity: number; price: number }>;
   weightG?: number;
-  paidOnline?: boolean;   // Treek payment_method: "paid" vs "cod"
   courier?: string;       // Treek: courier chosen by the admin from live rates
+  treekCod?: boolean;     // Treek: collect cash on delivery (default false — store is prepaid)
 }
 
 /** Enabled carriers, in display order. */
@@ -66,7 +66,7 @@ export async function createShipment(carrier: Carrier, req: ShipmentRequest): Pr
       receiverAddress: req.address,
       receiverShortAddress: req.postalCode,
       grandTotal: req.declaredValue,
-      paymentMethod: req.paidOnline ? "paid" : "cod",
+      paymentMethod: req.treekCod ? "cod" : "paid",
       items: req.items && req.items.length > 0
         ? req.items
         : [{ name: `Order ${req.reference}`, quantity: 1, price: Math.round(req.declaredValue) }],

@@ -206,7 +206,7 @@ export interface TreekShipmentInput {
   receiverAddress?: string;
   receiverShortAddress?: string;
   grandTotal: number;                // order total (SAR)
-  paymentMethod: "paid" | "cod";
+  paymentMethod?: "paid" | "cod";    // defaults to "paid" (this store is prepaid)
   items: Array<{ name: string; quantity: number; price: number }>;
   weightG?: number;                  // total package weight, grams
   courier?: string;                  // override the default courier (from the price calculator)
@@ -303,7 +303,7 @@ export async function createShipment(config: TreekConfig, input: TreekShipmentIn
     receiver_short_address: input.receiverShortAddress || config.shortAddress || "NA",
     warehouse_id: config.warehouseId,
     order_grand_total: Math.round(input.grandTotal || 0),
-    payment_method: input.paymentMethod,
+    payment_method: input.paymentMethod || "paid",
     items: input.items.map((it) => ({
       name: it.name,
       quantity: it.quantity,

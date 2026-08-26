@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Truck, RefreshCw, FileText, ExternalLink, X, PackageCheck } from "lucide-react";
 import { Section } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Input, Switch } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import toast from "react-hot-toast";
 
@@ -56,6 +56,7 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
   const [treekRates, setTreekRates] = useState<TreekRate[] | null>(null);
   const [ratesLoading, setRatesLoading] = useState(false);
   const [treekCourier, setTreekCourier] = useState<string>("");
+  const [treekCod, setTreekCod] = useState(false);
   const [form, setForm] = useState({
     shipName: order.shipName || order.user.name || "",
     shipPhone: order.shipPhone || order.user.phone || "",
@@ -112,7 +113,12 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
       const res = await fetch(`/api/admin/orders/${order.id}/shipment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, carrier, courier: carrier === "TREEK" ? treekCourier : undefined }),
+        body: JSON.stringify({
+          ...form,
+          carrier,
+          courier: carrier === "TREEK" ? treekCourier : undefined,
+          treekCod: carrier === "TREEK" ? treekCod : undefined,
+        }),
       });
       const data = await res.json();
       const label = carriers.find((c) => c.id === carrier)?.label || carrier;
@@ -292,6 +298,17 @@ export function ShipmentCard({ order, onChange }: { order: OrderLite; onChange: 
                   لا توجد أسعار متاحة. تأكد من ضبط مدينة المتجر ومدينة المستلم، وأن حساب Treek مفعّل.
                 </p>
               )}
+
+              <div className="mt-3 rounded-lg border border-line px-3 py-2">
+                <Switch
+                  checked={treekCod}
+                  onChange={setTreekCod}
+                  label="الدفع عند الاستلام (COD)"
+                />
+                <p className="mt-1 text-[11px] text-fg-subtle">
+                  اتركها مغلقة للطلبات المدفوعة مسبقاً (الافتراضي). فعّلها فقط إذا أردت أن يُحصّل المندوب المبلغ من العميل.
+                </p>
+              </div>
             </div>
           )}
 
