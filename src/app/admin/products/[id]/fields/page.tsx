@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { Dropdown } from "@/components/ui/Dropdown";
 import {
-  Plus, Trash2, Save, ChevronUp, ChevronDown, X, GripVertical,
+  Plus, Trash2, Save, ChevronUp, ChevronDown, X,
   Type, AlignLeft, Hash, ListChecks, List, ImagePlus, Paperclip,
   Calendar, Clock, CalendarClock, MapPin, Palette, Minus,
 } from "lucide-react";
@@ -348,11 +348,15 @@ function FieldCard({
 
           {/* Select values with additive price */}
           {isSelectType(f.type) && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-fg-muted">خيارات الحقول</p>
+            <div className="rounded-xl border border-line bg-surface-muted/40 p-3 space-y-2">
+              <div className="flex items-center gap-2 px-1 text-[11px] font-semibold text-fg-subtle">
+                <span className="w-7 shrink-0" />
+                <span className="flex-1">القيمة</span>
+                <span className="w-32 shrink-0">السعر الإضافي</span>
+              </div>
               {(f.values || []).map((v, vi) => (
                 <div key={vi} className="flex items-center gap-2">
-                  <button onClick={() => onRemoveValue(vi)} className="p-1 rounded-full text-danger hover:bg-danger/10 shrink-0" title="حذف القيمة"><X className="h-4 w-4" /></button>
+                  <button onClick={() => onRemoveValue(vi)} className="flex h-7 w-7 items-center justify-center rounded-full text-danger hover:bg-danger/10 shrink-0" title="حذف القيمة"><X className="h-4 w-4" /></button>
                   <input
                     value={v.label}
                     onChange={(e) => onSetValue(vi, { label: e.target.value })}
@@ -364,9 +368,10 @@ function FieldCard({
                       type="number"
                       value={v.price || ""}
                       onChange={(e) => onSetValue(vi, { price: parseFloat(e.target.value) || 0 })}
-                      placeholder="السعر الإضافي"
-                      className="w-full rounded-control border border-line bg-surface px-3 h-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                      placeholder="0"
+                      className="w-full rounded-control border border-line bg-surface ps-3 pe-11 h-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
                     />
+                    <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-[11px] text-fg-subtle">ر.س</span>
                   </div>
                 </div>
               ))}
