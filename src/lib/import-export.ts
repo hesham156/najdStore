@@ -38,7 +38,24 @@ export function rowsToCsv(rows: Record<string, unknown>[]): string {
 
 /* ── Cell helpers ─────────────────────────────────────────────────────────── */
 
-const normHeader = (s: string) => s.toString().trim().toLowerCase().replace(/\s+/g, " ");
+/**
+ * Normalize a header for alias matching. Beyond lowercasing/whitespace we also
+ * normalize Arabic letter variants so headers match regardless of hamza/diacritics:
+ * Salla exports the product-name column as "أسم المنتج" (hamza-alef أ) while our
+ * alias list uses "اسم المنتج" (plain alef ا) — without this they never match and
+ * every row is rejected as "اسم المنتج مفقود".
+ */
+const normHeader = (s: string) =>
+  s
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[ً-ْ]/g, "")   // strip tashkeel (diacritics)
+    .replace(/ـ/g, "")            // strip tatweel ـ
+    .replace(/[أإآٱ]/g, "ا") // أ إ آ ٱ → ا
+    .replace(/ى/g, "ي")      // ى → ي
+    .replace(/ة/g, "ه")      // ة → ه
+    .replace(/\s+/g, " ");
 
 /** Return the first non-empty cell value whose header matches any of the aliases. */
 export function pick(row: Record<string, unknown>, aliases: string[]): string | undefined {
@@ -112,11 +129,11 @@ export const PRODUCT_ALIASES = {
   nameAr: ["nameAr", "الاسم العربي", "الاسم بالعربية", "اسم المنتج بالعربية"],
   slug: ["slug", "الرابط", "المعرف", "handle"],
   description: ["description", "الوصف", "وصف المنتج", "التفاصيل"],
-  price: ["price", "السعر", "سعر البيع", "السعر بعد الخصم", "sale price", "amount"],
+  price: ["price", "السعر", "سعر المنتج", "سعر البيع", "السعر بعد الخصم", "sale price", "amount"],
   comparePrice: ["comparePrice", "compare price", "سعر المقارنة", "السعر قبل الخصم", "regular price", "السعر الأصلي"],
-  sku: ["sku", "رقم المنتج", "رمز المنتج", "الرمز", "mpn", "barcode", "الباركود"],
+  sku: ["sku", "رقم المنتج", "رمز المنتج", "رمز المنتج sku", "الرمز", "mpn", "barcode", "الباركود"],
   stock: ["stock", "stockCount", "الكمية", "المخزون", "الكمية المتوفرة", "quantity", "qty", "الكميه"],
-  category: ["category", "categoryName", "التصنيف", "التصنيفات", "الفئة", "القسم", "categories"],
+  category: ["category", "categoryName", "التصنيف", "تصنيف المنتج", "التصنيفات", "الفئة", "القسم", "categories"],
   image: ["image", "الصورة", "صورة المنتج", "رابط الصورة", "image url", "images"],
   active: ["active", "isActive", "الحالة", "الحاله", "status", "متاح", "الظهور"],
   featured: ["featured", "isFeatured", "مميز", "منتج مميز"],
