@@ -381,11 +381,18 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           </Badge>
         }
         actions={
-          <Link href={`/admin/products/${params.id}/options`}>
-            <Button variant="outline" icon={<Layers className="h-4 w-4" />}>
-              الخيارات والأسعار
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href={`/admin/products/${params.id}/fields`}>
+              <Button variant="outline" icon={<Settings2 className="h-4 w-4" />}>
+                الحقول المخصّصة
+              </Button>
+            </Link>
+            <Link href={`/admin/products/${params.id}/options`}>
+              <Button variant="outline" icon={<Layers className="h-4 w-4" />}>
+                الخيارات والأسعار
+              </Button>
+            </Link>
+          </div>
         }
       />
 

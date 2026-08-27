@@ -98,6 +98,7 @@ model Product {
   upsells        Upsell[]
   options        ProductOption[]
   variants       ProductVariant[]
+  fields         ProductField[]
   // Category pages and the storefront listing.
   @@index([categoryId])
   @@index([isActive, sortOrder])
@@ -154,6 +155,38 @@ model ProductVariant {
 
   @@index([productId])
   @@map("product_variants")
+}
+
+/// A Salla-style custom product field (parallel to the ProductOption/Variant
+/// matrix system). Customers fill these on the product page; select-type values
+/// carry an additive price. Fields can be conditionally shown based on another
+/// field's chosen value.
+model ProductField {
+  id          String   @id @default(cuid())
+  productId   String
+  /// Client-stable key, unique within the product. Conditional-visibility rules
+  /// reference other fields by this key so reorders/re-saves never break them.
+  key         String
+  /// short_text | long_text | number | single_select | multi_select | image |
+  /// file | date | time | datetime | location | color | separator
+  type        String
+  label       String
+  description String?
+  required    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  /// Select types: [{ label: string, price: number }] — price is additive.
+  values      Json?
+  /// File/image: { extensions: string[] }. Number: { min, max }. Extensible.
+  config      Json?
+  /// Conditional visibility: show this field only when the field with this key
+  /// is set to `condValue`. Null = always visible.
+  condFieldKey String?
+  condValue    String?
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, key])
+  @@index([productId])
+  @@map("product_fields")
 }
 
 model Order {
@@ -259,6 +292,10 @@ model OrderItem {
   price                 Decimal             @db.Decimal(10, 2)
   variantLabel          String?
   variantId             String?
+  /// Salla-style custom field values the customer filled:
+  /// [{ label, type, value, priceAdd }]. The additive price is already baked
+  /// into `price`; this is kept for display on the order screen.
+  customFields          Json?
   deliveredData         String?
   deliveredAt           DateTime?
   subscriptionStartDate DateTime?
