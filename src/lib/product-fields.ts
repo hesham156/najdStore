@@ -24,6 +24,15 @@ export interface FieldOption {
   price: number;
 }
 
+/** قاعدة شرط ظهور واحدة: الحقل ذو المفتاح fieldKey (لا) يساوي value */
+export interface FieldCondition {
+  fieldKey: string;
+  op: "eq" | "neq";
+  value: string;
+}
+
+export type CondLogic = "and" | "or";
+
 /** شكل الحقل كما يُخزَّن ويُتبادَل عبر الـ API */
 export interface ProductFieldData {
   id?: string;
@@ -38,9 +47,12 @@ export interface ProductFieldData {
   values?: FieldOption[];
   /** إعدادات إضافية: { extensions } لرفع الملف/الصورة */
   config?: { extensions?: string[] } | null;
-  /** شرط الظهور: يظهر الحقل فقط لو الحقل ذو المفتاح condFieldKey = condValue */
+  /** شرط الظهور (الصيغة القديمة: قاعدة واحدة) */
   condFieldKey?: string | null;
   condValue?: string | null;
+  /** شرط الظهور متعدّد القواعد — يتقدّم على الصيغة القديمة عند وجوده */
+  condLogic?: CondLogic | null;
+  conditions?: FieldCondition[] | null;
 }
 
 interface FieldTypeMeta {
@@ -89,15 +101,37 @@ export const DEFAULT_EXTENSIONS: Record<string, string[]> = {
   file: ["pdf", "png", "jpg", "jpeg"],
 };
 
+/** القواعد الفعّالة لحقل: المتعدّدة إن وُجدت، وإلا القاعدة القديمة المفردة. */
+export function effectiveConditions(field: ProductFieldData): FieldCondition[] {
+  if (Array.isArray(field.conditions) && field.conditions.length > 0) {
+    return field.conditions.filter((c) => c && c.fieldKey);
+  }
+  if (field.condFieldKey) {
+    return [{ fieldKey: field.condFieldKey, op: "eq", value: field.condValue ?? "" }];
+  }
+  return [];
+}
+
+/** هل تتحقّق قاعدة واحدة بالنظر إلى القيم الحالية؟ */
+function matchesCondition(c: FieldCondition, values: Record<string, unknown>): boolean {
+  const current = values[c.fieldKey];
+  const matches = Array.isArray(current)
+    ? current.map(String).includes(String(c.value))
+    : String(current ?? "") === String(c.value ?? "");
+  return c.op === "neq" ? !matches : matches;
+}
+
 /**
  * هل يجب إظهار الحقل بالنظر إلى القيم المختارة حالياً؟
  * القيم مفهرسة بمفتاح الحقل (key → القيمة المختارة كنص).
+ * تُدمَج القواعد المتعدّدة بـ AND افتراضياً أو OR حسب condLogic.
  */
 export function isFieldVisible(field: ProductFieldData, values: Record<string, unknown>): boolean {
-  if (!field.condFieldKey) return true;
-  const current = values[field.condFieldKey];
-  if (Array.isArray(current)) return current.map(String).includes(String(field.condValue));
-  return String(current ?? "") === String(field.condValue ?? "");
+  const conds = effectiveConditions(field);
+  if (conds.length === 0) return true;
+  return field.condLogic === "or"
+    ? conds.some((c) => matchesCondition(c, values))
+    : conds.every((c) => matchesCondition(c, values));
 }
 
 /** السعر الإضافي لقيمة/قيم مختارة في حقل اختيار */

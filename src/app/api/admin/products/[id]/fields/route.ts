@@ -33,6 +33,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       config: f.config ?? undefined,
       condFieldKey: f.condFieldKey,
       condValue: f.condValue,
+      condLogic: (f.condLogic as "and" | "or" | null) ?? undefined,
+      conditions: f.conditions ?? undefined,
     })),
   });
 }
@@ -63,9 +65,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
     // Conditional refs must point at an existing OTHER field.
     for (const f of fields) {
-      if (f.condFieldKey) {
-        if (f.condFieldKey === f.key) return badRequest("لا يمكن أن يعتمد الحقل على نفسه");
-        if (!keys.has(f.condFieldKey)) return badRequest("شرط الظهور يشير إلى حقل غير موجود");
+      const rules = Array.isArray(f.conditions) && f.conditions.length > 0
+        ? f.conditions
+        : (f.condFieldKey ? [{ fieldKey: f.condFieldKey, op: "eq" as const, value: f.condValue ?? "" }] : []);
+      for (const c of rules) {
+        if (!c.fieldKey) return badRequest("شرط الظهور ناقص");
+        if (c.fieldKey === f.key) return badRequest("لا يمكن أن يعتمد الحقل على نفسه");
+        if (!keys.has(c.fieldKey)) return badRequest("شرط الظهور يشير إلى حقل غير موجود");
       }
     }
 
@@ -90,6 +96,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           config: f.config ?? undefined,
           condFieldKey: f.condFieldKey?.trim() || null,
           condValue: f.condFieldKey ? (f.condValue ?? "").toString() : null,
+          condLogic: f.condLogic === "or" ? "or" : "and",
+          conditions: Array.isArray(f.conditions) && f.conditions.length > 0
+            ? f.conditions
+                .filter((c) => c && c.fieldKey)
+                .map((c) => ({ fieldKey: c.fieldKey, op: c.op === "neq" ? "neq" : "eq", value: (c.value ?? "").toString() }))
+            : undefined,
         })),
       });
     });

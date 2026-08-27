@@ -17,7 +17,7 @@ import { ProductCustomFields } from "@/components/store/ProductCustomFields";
 import { Eye } from "lucide-react";
 import {
   FIELD_TYPES, fieldMeta, isSelectType, isPresentational, hasExtensions,
-  DEFAULT_EXTENSIONS, type FieldType, type ProductFieldData, type FieldOption,
+  DEFAULT_EXTENSIONS, type FieldType, type ProductFieldData, type FieldOption, type FieldCondition,
 } from "@/lib/product-fields";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -120,6 +120,8 @@ export default function ProductFieldsPage({ params }: { params: { id: string } }
         config: hasExtensions(f.type) ? { extensions: f.config?.extensions || [] } : undefined,
         condFieldKey: f.condFieldKey || null,
         condValue: f.condFieldKey ? (f.condValue ?? "") : null,
+        condLogic: f.condLogic === "or" ? "or" : "and",
+        conditions: Array.isArray(f.conditions) && f.conditions.length > 0 ? f.conditions : undefined,
       })),
     };
     const res = await fetch(`/api/admin/products/${params.id}/fields`, {
@@ -286,7 +288,6 @@ function FieldCard({
   // Only select-type fields defined BEFORE this one can drive its visibility
   // (keeps the dependency graph acyclic).
   const condCandidates = priorFields.filter((p) => isSelectType(p.type));
-  const condSource = condCandidates.find((p) => p.key === f.condFieldKey) || null;
 
   return (
     <Card className="p-0 overflow-hidden ring-1 ring-transparent transition-shadow hover:shadow-sm">
@@ -391,46 +392,138 @@ function FieldCard({
             />
           )}
 
-          {/* Conditional visibility */}
+          {/* Conditional visibility — one or more rules combined with AND/OR */}
           {condCandidates.length > 0 && !meta.presentational && (
-            <div className="rounded-control border border-line p-3 space-y-3">
-              <label className="flex items-center gap-2 text-sm font-medium text-fg">
-                <input
-                  type="checkbox"
-                  checked={!!f.condFieldKey}
-                  onChange={(e) => onUpdate(e.target.checked
-                    ? { condFieldKey: condCandidates[0].key, condValue: condCandidates[0].values?.[0]?.label || "" }
-                    : { condFieldKey: null, condValue: null })}
-                  className="h-4 w-4 rounded"
-                />
-                شرط ظهور الحقل
-              </label>
-              {f.condFieldKey && (
-                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-2">
-                  <select
-                    value={f.condFieldKey}
-                    onChange={(e) => {
-                      const src = condCandidates.find((c) => c.key === e.target.value);
-                      onUpdate({ condFieldKey: e.target.value, condValue: src?.values?.[0]?.label || "" });
-                    }}
-                    className="rounded-control border border-line bg-surface px-3 h-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
-                  >
-                    {condCandidates.map((c) => <option key={c.key} value={c.key}>{c.label || fieldMeta(c.type).labelAr}</option>)}
-                  </select>
-                  <span className="text-center text-fg-muted text-sm">=</span>
-                  <select
-                    value={f.condValue || ""}
-                    onChange={(e) => onUpdate({ condValue: e.target.value })}
-                    className="rounded-control border border-line bg-surface px-3 h-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
-                  >
-                    {(condSource?.values || []).map((v) => <option key={v.label} value={v.label}>{v.label}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
+            <ConditionEditor field={f} candidates={condCandidates} onUpdate={onUpdate} />
           )}
         </div>
       )}
     </Card>
+  );
+}
+
+/* ────────────────────── Conditional visibility editor ────────────────────── */
+
+function ConditionEditor({
+  field: f, candidates, onUpdate,
+}: {
+  field: ProductFieldData;
+  candidates: ProductFieldData[];
+  onUpdate: (patch: Partial<ProductFieldData>) => void;
+}) {
+  // Normalise: prefer the multi-rule array, fall back to the legacy single pair.
+  const conds: FieldCondition[] =
+    f.conditions && f.conditions.length > 0
+      ? f.conditions
+      : f.condFieldKey
+      ? [{ fieldKey: f.condFieldKey, op: "eq", value: f.condValue || "" }]
+      : [];
+  const enabled = conds.length > 0;
+  const logic = f.condLogic === "or" ? "or" : "and";
+  const valuesOf = (key: string) => candidates.find((c) => c.key === key)?.values || [];
+  const newRule = (): FieldCondition => ({
+    fieldKey: candidates[0].key,
+    op: "eq",
+    value: candidates[0].values?.[0]?.label || "",
+  });
+
+  // Writing `conditions` clears the legacy pair so the two never disagree.
+  const write = (next: FieldCondition[]) => onUpdate({ conditions: next, condFieldKey: null, condValue: null });
+  const toggle = (on: boolean) =>
+    on ? write([newRule()]) : onUpdate({ conditions: null, condLogic: null, condFieldKey: null, condValue: null });
+  const setRule = (i: number, patch: Partial<FieldCondition>) =>
+    write(conds.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+  const removeRule = (i: number) => {
+    const next = conds.filter((_, idx) => idx !== i);
+    next.length ? write(next) : toggle(false);
+  };
+
+  return (
+    <div className="rounded-xl border border-line bg-surface-muted/40 p-3 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-sm font-medium text-fg">
+          <input type="checkbox" checked={enabled} onChange={(e) => toggle(e.target.checked)} className="h-4 w-4 rounded" />
+          شرط ظهور الحقل
+        </label>
+        {enabled && conds.length > 1 && (
+          <div className="inline-flex overflow-hidden rounded-lg border border-line text-xs">
+            <button
+              type="button"
+              onClick={() => onUpdate({ condLogic: "and" })}
+              className={cn("px-3 h-7 font-medium transition-colors", logic === "and" ? "bg-primary-600 text-white" : "bg-surface text-fg-muted hover:text-fg")}
+              title="يجب تحقّق كل الشروط"
+            >
+              كل الشروط (AND)
+            </button>
+            <button
+              type="button"
+              onClick={() => onUpdate({ condLogic: "or" })}
+              className={cn("px-3 h-7 font-medium transition-colors border-s border-line", logic === "or" ? "bg-primary-600 text-white" : "bg-surface text-fg-muted hover:text-fg")}
+              title="يكفي تحقّق أي شرط"
+            >
+              أي شرط (OR)
+            </button>
+          </div>
+        )}
+      </div>
+
+      {enabled && (
+        <div className="space-y-2">
+          {conds.map((c, i) => {
+            const opts = valuesOf(c.fieldKey);
+            return (
+              <div key={i} className="space-y-1.5">
+                {i > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="h-px flex-1 bg-line" />
+                    <span className="text-[11px] font-bold text-primary-600">{logic === "or" ? "أو" : "و"}</span>
+                    <span className="h-px flex-1 bg-line" />
+                  </div>
+                )}
+                <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2">
+                  <select
+                    value={c.fieldKey}
+                    onChange={(e) => {
+                      const src = candidates.find((x) => x.key === e.target.value);
+                      setRule(i, { fieldKey: e.target.value, value: src?.values?.[0]?.label || "" });
+                    }}
+                    className="min-w-0 rounded-control border border-line bg-surface px-2.5 h-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                  >
+                    {candidates.map((x) => <option key={x.key} value={x.key}>{x.label || fieldMeta(x.type).labelAr}</option>)}
+                  </select>
+                  <select
+                    value={c.op}
+                    onChange={(e) => setRule(i, { op: e.target.value === "neq" ? "neq" : "eq" })}
+                    className="rounded-control border border-line bg-surface px-2 h-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                    title="المُعامل"
+                  >
+                    <option value="eq">=</option>
+                    <option value="neq">≠</option>
+                  </select>
+                  <select
+                    value={c.value}
+                    onChange={(e) => setRule(i, { value: e.target.value })}
+                    className="min-w-0 rounded-control border border-line bg-surface px-2.5 h-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                  >
+                    {opts.map((v) => <option key={v.label} value={v.label}>{v.label}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => removeRule(i)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-danger hover:bg-danger/10 shrink-0"
+                    title="حذف الشرط"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          <Button variant="ghost" size="sm" onClick={() => write([...conds, newRule()])}>
+            <Plus className="h-3.5 w-3.5" /> إضافة شرط
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

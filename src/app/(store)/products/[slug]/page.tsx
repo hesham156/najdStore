@@ -114,6 +114,8 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
     config: (f.config as { extensions?: string[] } | null) ?? undefined,
     condFieldKey: f.condFieldKey,
     condValue: f.condValue,
+    condLogic: (f.condLogic as "and" | "or" | null) ?? undefined,
+    conditions: (f.conditions as { fieldKey: string; op: "eq" | "neq"; value: string }[] | null) ?? undefined,
   }));
 
   const publicSettings: PublicSettings = {};

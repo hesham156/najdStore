@@ -178,10 +178,15 @@ model ProductField {
   values      Json?
   /// File/image: { extensions: string[] }. Number: { min, max }. Extensible.
   config      Json?
-  /// Conditional visibility: show this field only when the field with this key
-  /// is set to `condValue`. Null = always visible.
+  /// Conditional visibility (legacy single-rule form, kept for old rows):
+  /// show this field only when the field with this key is set to `condValue`.
   condFieldKey String?
   condValue    String?
+  /// Multi-rule conditional visibility. When `conditions` is a non-empty array
+  /// it supersedes the legacy pair above. Shape: [{ fieldKey, op, value }] with
+  /// op ∈ "eq" | "neq". `condLogic` ∈ "and" | "or" combines the rules.
+  condLogic    String?
+  conditions   Json?
   product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, key])
