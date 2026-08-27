@@ -11,6 +11,7 @@ import { PixelInjector } from "@/components/providers/PixelInjector";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
 import { getSeoConfig, organizationJsonLd, webSiteJsonLd } from "@/lib/seo";
+import { getHayyakConfig } from "@/lib/hayyak";
 import { BrandingProvider, DEFAULT_BRANDING } from "@/components/providers/BrandingProvider";
 import { getSettings, BRANDING_DEFAULTS } from "@/lib/settings";
 import { NextIntlClientProvider } from "next-intl";
@@ -118,6 +119,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
   const branding = await getSettings(brandingKeys).catch(() => brandingKeys);
 
+  // The on-site chat bubble is driven by the SAME Hayyak settings as the data
+  // push, so the storeId/endpoint can never drift out of sync (a hardcoded
+  // storeId is exactly what made the widget report "not connected"). The bubble
+  // only renders while the integration is enabled.
+  const hayyak = await getHayyakConfig();
+
   // One @graph rather than two loose blocks: it lets the WebSite reference the
   // Organization by @id, so a crawler reads one connected entity instead of
   // two strangers that happen to share a name.
@@ -150,16 +157,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <DbKeepAlive />
             <Suspense fallback={null}><PixelInjector /></Suspense>
             {children}
-            {/* حياك — فقاعة المحادثة على الموقع */}
-            <Script id="hayyak-config" strategy="afterInteractive">
-              {`window.SallaChatConfig = {
-    storeId: "pexelco",
-    apiUrl: "https://7ayak.app",
-    primaryColor: "#7c3aed",
-    storeName: "${cfg.siteName}"
-  };`}
-            </Script>
-            <Script src="https://7ayak.app/widget.js" strategy="afterInteractive" />
+            {/* حياك — فقاعة المحادثة على الموقع (بنفس إعداد التكامل) */}
+            {hayyak.enabled && hayyak.storeId && (
+              <>
+                <Script id="hayyak-config" strategy="afterInteractive">
+                  {`window.SallaChatConfig = ${JSON.stringify({
+                    storeId: hayyak.storeId,
+                    apiUrl: hayyak.baseUrl,
+                    primaryColor: "#7c3aed",
+                    storeName: cfg.siteName,
+                  })};`}
+                </Script>
+                <Script src={`${hayyak.baseUrl}/widget.js`} strategy="afterInteractive" />
+              </>
+            )}
             <Toaster
               // Top, not bottom: a bottom toast sat on top of the cart drawer's
               // fixed footer (total + "إتمام الشراء") on mobile, where the drawer
