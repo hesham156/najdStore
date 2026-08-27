@@ -157,7 +157,7 @@ export function CartSidebar() {
                     {pickText(locale, item.name, item.nameAr)}
                   </p>
                   {item.variantLabel && (
-                    <p className="text-xs text-fg-muted truncate">{item.variantLabel}</p>
+                    <p className="text-xs text-fg-muted leading-snug break-words line-clamp-3">{item.variantLabel}</p>
                   )}
                   <p className="text-sm text-primary-600 dark:text-primary-400 font-bold mt-0.5">
                     {formatAmount(item.price)}

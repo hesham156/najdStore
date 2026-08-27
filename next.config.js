@@ -50,7 +50,9 @@ const nextConfig = {
       // Do not leak full URLs to third parties
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       // Disable powerful features the storefront never uses
-      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+      // geolocation is same-origin only (still gated by the browser prompt) so
+      // the product "location" custom field can offer a "use my location" button.
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self), interest-cohort=()" },
     ];
 
     return [

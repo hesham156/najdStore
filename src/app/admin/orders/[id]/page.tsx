@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  Download,
   Eye,
   EyeOff,
   FileText,
@@ -352,6 +353,29 @@ export default function AdminOrderDetailPage() {
                         <Badge variant="primary" size="sm" className="mt-1.5">
                           {item.variantLabel}
                         </Badge>
+                      )}
+                      {Array.isArray(item.customFields) && item.customFields.length > 0 && (
+                        <ul className="mt-2 space-y-1 rounded-lg bg-surface-muted p-2.5">
+                          {item.customFields.map((cf, ci) => {
+                            const isFile =
+                              (cf.type === "file" || cf.type === "image") &&
+                              typeof cf.value === "string" &&
+                              !!cf.value;
+                            return (
+                              <li key={ci} className="flex items-center gap-1.5 text-xs">
+                                <span className="font-semibold text-fg">{cf.label}:</span>
+                                {isFile ? (
+                                  <a href={cf.value} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary-600 hover:underline" dir="ltr">
+                                    <Download className="h-3 w-3" /> {cf.value.split("/").pop()}
+                                  </a>
+                                ) : (
+                                  <span className="text-fg-muted break-all">{cf.value}</span>
+                                )}
+                                {cf.priceAdd > 0 && <span className="text-fg-subtle">(+{formatCurrency(cf.priceAdd)})</span>}
+                              </li>
+                            );
+                          })}
+                        </ul>
                       )}
                     </div>
                     <span className="flex shrink-0 items-center gap-1 text-[11px] text-fg-muted">

@@ -39,6 +39,7 @@ export function CartTracker() {
         items: items.map((i) => ({
           id: i.id, nameAr: i.nameAr, name: i.name, image: i.image,
           price: i.price, quantity: i.quantity, variantLabel: i.variantLabel,
+          customFields: i.customFields,
         })),
         userId: (session?.user as { id?: string } | undefined)?.id ?? null,
         customerName: session?.user?.name ?? null,

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { serializeData, parseProductVariants, slugCandidates } from "@/lib/utils";
 import ProductClient from "./ProductClient";
 import type { ProductWithCategory } from "@/types";
+import type { FieldType } from "@/lib/product-fields";
 
 interface PublicSettings {
   tabby_enabled?: boolean;
@@ -27,6 +28,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
         category: true,
         options: { orderBy: { sortOrder: "asc" }, include: { values: { orderBy: { sortOrder: "asc" } } } },
         variants: { where: { isActive: true } },
+        fields: { orderBy: { sortOrder: "asc" } },
       },
     }),
     prisma.setting.findMany({
@@ -99,6 +101,21 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   // Legacy tag-based variants only when the product has no matrix options
   product.variants = optionsData.length > 0 ? [] : parseProductVariants((productRaw.tags || []) as string[]);
 
+  // Salla-style custom fields (parallel system).
+  const customFields = (productRaw.fields || []).map((f) => ({
+    id: f.id,
+    key: f.key,
+    type: f.type as FieldType,
+    label: f.label,
+    description: f.description,
+    required: f.required,
+    sortOrder: f.sortOrder,
+    values: (f.values as { label: string; price: number }[] | null) ?? undefined,
+    config: (f.config as { extensions?: string[] } | null) ?? undefined,
+    condFieldKey: f.condFieldKey,
+    condValue: f.condValue,
+  }));
+
   const publicSettings: PublicSettings = {};
   for (const s of settingsRaw) {
     if (s.key === "tabby_enabled") publicSettings.tabby_enabled = s.value === "true";
@@ -114,7 +131,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
   return (
     <>
-      <ProductClient product={product} publicSettings={publicSettings} options={optionsData} optionVariants={optionVariants} bundleProducts={bundleProducts} bundleDiscount={bundleDiscount} />
+      <ProductClient product={product} publicSettings={publicSettings} options={optionsData} optionVariants={optionVariants} customFields={customFields} bundleProducts={bundleProducts} bundleDiscount={bundleDiscount} />
     </>
   );
 }

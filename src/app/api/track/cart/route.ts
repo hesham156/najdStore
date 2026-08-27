@@ -31,6 +31,15 @@ export async function POST(req: NextRequest) {
       price: Number(it.price) || 0,
       quantity: Math.max(1, parseInt(String(it.quantity)) || 1),
       variantLabel: it.variantLabel ? String(it.variantLabel).slice(0, 200) : null,
+      // Salla-style custom field selections, kept for the abandoned-cart view.
+      customFields: Array.isArray(it.customFields)
+        ? it.customFields.slice(0, 30).map((cf: any) => ({
+            label: String(cf.label ?? "").slice(0, 120),
+            type: String(cf.type ?? "").slice(0, 30),
+            value: String(cf.value ?? "").slice(0, 500),
+            priceAdd: Number(cf.priceAdd) || 0,
+          }))
+        : undefined,
     }));
 
     const itemCount = cleanItems.reduce((n: number, it: any) => n + it.quantity, 0);

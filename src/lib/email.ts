@@ -105,11 +105,29 @@ export function orderConfirmationEmail(args: {
   orderNumber: string;
   customerName: string;
   total: number;
-  items: { nameAr: string; quantity: number; price: number }[];
+  items: {
+    nameAr: string;
+    quantity: number;
+    price: number;
+    customFields?: { label: string; type: string; value: string }[] | null;
+  }[];
 }): { subject: string; html: string } {
+  const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] || c));
+  const fieldsHtml = (fields?: { label: string; type: string; value: string }[] | null) => {
+    if (!Array.isArray(fields) || fields.length === 0) return "";
+    const lines = fields.map((f) => {
+      const isFile = (f.type === "file" || f.type === "image") && !!f.value;
+      const href = f.value.startsWith("http") ? f.value : `${siteUrl()}${f.value}`;
+      const val = isFile
+        ? `<a href="${esc(href)}" style="color:#9db4ff;">${esc(f.value.split("/").pop() || "ملف")}</a>`
+        : esc(f.value);
+      return `<div style="color:#9ca3af;">${esc(f.label)}: <span style="color:#d1d5db;">${val}</span></div>`;
+    }).join("");
+    return `<div style="margin-top:4px;font-size:12px;line-height:1.7;">${lines}</div>`;
+  };
   const rows = args.items.map((i) =>
-    `<tr><td style="padding:8px 0;border-bottom:1px solid #1f2937;">${i.nameAr} <span style="color:#6b7280;">×${i.quantity}</span></td>
-     <td style="padding:8px 0;border-bottom:1px solid #1f2937;text-align:left;white-space:nowrap;">${(i.price * i.quantity).toFixed(2)} ر.س</td></tr>`
+    `<tr><td style="padding:8px 0;border-bottom:1px solid #1f2937;">${esc(i.nameAr)} <span style="color:#6b7280;">×${i.quantity}</span>${fieldsHtml(i.customFields)}</td>
+     <td style="padding:8px 0;border-bottom:1px solid #1f2937;text-align:left;white-space:nowrap;vertical-align:top;">${(i.price * i.quantity).toFixed(2)} ر.س</td></tr>`
   ).join("");
   const orderUrl = `${siteUrl()}/dashboard/orders`;
   const body = `

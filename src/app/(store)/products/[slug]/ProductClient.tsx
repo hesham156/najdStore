@@ -19,6 +19,8 @@ import { StickyCTA } from "@/components/store/StickyCTA";
 import toast from "react-hot-toast";
 import DOMPurify from "isomorphic-dompurify";
 import type { ProductWithCategory, ProductVariant, ProductOptionData, MatrixVariant } from "@/types";
+import { ProductCustomFields, type CustomFieldsState } from "@/components/store/ProductCustomFields";
+import type { ProductFieldData } from "@/lib/product-fields";
 import { useLocale, useTranslations } from "next-intl";
 import { pickText, pickList } from "@/lib/i18n-content";
 import type { Locale } from "@/i18n/config";
@@ -45,13 +47,15 @@ interface Props {
   /* Multi-option (matrix pricing) — when present, replaces the legacy tag-variant grid */
   options?: ProductOptionData[];
   optionVariants?: MatrixVariant[];
+  /* Salla-style custom fields (parallel to the matrix system) */
+  customFields?: ProductFieldData[];
   /* "كمّل طلبك" — complementary products chosen by the merchant */
   bundleProducts?: BundleProduct[];
   /* Optional discount applied when buying the bundle together */
   bundleDiscount?: { type: "PERCENTAGE" | "FIXED"; value: number } | null;
 }
 
-export default function ProductClient({ product, publicSettings, options = [], optionVariants = [], bundleProducts = [], bundleDiscount = null }: Props) {
+export default function ProductClient({ product, publicSettings, options = [], optionVariants = [], customFields = [], bundleProducts = [], bundleDiscount = null }: Props) {
   const { formatAmount } = useCurrency();
   const t = useTranslations("productPage");
   const tn = useTranslations("nav");
@@ -72,6 +76,11 @@ export default function ProductClient({ product, publicSettings, options = [], o
   const hasOptions = options.length > 0 && optionVariants.length > 0;
   // optionId → selected valueId
   const [selection, setSelection] = useState<Record<string, string>>({});
+
+  // Salla-style custom fields: the child component reports its derived state.
+  const hasCustomFields = customFields.length > 0;
+  const [cf, setCf] = useState<CustomFieldsState | null>(null);
+  const customFieldsIncomplete = hasCustomFields && (!cf || !cf.valid);
 
   const activeMatrixVariants = useMemo(
     () => optionVariants.filter((v) => v.isActive),
@@ -147,9 +156,11 @@ export default function ProductClient({ product, publicSettings, options = [], o
       .join(" · ") || undefined;
   }, [hasOptions, options, selection]);
 
-  const activePrice = hasOptions
+  const basePrice = hasOptions
     ? (resolvedVariant ? resolvedVariant.price : minMatrixPrice || parseFloat(String(product.price)))
     : (selectedVariant ? selectedVariant.price : parseFloat(String(product.price)));
+  // Custom-field selections add to the price on top of the base/variant price.
+  const activePrice = basePrice + (cf?.priceAdd || 0);
 
   const activeComparePrice = hasOptions
     ? (resolvedVariant?.comparePrice ?? null)
@@ -169,6 +180,14 @@ export default function ProductClient({ product, publicSettings, options = [], o
       toast.error(t("selectAllOptions"));
       return;
     }
+    if (customFieldsIncomplete) {
+      toast.error("يرجى تعبئة الحقول المطلوبة");
+      return;
+    }
+    // The cart line label combines the variant/option label with the custom
+    // fields summary so different custom orders stay distinct lines.
+    const baseLabel = hasOptions ? selectionLabel : selectedVariant?.label;
+    const combinedLabel = [baseLabel, cf?.summary].filter(Boolean).join(" · ") || undefined;
     addItem({
       id: product.id,
       name: product.name,
@@ -177,8 +196,9 @@ export default function ProductClient({ product, publicSettings, options = [], o
       image: product.image || undefined,
       quantity,
       slug: product.slug,
-      variantLabel: hasOptions ? selectionLabel : selectedVariant?.label,
+      variantLabel: combinedLabel,
       variantId: hasOptions ? resolvedVariant?.id : undefined,
+      customFields: cf?.items && cf.items.length > 0 ? cf.items : undefined,
     });
     setAdded(true);
     const label = hasOptions
@@ -394,6 +414,13 @@ export default function ProductClient({ product, publicSettings, options = [], o
               </div>
             )}
 
+            {/* Salla-style custom fields (parallel system) */}
+            {hasCustomFields && (
+              <div className="space-y-4">
+                <ProductCustomFields fields={customFields} onChange={setCf} />
+              </div>
+            )}
+
             {/* Variants selector (legacy tag-based) */}
             {hasVariants && (
               <div className="space-y-3">
@@ -523,13 +550,13 @@ export default function ProductClient({ product, publicSettings, options = [], o
                 size="lg"
                 className="text-base"
                 variant={added ? "success" : "primary"}
-                disabled={(hasVariants && !selectedVariant) || selectionIncomplete}
+                disabled={(hasVariants && !selectedVariant) || selectionIncomplete || customFieldsIncomplete}
               >
                 {added ? (
                   <><Check className="h-5 w-5" />{t("addedToCart")}</>
                 ) : (
                   <><ShoppingCart className="h-5 w-5" />
-                    {selectionIncomplete
+                    {selectionIncomplete || customFieldsIncomplete
                       ? t("chooseOptionsFirst")
                       : hasVariants && selectedVariant
                       ? t("addVariant", { label: selectedVariant.label })

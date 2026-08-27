@@ -77,7 +77,7 @@ export default function CartPage() {
                     </h3>
                   </Link>
                   {item.variantLabel && (
-                    <p className="text-xs text-fg-muted mt-0.5 truncate">{item.variantLabel}</p>
+                    <p className="text-xs text-fg-muted mt-0.5 leading-snug break-words line-clamp-4">{item.variantLabel}</p>
                   )}
                   <p className="text-primary-600 dark:text-primary-400 font-bold text-lg mt-1">
                     {formatAmount(item.price * item.quantity)}

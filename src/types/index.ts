@@ -2,6 +2,17 @@ import { UserRole, OrderStatus, PaymentMethod, PaymentStatus, DeliveryMethod, Ti
 
 export type { UserRole, OrderStatus, PaymentMethod, PaymentStatus, DeliveryMethod, TicketStatus, TicketPriority, DiscountType };
 
+/** A Salla-style custom field the customer filled, carried on the cart line. */
+export interface CartCustomField {
+  key: string;
+  label: string;
+  type: string;
+  /** Human-readable value(s): select label(s), text, filename/URL, date… */
+  value: string;
+  /** Additive price contributed by this field (already included in line price). */
+  priceAdd: number;
+}
+
 export interface CartItem {
   id: string;
   name: string;
@@ -12,6 +23,8 @@ export interface CartItem {
   slug: string;
   variantLabel?: string; // e.g. "شهر واحد" | "3 شهور" | "الكمية: 100 · التصميم: بتصميمكم"
   variantId?: string;    // id of a ProductVariant (matrix pricing) when applicable
+  /** Custom product fields the customer filled (parallel to the matrix system). */
+  customFields?: CartCustomField[];
 }
 
 /* ── Multi-option products (Salla-style matrix pricing) ── */
@@ -112,6 +125,7 @@ export interface OrderItemWithProduct {
   deliveredData?: string | null;
   deliveredAt?: Date | null;
   variantLabel?: string | null;
+  customFields?: CartCustomField[] | null;
   subscriptionStartDate?: Date | string | null;
   subscriptionEndDate?: Date | string | null;
   autoRenew?: boolean;

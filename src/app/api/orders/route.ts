@@ -8,6 +8,7 @@ import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
 import { getMoyasarConfig, createInvoice } from "@/lib/moyasar";
 import { notifyOrderCreated } from "@/lib/hayyak";
+import { isSelectType, type FieldOption, type FieldType } from "@/lib/product-fields";
 import { reserveStock, restoreStock, type StockLine } from "@/lib/stock";
 import { sendEmail, orderConfirmationEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
@@ -160,9 +161,42 @@ export async function POST(req: NextRequest) {
       : [];
     const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
 
+    // Pre-fetch custom fields for the cart's products — the additive price and
+    // the stored values are recomputed here from the DB, never trusted from the
+    // client, so a tampered `priceAdd` can't discount the order.
+    const dbFields = await prisma.productField.findMany({ where: { productId: { in: productIds } } });
+    const fieldsByProduct = new Map<string, typeof dbFields>();
+    for (const f of dbFields) {
+      const arr = fieldsByProduct.get(f.productId) || [];
+      arr.push(f);
+      fieldsByProduct.set(f.productId, arr);
+    }
+
+    type ClientField = { key: string; label?: string; type?: string; value?: string; priceAdd?: number };
+    const resolveCustomFields = (productId: string, sent: ClientField[]) => {
+      const defs = fieldsByProduct.get(productId) || [];
+      let add = 0;
+      const sanitized: Array<{ key: string; label: string; type: string; value: string; priceAdd: number }> = [];
+      for (const cf of sent) {
+        const def = defs.find((d) => d.key === cf.key);
+        if (!def) continue; // unknown field — ignore silently
+        const value = String(cf.value ?? "").slice(0, 2000);
+        if (!value.trim()) continue;
+        let priceAdd = 0;
+        if (isSelectType(def.type as FieldType)) {
+          const opts = (Array.isArray(def.values) ? def.values : []) as unknown as FieldOption[];
+          const chosen = def.type === "multi_select" ? value.split("،").map((s) => s.trim()) : [value];
+          priceAdd = opts.filter((o) => chosen.includes(o.label)).reduce((s, o) => s + (Number(o.price) || 0), 0);
+        }
+        add += priceAdd;
+        sanitized.push({ key: def.key, label: def.label, type: def.type, value, priceAdd });
+      }
+      return { add, sanitized };
+    };
+
     // Calculate totals — validate variant price server-side to prevent manipulation
     let subtotal = 0;
-    const orderItems = items.map((item: { productId: string; quantity: number; price: number; variantLabel?: string; variantId?: string }) => {
+    const orderItems = items.map((item: { productId: string; quantity: number; price: number; variantLabel?: string; variantId?: string; customFields?: ClientField[] }) => {
       const product = products.find((p) => p.id === item.productId)!;
 
       let price: number;
@@ -196,6 +230,13 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Add the server-computed additive price from custom fields, and keep the
+      // sanitized values for display on the order.
+      const cf = Array.isArray(item.customFields) && item.customFields.length > 0
+        ? resolveCustomFields(item.productId, item.customFields)
+        : null;
+      if (cf) price += cf.add;
+
       subtotal += price * item.quantity;
       return {
         productId: item.productId,
@@ -203,6 +244,7 @@ export async function POST(req: NextRequest) {
         price,
         variantLabel: item.variantLabel,
         variantId,
+        customFields: cf && cf.sanitized.length > 0 ? cf.sanitized : undefined,
       };
     });
 
@@ -517,7 +559,12 @@ export async function POST(req: NextRequest) {
         orderNumber: order.orderNumber,
         customerName: order.user.name || "عميلنا",
         total: Number(order.total),
-        items: order.items.map((it) => ({ nameAr: it.product.nameAr, quantity: it.quantity, price: Number(it.price) })),
+        items: order.items.map((it) => ({
+          nameAr: it.product.nameAr,
+          quantity: it.quantity,
+          price: Number(it.price),
+          customFields: (it.customFields as { label: string; type: string; value: string }[] | null) ?? undefined,
+        })),
       });
       sendEmail({ to: order.user.email, subject: mail.subject, html: mail.html }).catch(() => {});
     }
