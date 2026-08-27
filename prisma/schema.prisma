@@ -238,6 +238,9 @@ model AbandonedCart {
   itemCount     Int      @default(0)
   total         Decimal  @default(0) @db.Decimal(10, 2)
   status        String   @default("ACTIVE") // ACTIVE | CONVERTED
+  /// When a cart.abandoned event was pushed to Hayyak — prevents re-notifying
+  /// the same abandonment (kept null so it stays visible on the admin screen).
+  hayyakNotifiedAt DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

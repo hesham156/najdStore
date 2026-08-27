@@ -13,9 +13,9 @@ export async function POST() {
   const session = await requireAdmin();
   if (!session) return unauthorized();
 
-  if (!isHayyakEnabled()) {
+  if (!(await isHayyakEnabled())) {
     return NextResponse.json(
-      { success: false, error: "تكامل حياك غير مفعّل. اضبط HAYYAK_SIGNING_SECRET في متغيرات البيئة." },
+      { success: false, error: "تكامل حياك غير مفعّل. فعّله وأدخل مفتاح التوقيع من صفحة التكاملات." },
       { status: 400 }
     );
   }
@@ -30,8 +30,8 @@ export async function POST() {
     }
     return NextResponse.json({
       success: true,
-      message: `تم رفع الكتالوج إلى حياك بنجاح (${result.products} منتج).`,
-      products: result.products,
+      message: `تمت المزامنة مع حياك: ${result.products} منتج، ${result.orders} طلب، ${result.carts} سلة.`,
+      ...result,
     });
   } catch (err) {
     return serverError("POST /api/admin/hayyak/sync", err);
