@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useCartStore } from "@/store/cart";
+import { useCartStore, cartLineKey } from "@/store/cart";
+import { CartFieldSummary } from "@/components/store/CartFieldSummary";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -613,10 +614,11 @@ if (items.length === 0) {
 
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {items.map((item) => (
-                  <div key={`${item.id}-${item.variantLabel}`} className="flex justify-between text-sm">
-                    <div className="text-fg-muted truncate pe-2">
+                  <div key={cartLineKey(item)} className="flex justify-between text-sm">
+                    <div className="text-fg-muted min-w-0 pe-2">
                       <span>{pickText(locale, item.name, item.nameAr)} × {item.quantity}</span>
                       {item.variantLabel && <span className="block text-xs text-fg-subtle">{item.variantLabel}</span>}
+                      <CartFieldSummary fields={item.customFields} />
                     </div>
                     <span className="font-semibold text-fg shrink-0">
                       {formatAmount(item.price * item.quantity)}

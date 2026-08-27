@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { X, ShoppingBag, Trash2, Plus, Minus } from "lucide-react";
-import { useCartStore } from "@/store/cart";
+import { useCartStore, cartLineKey } from "@/store/cart";
+import { CartFieldSummary } from "@/components/store/CartFieldSummary";
 import { Button } from "@/components/ui/Button";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useUpsell } from "@/components/store/UpsellModal";
@@ -130,9 +131,11 @@ export function CartSidebar() {
               </Button>
             </div>
           ) : (
-            items.map((item) => (
+            items.map((item) => {
+              const key = cartLineKey(item);
+              return (
               <div
-                key={`${item.id}-${item.variantLabel || ""}`}
+                key={key}
                 className="flex items-center gap-3 p-3 rounded-xl bg-surface-sunken border border-line"
               >
                 {/* Image */}
@@ -157,8 +160,9 @@ export function CartSidebar() {
                     {pickText(locale, item.name, item.nameAr)}
                   </p>
                   {item.variantLabel && (
-                    <p className="text-xs text-fg-muted leading-snug break-words line-clamp-3">{item.variantLabel}</p>
+                    <p className="text-xs text-fg-muted leading-snug break-words line-clamp-2">{item.variantLabel}</p>
                   )}
+                  <CartFieldSummary fields={item.customFields} className="line-clamp-4" />
                   <p className="text-sm text-primary-600 dark:text-primary-400 font-bold mt-0.5">
                     {formatAmount(item.price)}
                   </p>
@@ -166,7 +170,7 @@ export function CartSidebar() {
                   {/* Quantity */}
                   <div className="flex items-center gap-2 mt-1.5">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantLabel)}
+                      onClick={() => updateQuantity(key, item.quantity - 1)}
                       aria-label={t("decreaseQty")}
                       className="w-6 h-6 rounded-full bg-surface border border-line flex items-center justify-center hover:bg-surface-hover transition-colors"
                     >
@@ -174,7 +178,7 @@ export function CartSidebar() {
                     </button>
                     <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantLabel)}
+                      onClick={() => updateQuantity(key, item.quantity + 1)}
                       aria-label={t("increaseQty")}
                       className="w-6 h-6 rounded-full bg-surface border border-line flex items-center justify-center hover:bg-surface-hover transition-colors"
                     >
@@ -185,14 +189,15 @@ export function CartSidebar() {
 
                 {/* Delete */}
                 <button
-                  onClick={() => removeItem(item.id, item.variantLabel)}
+                  onClick={() => removeItem(key)}
                   aria-label={t("removeItemAria", { name: pickText(locale, item.name, item.nameAr) })}
                   className="p-1.5 text-fg-subtle hover:text-danger hover:bg-danger/10 rounded-lg transition-colors shrink-0"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-            ))
+              );
+            })
           )}
         </div>
 

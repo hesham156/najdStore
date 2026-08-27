@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft } from "lucide-react";
-import { useCartStore } from "@/store/cart";
+import { useCartStore, cartLineKey } from "@/store/cart";
+import { CartFieldSummary } from "@/components/store/CartFieldSummary";
 import { Button } from "@/components/ui/Button";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useLocale, useTranslations } from "next-intl";
@@ -54,12 +55,13 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              // The cart keys a line by product AND variant, so the React key
-              // and every mutation below must carry the variant too — passing
-              // the id alone silently targeted a different line, or none.
+            {items.map((item) => {
+              // The cart keys a line by product + option + custom-field values,
+              // so the React key and every mutation below carry that full key.
+              const key = cartLineKey(item);
+              return (
               <div
-                key={`${item.id}-${item.variantLabel || ""}`}
+                key={key}
                 className="flex items-center gap-4 p-4 bg-surface rounded-2xl border border-line"
               >
                 <div className="w-20 h-20 rounded-xl bg-surface-sunken border border-line overflow-hidden flex items-center justify-center shrink-0">
@@ -77,8 +79,9 @@ export default function CartPage() {
                     </h3>
                   </Link>
                   {item.variantLabel && (
-                    <p className="text-xs text-fg-muted mt-0.5 leading-snug break-words line-clamp-4">{item.variantLabel}</p>
+                    <p className="text-xs text-fg-muted mt-0.5 leading-snug break-words line-clamp-2">{item.variantLabel}</p>
                   )}
+                  <CartFieldSummary fields={item.customFields} className="line-clamp-5" />
                   <p className="text-primary-600 dark:text-primary-400 font-bold text-lg mt-1">
                     {formatAmount(item.price * item.quantity)}
                   </p>
@@ -88,7 +91,7 @@ export default function CartPage() {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 bg-surface-sunken rounded-xl p-1">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantLabel)}
+                      onClick={() => updateQuantity(key, item.quantity - 1)}
                       disabled={item.quantity <= 1}
                       aria-label={t("decreaseQty")}
                       className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface shadow-sm transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-40"
@@ -97,7 +100,7 @@ export default function CartPage() {
                     </button>
                     <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantLabel)}
+                      onClick={() => updateQuantity(key, item.quantity + 1)}
                       aria-label={t("increaseQty")}
                       className="w-7 h-7 rounded-lg bg-surface flex items-center justify-center hover:bg-surface-sunken transition-colors shadow-sm"
                     >
@@ -105,7 +108,7 @@ export default function CartPage() {
                     </button>
                   </div>
                   <button
-                    onClick={() => removeItem(item.id, item.variantLabel)}
+                    onClick={() => removeItem(key)}
                     aria-label={t("removeItemAria", { name: pickText(locale, item.name, item.nameAr) })}
                     className="p-2 text-fg-subtle hover:text-danger hover:bg-danger/10 rounded-xl transition-colors"
                   >
@@ -113,7 +116,8 @@ export default function CartPage() {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Summary */}
@@ -123,7 +127,7 @@ export default function CartPage() {
 
               <div className="space-y-3 mb-4">
                 {items.map((item) => (
-                  <div key={`${item.id}-${item.variantLabel || ""}`} className="flex justify-between text-sm">
+                  <div key={cartLineKey(item)} className="flex justify-between text-sm">
                     <span className="text-fg-muted truncate pe-2">
                       {pickText(locale, item.name, item.nameAr)}{item.variantLabel ? ` — ${item.variantLabel}` : ""} × {item.quantity}
                     </span>

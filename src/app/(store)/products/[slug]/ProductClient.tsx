@@ -184,10 +184,11 @@ export default function ProductClient({ product, publicSettings, options = [], o
       toast.error("يرجى تعبئة الحقول المطلوبة");
       return;
     }
-    // The cart line label combines the variant/option label with the custom
-    // fields summary so different custom orders stay distinct lines.
-    const baseLabel = hasOptions ? selectionLabel : selectedVariant?.label;
-    const combinedLabel = [baseLabel, cf?.summary].filter(Boolean).join(" · ") || undefined;
+    // variantLabel carries ONLY the matrix/legacy option label; the custom
+    // fields ride on `customFields` and are rendered separately everywhere, so
+    // nothing shows twice on the order. Distinct field values still make
+    // distinct cart lines via cartLineKey (which hashes customFields).
+    const baseLabel = (hasOptions ? selectionLabel : selectedVariant?.label) || undefined;
     addItem({
       id: product.id,
       name: product.name,
@@ -196,7 +197,7 @@ export default function ProductClient({ product, publicSettings, options = [], o
       image: product.image || undefined,
       quantity,
       slug: product.slug,
-      variantLabel: combinedLabel,
+      variantLabel: baseLabel,
       variantId: hasOptions ? resolvedVariant?.id : undefined,
       customFields: cf?.items && cf.items.length > 0 ? cf.items : undefined,
     });

@@ -134,6 +134,27 @@ export function isFieldVisible(field: ProductFieldData, values: Record<string, u
     : conds.every((c) => matchesCondition(c, values));
 }
 
+/**
+ * نسخ مجموعة حقول بمفاتيح جديدة مع إعادة ربط شروط الظهور على المفاتيح الجديدة.
+ * تُستخدم عند تطبيق قالب على منتج، فتصبح حقول المنتج مستقلة تماماً عن القالب.
+ */
+export function cloneFields(fields: ProductFieldData[], newKey: () => string): ProductFieldData[] {
+  const keyMap = new Map<string, string>();
+  for (const f of fields) keyMap.set(f.key, newKey());
+  const remap = (k?: string | null) => (k && keyMap.get(k)) || null;
+  return fields.map((f) => ({
+    ...f,
+    id: undefined,
+    key: keyMap.get(f.key)!,
+    condFieldKey: remap(f.condFieldKey),
+    conditions: Array.isArray(f.conditions) && f.conditions.length > 0
+      ? f.conditions
+          .map((c) => ({ ...c, fieldKey: keyMap.get(c.fieldKey) || "" }))
+          .filter((c) => c.fieldKey)
+      : undefined,
+  }));
+}
+
 /** السعر الإضافي لقيمة/قيم مختارة في حقل اختيار */
 export function selectedPrice(field: ProductFieldData, value: unknown): number {
   if (!isSelectType(field.type) || !field.values) return 0;

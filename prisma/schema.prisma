@@ -194,6 +194,20 @@ model ProductField {
   @@map("product_fields")
 }
 
+/// A reusable, named set of custom fields. Applying a template COPIES its
+/// fields into a product (with fresh keys), so later edits to the product — or
+/// to the template — never affect each other.
+model FieldTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  /// Snapshot of ProductFieldData[] (without product-specific ids/sortOrder).
+  fields    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("field_templates")
+}
+
 model Order {
   id            String         @id @default(cuid())
   orderNumber   String         @unique

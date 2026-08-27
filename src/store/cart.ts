@@ -2,12 +2,25 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { CartItem } from "@/types";
 
+/**
+ * A stable identity for a cart line: same product + same matrix option +
+ * same custom-field values collapse into one line, while different custom
+ * orders (a different design, a different uploaded file, different text) stay
+ * separate. Callers pass this key to remove/update a specific line.
+ */
+export function cartLineKey(item: Pick<CartItem, "id" | "variantLabel" | "customFields">): string {
+  const cf = item.customFields?.length
+    ? item.customFields.map((f) => `${f.key}=${f.value}`).join("|")
+    : "";
+  return `${item.id}::${item.variantLabel || ""}::${cf}`;
+}
+
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
   addItem: (item: CartItem) => void;
-  removeItem: (id: string, variantLabel?: string) => void;
-  updateQuantity: (id: string, quantity: number, variantLabel?: string) => void;
+  removeItem: (lineKey: string) => void;
+  updateQuantity: (lineKey: string, quantity: number) => void;
   clearCart: () => void;
   toggleCart: () => void;
   openCart: () => void;
@@ -23,16 +36,12 @@ export const useCartStore = create<CartState>()(
       isOpen: false,
 
       addItem: (item) => {
-        const key = item.id + (item.variantLabel || "");
-        const existing = get().items.find(
-          (i) => i.id === item.id && (i.variantLabel || "") === (item.variantLabel || "")
-        );
+        const key = cartLineKey(item);
+        const existing = get().items.find((i) => cartLineKey(i) === key);
         if (existing) {
           set((state) => ({
             items: state.items.map((i) =>
-              i.id === item.id && (i.variantLabel || "") === (item.variantLabel || "")
-                ? { ...i, quantity: i.quantity + item.quantity }
-                : i
+              cartLineKey(i) === key ? { ...i, quantity: i.quantity + item.quantity } : i
             ),
             isOpen: true,
           }));
@@ -44,25 +53,19 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      removeItem: (id, variantLabel) => {
+      removeItem: (lineKey) => {
         set((state) => ({
-          items: state.items.filter(
-            (i) => !(i.id === id && (i.variantLabel || "") === (variantLabel || ""))
-          ),
+          items: state.items.filter((i) => cartLineKey(i) !== lineKey),
         }));
       },
 
-      updateQuantity: (id, quantity, variantLabel) => {
+      updateQuantity: (lineKey, quantity) => {
         if (quantity <= 0) {
-          get().removeItem(id, variantLabel);
+          get().removeItem(lineKey);
           return;
         }
         set((state) => ({
-          items: state.items.map((i) =>
-            i.id === id && (i.variantLabel || "") === (variantLabel || "")
-              ? { ...i, quantity }
-              : i
-          ),
+          items: state.items.map((i) => (cartLineKey(i) === lineKey ? { ...i, quantity } : i)),
         }));
       },
 

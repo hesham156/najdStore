@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ProductCustomFields } from "@/components/store/ProductCustomFields";
+import { FieldTemplatesMenu } from "./FieldTemplatesMenu";
 import { Eye } from "lucide-react";
 import {
   FIELD_TYPES, fieldMeta, isSelectType, isPresentational, hasExtensions,
@@ -162,7 +163,12 @@ export default function ProductFieldsPage({ params }: { params: { id: string } }
         ]}
         title="الحقول المخصّصة"
         description={productName || undefined}
-        actions={<Button onClick={handleSave} loading={saving} icon={<Save className="h-4 w-4" />}>حفظ</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <FieldTemplatesMenu currentFields={fields} onApply={(cloned) => setFields((fs) => [...fs, ...cloned])} />
+            <Button onClick={handleSave} loading={saving} icon={<Save className="h-4 w-4" />}>حفظ</Button>
+          </div>
+        }
       />
 
       {/* Builder (start) + live customer preview (end) fill the width together. */}
