@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, unauthorized, badRequest, serverError } from "@/lib/api";
 import { slugify } from "@/lib/utils";
 import {
-  parseSpreadsheet, pick, parseNumber, parseBool, sanitizeSlug,
+  parseSpreadsheet, pick, parseNumber, parseBool, sanitizeSlug, parseCategoryCell,
   PRODUCT_ALIASES, emptyResult, type ImportResult,
 } from "@/lib/import-export";
 
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         const image = pick(row, PRODUCT_ALIASES.image);
         const isActive = parseBool(pick(row, PRODUCT_ALIASES.active), true);
         const isFeatured = parseBool(pick(row, PRODUCT_ALIASES.featured), false);
-        const categoryId = await resolveCategory(pick(row, PRODUCT_ALIASES.category));
+        const categoryId = await resolveCategory(parseCategoryCell(pick(row, PRODUCT_ALIASES.category)));
 
         // Match existing product by slug (if provided) else by name.
         const existing = providedSlug

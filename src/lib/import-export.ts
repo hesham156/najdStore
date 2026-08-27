@@ -92,6 +92,35 @@ export function sanitizeSlug(val: string | undefined): string | undefined {
   return s || undefined;
 }
 
+/**
+ * Categories that are generic buckets in Salla exports, not real product
+ * categories. We skip these when picking a product's single category.
+ */
+const GENERIC_CATEGORIES = new Set(["جميع المنتجات", "كل المنتجات", "الرئيسية", "المتجر"]);
+
+/**
+ * Parse a Salla category cell into a single category label.
+ *
+ * Salla lists several categories per product separated by commas, and each can be
+ * a hierarchy path like "تصاميمك مطبوعه > طباعة ديجيتال > اكياس". Our model stores
+ * one non-hierarchical category per product, so we split the list, reduce each
+ * path to its most specific leaf (the segment after the last ">"), and pick the
+ * first meaningful (non-generic) leaf — falling back to the first leaf if all are
+ * generic. Returns undefined for an empty cell (caller applies its own default).
+ */
+export function parseCategoryCell(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const leaves = raw
+    .split(/[,،]/)
+    .map((path) => {
+      const segs = path.split(">").map((s) => s.trim()).filter(Boolean);
+      return segs[segs.length - 1];
+    })
+    .filter((leaf): leaf is string => Boolean(leaf));
+  if (leaves.length === 0) return undefined;
+  return leaves.find((l) => !GENERIC_CATEGORIES.has(l)) || leaves[0];
+}
+
 /** Convert Arabic-Indic digits to Latin and parse a number, tolerating commas/currency text. */
 export function parseNumber(val: string | undefined): number | undefined {
   if (val === undefined) return undefined;
