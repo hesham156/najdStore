@@ -36,6 +36,17 @@ const cairo = Cairo({
  */
 export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getSeoConfig();
+  // The browser-tab icon follows the store's own logo. There is no
+  // favicon.ico shipped in /public, so hardcoding one left every tab showing
+  // the browser's default globe. site_logo is either the bundled /logo.jpg or
+  // the merchant's uploaded /uploads/… file. A missing DB must never take the
+  // whole page's metadata down, so we fall back to the shipped default.
+  let site_logo = BRANDING_DEFAULTS.site_logo;
+  try {
+    ({ site_logo } = await getSettings({ site_logo: BRANDING_DEFAULTS.site_logo }));
+  } catch {
+    /* keep the default */
+  }
   const locale = await getLocale();
   const ogLocale = isLocale(locale) ? localeOpenGraph[locale] : localeOpenGraph[defaultLocale];
 
@@ -84,7 +95,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: { canonical: cfg.siteUrl },
     ...(Object.keys(verification).length ? { verification } : {}),
-    icons: { icon: "/favicon.ico", apple: "/apple-touch-icon.png" },
+    icons: { icon: site_logo, apple: site_logo },
   };
 }
 
