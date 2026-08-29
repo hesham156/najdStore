@@ -214,19 +214,97 @@ export default function PaymentMethodsPage() {
 
           {/* Tabby */}
           <PaymentCard
-            title="Tabby" subtitle="اشتري الآن وادفع لاحقاً – تقسيط بدون فوائد"
+            title="تابي — Tabby" subtitle="اشتري الآن وادفع لاحقاً – تقسيط بدون فوائد"
             logo={<div className="flex h-full w-full items-center justify-center bg-[#3DBEA3] text-xs font-black text-white">T</div>}
             enabled={bool("pm_tabby_enabled")} onToggle={() => toggle("pm_tabby_enabled")}
           >
-            <Alert tone="info" icon={Lightbulb} className="text-xs">
-              للحصول على مفاتيح Tabby، سجّل في{" "}
-              <a href="https://tabby.ai/en-SA/merchant" target="_blank" rel="noreferrer" className="font-semibold underline">tabby.ai/merchant</a>
-            </Alert>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Public Key" value={values["pm_tabby_public_key"] || ""} onChange={e => set("pm_tabby_public_key", e.target.value)} placeholder="pk_live_..." />
-              <PasswordInput label="Secret Key" value={values["pm_tabby_secret_key"] || ""} onChange={v => set("pm_tabby_secret_key", v)} />
-              <Input label="Merchant Code" value={values["pm_tabby_merchant_code"] || ""} onChange={e => set("pm_tabby_merchant_code", e.target.value)} placeholder="MERCHANT_CODE" />
+            {/* ── بيانات الربط ── */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-fg">بيانات الربط</h4>
+                <span className="h-px flex-1 bg-surface-sunken" />
+              </div>
+              <p className="text-xs text-fg-muted leading-relaxed">
+                يمكنك الحصول على البيانات التالية من حسابك في بوابة الدفع، ثم نسخها وإضافتها في الحقول المخصصة. انتقل إلى{" "}
+                <a href="https://tabby.ai/en-SA/merchant" target="_blank" rel="noreferrer" className="text-primary-600 dark:text-primary-400 underline font-semibold">حسابك على تابي</a>.
+              </p>
+              <Input
+                label="المفتاح العام *"
+                value={values["pm_tabby_public_key"] || ""}
+                onChange={e => set("pm_tabby_public_key", e.target.value)}
+                placeholder="pk_..."
+              />
+              <PasswordInput
+                label="المفتاح الخاص *"
+                value={values["pm_tabby_secret_key"] || ""}
+                onChange={v => set("pm_tabby_secret_key", v)}
+                placeholder="sk_..."
+              />
             </div>
+
+            {/* ── الإعدادات ── */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-fg">الإعدادات</h4>
+                <span className="h-px flex-1 bg-surface-sunken" />
+              </div>
+
+              {/* Show badge on product page */}
+              <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-surface-muted/60">
+                <span className="text-sm font-medium text-fg">
+                  إظهار شعار تابي في صفحة المنتج
+                </span>
+                <Toggle size="md" checked={bool("tabby_enabled")} onChange={v => set("tabby_enabled", String(v))} aria-label="إظهار شعار تابي في صفحة المنتج" />
+              </div>
+
+              {/* Enable monthly installments */}
+              <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-surface-muted/60">
+                <span className="text-sm font-medium text-fg">
+                  إتاحة الدفع بالأقساط الشهرية
+                </span>
+                <Toggle size="md" checked={bool("pm_tabby_installments_enabled")} onChange={v => set("pm_tabby_installments_enabled", String(v))} aria-label="إتاحة الدفع بالأقساط الشهرية" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="عدد الدفعات"
+                  type="number"
+                  value={values["tabby_installments"] || "4"}
+                  onChange={e => set("tabby_installments", e.target.value)}
+                  placeholder="4"
+                />
+                <Input
+                  label="Merchant Code"
+                  value={values["pm_tabby_merchant_code"] || ""}
+                  onChange={e => set("pm_tabby_merchant_code", e.target.value)}
+                  placeholder="MERCHANT_CODE"
+                />
+              </div>
+            </div>
+
+            {/* Payout note */}
+            <Alert tone="info" icon={Lightbulb} className="text-xs">
+              ستحصل على مدفوعاتك عبر تابي مباشرةً إلى حسابك لدى تابي. لمعرفة المزيد،{" "}
+              <a href="https://tabby.ai/en-SA/merchant" target="_blank" rel="noreferrer" className="font-semibold underline">تواصل مع تابي</a>
+              {" "}أو زُر{" "}
+              <a href="https://help.tabby.ai" target="_blank" rel="noreferrer" className="font-semibold underline">مركز المساعدة</a>.
+            </Alert>
+
+            {/* ── الموافقة ── */}
+            <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={bool("pm_tabby_agreement")}
+                onChange={e => set("pm_tabby_agreement", String(e.target.checked))}
+                className="mt-0.5 h-4 w-4 rounded border-line-strong text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-fg-muted">
+                أوافق على{" "}
+                <a href="https://tabby.ai/en-SA/terms" target="_blank" rel="noreferrer" className="text-primary-600 dark:text-primary-400 underline">
+                  اتفاقية استخدام تابي
+                </a>
+              </span>
+            </label>
           </PaymentCard>
 
           {/* Tamara */}

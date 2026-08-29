@@ -25,6 +25,8 @@ export async function GET() {
           "pm_tabby_enabled",
           "pm_tabby_public_key",
           "pm_tabby_merchant_code",
+          "pm_tabby_installments_enabled",
+          "tabby_installments",
           "pm_tamara_enabled",
           "pm_tamara_api_token",
           "pm_tamara_installments",
@@ -59,6 +61,8 @@ export async function GET() {
       enabled:      map["pm_tabby_enabled"] === "true",
       publicKey:    map["pm_tabby_public_key"]    || "",
       merchantCode: map["pm_tabby_merchant_code"] || "",
+      installments: parseInt(map["tabby_installments"] || "4", 10) || 4,
+      installmentsEnabled: map["pm_tabby_installments_enabled"] === "true",
     },
     tamara: {
       // Only expose as enabled if the API token is actually configured

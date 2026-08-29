@@ -23,7 +23,7 @@ import type { Locale } from "@/i18n/config";
 /* ─── Types ─── */
 interface BankTransfer { enabled: boolean; accountName: string; bankName: string; accountNumber: string; iban: string }
 interface PayPalConfig  { enabled: boolean; mode: string }
-interface TabbyConfig   { enabled: boolean; publicKey: string; merchantCode: string }
+interface TabbyConfig   { enabled: boolean; publicKey: string; merchantCode: string; installments: number; installmentsEnabled: boolean }
 interface TamaraConfig  { enabled: boolean; installments: number; merchantUrl: string }
 interface CreditCardConfig { enabled: boolean }
 interface PaymentMethods { bankTransfer: BankTransfer; paypal: PayPalConfig; tabby: TabbyConfig; tamara: TamaraConfig; creditCard: CreditCardConfig }
@@ -504,22 +504,30 @@ if (items.length === 0) {
             )}
 
             {/* ── Tabby notice ── */}
-            {paymentMethod === "TABBY" && (
-              <div className="bg-brand/10 border border-brand/25 rounded-2xl p-5 space-y-2">
-                <h3 className="font-bold text-brand">
-                  {t("tabbyTitle")}
-                </h3>
-                <div className="grid grid-cols-4 gap-2 mt-3">
-                  {[1, 2, 3, 4].map(n => (
-                    <div key={n} className="text-center p-2.5 rounded-xl bg-brand/10">
-                      <p className="text-sm font-bold text-brand">{formatAmount(total / 4)}</p>
-                      <p className="text-xs text-brand">{t("installment", { number: n })}</p>
+            {paymentMethod === "TABBY" && (() => {
+              // Show the monthly-installment breakdown only when the admin
+              // enabled it; otherwise Tabby is offered as a plain redirect.
+              const showSplit = gateways?.tabby.installmentsEnabled ?? false;
+              const n = gateways?.tabby.installments || 4;
+              return (
+                <div className="bg-brand/10 border border-brand/25 rounded-2xl p-5 space-y-2">
+                  <h3 className="font-bold text-brand">
+                    {t("tabbyTitle")}
+                  </h3>
+                  {showSplit && (
+                    <div className="grid gap-2 mt-3" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
+                      {Array.from({ length: n }, (_, i) => i + 1).map(p => (
+                        <div key={p} className="text-center p-2.5 rounded-xl bg-brand/10">
+                          <p className="text-sm font-bold text-brand">{formatAmount(total / n)}</p>
+                          <p className="text-xs text-brand">{t("installment", { number: p })}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  <p className="text-xs text-brand mt-2">{t("tabbyRedirect")}</p>
                 </div>
-                <p className="text-xs text-brand mt-2">{t("tabbyRedirect")}</p>
-              </div>
-            )}
+              );
+            })()}
 
             {/* ── Tamara notice ── */}
             {paymentMethod === "TAMARA" && (() => {

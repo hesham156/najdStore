@@ -29,6 +29,11 @@ const PAYMENT_KEYS = [
   "pm_tabby_public_key",
   "pm_tabby_secret_key",
   "pm_tabby_merchant_code",
+  "pm_tabby_installments_enabled",
+  "pm_tabby_agreement",
+  // Product-page installment badge (shared with settings → "payments" group)
+  "tabby_enabled",
+  "tabby_installments",
 
   // Tamara
   "pm_tamara_api_token",
@@ -64,6 +69,10 @@ const DEFAULT_LABELS: Record<string, { labelAr: string; type: string }> = {
   pm_tabby_public_key:           { labelAr: "Public Key", type: "text" },
   pm_tabby_secret_key:           { labelAr: "Secret Key", type: "password" },
   pm_tabby_merchant_code:        { labelAr: "Merchant Code", type: "text" },
+  pm_tabby_installments_enabled: { labelAr: "إتاحة الدفع بالأقساط الشهرية", type: "boolean" },
+  pm_tabby_agreement:            { labelAr: "الموافقة على اتفاقية استخدام تابي", type: "boolean" },
+  tabby_enabled:                 { labelAr: "إظهار شعار تابي في صفحة المنتج", type: "boolean" },
+  tabby_installments:            { labelAr: "عدد الدفعات", type: "text" },
   pm_tamara_api_token:           { labelAr: "Merchant Key", type: "password" },
   pm_tamara_public_key:          { labelAr: "Public Key", type: "text" },
   pm_tamara_notification_key:    { labelAr: "Notification Key", type: "password" },
