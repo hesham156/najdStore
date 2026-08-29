@@ -6,6 +6,7 @@ import { generateOrderNumber, resolveCityFee } from "@/lib/utils";
 import { calculateOrderTotals } from "@/lib/pricing";
 import { createPayPalOrder, getPayPalConfig } from "@/lib/paypal";
 import { createTamaraCheckoutSession, getTamaraConfig } from "@/lib/tamara";
+import { createTabbyCheckoutSession, getTabbyConfig } from "@/lib/tabby";
 import { getMoyasarConfig, createInvoice } from "@/lib/moyasar";
 import { notifyOrderCreated } from "@/lib/hayyak";
 import { isSelectType, type FieldOption, type FieldType } from "@/lib/product-fields";
@@ -86,6 +87,17 @@ export async function POST(req: NextRequest) {
       if (!tamaraConfig.enabled || !tamaraConfig.apiToken) {
         return NextResponse.json(
           { success: false, error: "تمارا غير مهيأة بشكل صحيح. يرجى التواصل مع الدعم أو اختيار طريقة دفع أخرى." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate Tabby credentials BEFORE touching the DB
+    if (paymentMethod === "TABBY") {
+      const tabbyConfig = await getTabbyConfig();
+      if (!tabbyConfig.enabled || !tabbyConfig.secretKey || !tabbyConfig.merchantCode) {
+        return NextResponse.json(
+          { success: false, error: "تابي غير مهيأة بشكل صحيح. يرجى التواصل مع الدعم أو اختيار طريقة دفع أخرى." },
           { status: 400 }
         );
       }
@@ -550,6 +562,73 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Handle Tabby Checkout integration
+    let tabbyCheckoutUrl: string | undefined;
+    if (paymentMethod === "TABBY" && total > 0) {
+      try {
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        const currencySetting = await prisma.setting.findUnique({ where: { key: "currency" } });
+        const currency = currencySetting?.value || "SAR";
+
+        const session = await createTabbyCheckoutSession({
+          orderNumber: order.orderNumber,
+          amount: total,
+          discount,
+          currency,
+          description: `طلب رقم ${order.orderNumber}`,
+          consumer: {
+            name: order.user?.name || order.shipName || "Customer",
+            phone: order.shipPhone || order.user?.phone || "500000000",
+            email: order.user?.email || guestEmail || "customer@example.com",
+          },
+          items: order.items.map((it) => ({
+            id: it.productId,
+            name: it.product.nameAr || it.product.name,
+            sku: it.product.slug || it.productId,
+            quantity: it.quantity,
+            unitPrice: parseFloat(String(it.price)),
+          })),
+          urls: {
+            success: `${baseUrl}/api/payments/tabby/callback?orderId=${order.id}&status=success`,
+            cancel:  `${baseUrl}/api/payments/tabby/callback?orderId=${order.id}&status=cancel`,
+            failure: `${baseUrl}/api/payments/tabby/callback?orderId=${order.id}&status=failure`,
+          },
+        });
+
+        if (session.checkoutUrl) {
+          tabbyCheckoutUrl = session.checkoutUrl;
+          await prisma.payment.update({
+            where: { orderId: order.id },
+            data: { transactionId: session.paymentId },
+          });
+        }
+      } catch (err) {
+        console.error("Error integrating Tabby:", err);
+        // Payment and Notification rows hold FKs to this order, so they must be
+        // removed before the order itself — otherwise the delete fails silently
+        // and leaves an orphan PENDING order behind. order_items cascade.
+        await prisma.$transaction([
+          prisma.notification.deleteMany({ where: { orderId: order.id } }),
+          prisma.payment.deleteMany({ where: { orderId: order.id } }),
+          prisma.order.delete({ where: { id: order.id } }),
+        ]).catch(() => {});
+        if (reservedLines) await restoreStock(reservedLines).catch(() => {});
+        reservedLines = null;
+        // Surface Tabby's actual reason (rejection_reason like "order_amount_too_high",
+        // or a config error) so the cause is visible instead of hidden in the logs.
+        const reason = err instanceof Error ? err.message.replace(/^Tabby:\s*/, "") : "";
+        return NextResponse.json(
+          {
+            success: false,
+            error: reason
+              ? `تعذّر الدفع عبر تابي: ${reason}`
+              : "فشل الاتصال بتابي. تحقق من البيانات أو اختر طريقة دفع أخرى.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // إشعار حياك: تم إنشاء الطلب → رسالة تأكيد واتساب للعميل (لا يوقف الاستجابة عند الفشل)
     await notifyOrderCreated(order);
 
@@ -569,7 +648,7 @@ export async function POST(req: NextRequest) {
       sendEmail({ to: order.user.email, subject: mail.subject, html: mail.html }).catch(() => {});
     }
 
-    return NextResponse.json({ success: true, data: order, paypalApproveLink, tamaraCheckoutUrl, moyasarUrl });
+    return NextResponse.json({ success: true, data: order, paypalApproveLink, tamaraCheckoutUrl, tabbyCheckoutUrl, moyasarUrl });
   } catch (error) {
     console.error(error);
     if (reservedLines) await restoreStock(reservedLines).catch(() => {});

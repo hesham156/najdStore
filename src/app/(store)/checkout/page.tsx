@@ -352,6 +352,8 @@ if (items.length === 0) {
           window.location.href = data.paypalApproveLink;
         } else if (data.tamaraCheckoutUrl) {
           window.location.href = data.tamaraCheckoutUrl;
+        } else if (data.tabbyCheckoutUrl) {
+          window.location.href = data.tabbyCheckoutUrl;
         } else if (data.moyasarUrl) {
           window.location.href = data.moyasarUrl;
         } else {
