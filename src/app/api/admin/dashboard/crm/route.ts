@@ -39,7 +39,18 @@ export async function GET() {
       prisma.order.groupBy({ by: ["userId"], _sum: { total: true }, _count: { _all: true } }),
       // revenue basis = delivered orders
       prisma.order.aggregate({ where: { status: "DELIVERED" }, _sum: { total: true }, _count: { _all: true } }),
-      prisma.pageVisit.count({ where: { createdAt: { gte: monthStart } } }),
+      // Unique visitors this month, not raw page-views: the same browser
+      // reopening the site or navigating between pages must count once. We dedup
+      // by the stable localStorage visitorId; rows with no visitorId (legacy or
+      // storage-blocked) fall back to their own id so each still counts once.
+      (async () => {
+        const rows = await prisma.$queryRaw<{ count: bigint }[]>`
+          SELECT COUNT(DISTINCT COALESCE("visitorId", "id")) AS count
+          FROM page_visits
+          WHERE "createdAt" >= ${monthStart}
+        `;
+        return Number(rows[0]?.count ?? 0);
+      })(),
       prisma.abandonedCart.count({ where: { status: "ACTIVE", itemCount: { gt: 0 } } }),
       prisma.order.count({ where: { createdAt: { gte: monthStart } } }),
       prisma.order.count({ where: { createdAt: { gte: monthStart }, status: { in: [...PAID_STATUSES] as never } } }),

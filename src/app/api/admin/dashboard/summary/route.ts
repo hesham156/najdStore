@@ -51,7 +51,16 @@ export async function GET(req: NextRequest) {
         where: { createdAt: { gte: periodStart, lt: periodEnd } },
         select: { createdAt: true, status: true, total: true },
       }),
-      prisma.pageVisit.count({ where: { createdAt: { gte: periodStart, lt: periodEnd } } }),
+      // Unique visitors in the period (dedup by stable visitorId), not raw
+      // page-views — the same browser revisiting must not inflate the count.
+      (async () => {
+        const rows = await prisma.$queryRaw<{ count: bigint }[]>`
+          SELECT COUNT(DISTINCT COALESCE("visitorId", "id")) AS count
+          FROM page_visits
+          WHERE "createdAt" >= ${periodStart} AND "createdAt" < ${periodEnd}
+        `;
+        return Number(rows[0]?.count ?? 0);
+      })(),
       prisma.storeGoal.findUnique({
         where: { month: `${y}-${String(mo + 1).padStart(2, "0")}` },
       }),
